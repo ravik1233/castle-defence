@@ -1,0 +1,690 @@
+/**
+ * Battle entities: defenders, enemies and projectiles.
+ *
+ * Each entity owns its own view (a `Rig` puppet or a structure sprite) and is
+ * ticked by the battle scene through the `BattleWorld` interface, which is the
+ * only thing they know about the wider game.
+ */
+import Phaser from 'phaser';
+import { characterArt } from '../art/compose';
+import { ALL_CHARACTER_ART } from '../art/cast';
+import type { ProjectileId } from '../art/props';
+import { GRID, WALL_FACE_X, cellCenter, laneGroundY } from '../core/layout';
+import type { DefenderDef, EnemyDef } from '../data/types';
+import { Rig } from '../objects/Rig';
+import { applyDamage, damageAfterArmor } from './combat';
+
+export interface BattleWorld {
+  /** The Phaser scene the battle runs in. Named `stage` because `Scene.scene`
+   *  is already taken by Phaser's own ScenePlugin. */
+  stage: Phaser.Scene;
+  chapter: number;
+  readonly enemies: Enemy[];
+  readonly defenders: Defender[];
+  /** Rally buff multiplier on defender attack speed, 1 when inactive. */
+  rallyFactor: number;
+  defenderAt(row: number, col: number): Defender | undefined;
+  spawnProjectile(opts: ProjectileOptions): void;
+  damageWall(amount: number, atY: number): void;
+  awardGold(amount: number, x: number, y: number): void;
+  onEnemyKilled(enemy: Enemy): void;
+  burst(x: number, y: number, kind: 'hit' | 'blood' | 'magic' | 'explosion' | 'coin' | 'heal'): void;
+  shake(intensity: number): void;
+  sfx(id: import('../systems/audio').SfxId): void;
+}
+
+/* ---------------------------------------------------------------- shared - */
+
+/** Small floating health bar shared by both sides. */
+class HealthBar {
+  private readonly back: Phaser.GameObjects.Image;
+  private readonly fill: Phaser.GameObjects.Image;
+  private readonly width: number;
+
+  constructor(scene: Phaser.Scene, width: number, tone: 'green' | 'red' | 'gold') {
+    this.width = width;
+    this.back = scene.add.image(0, 0, 'ui.hp.back').setDisplaySize(width, width * 0.175).setDepth(1);
+    this.fill = scene.add
+      .image(0, 0, `ui.hp.${tone}`)
+      .setOrigin(0, 0.5)
+      .setDisplaySize(width - 6, width * 0.175 - 6)
+      .setDepth(2);
+    this.setVisible(false);
+  }
+
+  update(x: number, y: number, fraction: number, depth: number): void {
+    const f = Math.max(0, Math.min(1, fraction));
+    this.back.setPosition(x, y).setDepth(depth + 2);
+    this.fill.setPosition(x - (this.width - 6) / 2, y).setDepth(depth + 3);
+    this.fill.setDisplaySize((this.width - 6) * f, this.width * 0.175 - 6);
+    this.setVisible(f < 0.999);
+  }
+
+  setVisible(v: boolean): void {
+    this.back.setVisible(v);
+    this.fill.setVisible(v);
+  }
+
+  destroy(): void {
+    this.back.destroy();
+    this.fill.destroy();
+  }
+}
+
+/* -------------------------------------------------------------- defender - */
+
+export class Defender {
+  readonly def: DefenderDef;
+  readonly row: number;
+  readonly col: number;
+  readonly x: number;
+  readonly y: number;
+  hp: number;
+  readonly maxHp: number;
+  readonly damage: number;
+  alive = true;
+
+  private readonly rig?: Rig;
+  private readonly sprite?: Phaser.GameObjects.Image;
+  private readonly bar: HealthBar;
+  private cooldown = 0;
+  private economyTimer: number;
+  private auraTimer = 0;
+  private pendingShot?: () => void;
+
+  constructor(
+    private readonly world: BattleWorld,
+    def: DefenderDef,
+    row: number,
+    col: number,
+    stats: { hp: number; damage: number },
+  ) {
+    this.def = def;
+    this.row = row;
+    this.col = col;
+    this.maxHp = stats.hp;
+    this.hp = stats.hp;
+    this.damage = stats.damage;
+    const c = cellCenter(row, col);
+    this.x = c.x;
+    this.y = laneGroundY(row);
+    this.economyTimer = def.economy ? def.economy.interval : 0;
+
+    const scene = world.stage;
+    if (def.art.kind === 'unit') {
+      const art = characterArt(ALL_CHARACTER_ART[def.art.id]!);
+      this.rig = new Rig(scene, this.x, this.y, art, { facing: 1, phase: Math.random() * 6 });
+      this.rig.setDepth(this.y);
+      this.rig.play('spawn');
+    } else {
+      this.sprite = scene.add.image(this.x, this.y + 8, def.art.key);
+      this.sprite.setOrigin(0.5, 1);
+      this.sprite.setScale(0.86);
+      this.sprite.setDepth(this.y);
+      scene.tweens.add({
+        targets: this.sprite,
+        scaleY: { from: 0.5, to: 0.86 },
+        scaleX: { from: 1.05, to: 0.86 },
+        duration: 260,
+        ease: 'Back.easeOut',
+      });
+    }
+    this.bar = new HealthBar(scene, 88, 'green');
+  }
+
+  get topY(): number {
+    return this.y - (this.rig ? this.rig.worldHeight : 110);
+  }
+
+  takeDamage(amount: number): void {
+    if (!this.alive) return;
+    const state = { hp: this.hp, maxHp: this.maxHp };
+    applyDamage(state, amount, 0);
+    this.hp = state.hp;
+    this.rig?.flash(0xff8888, 90);
+    this.sprite?.setTintFill(0xffaaaa);
+    if (this.sprite) {
+      this.world.stage.time.delayedCall(80, () => this.sprite?.clearTint());
+    }
+    if (this.hp <= 0) this.kill();
+  }
+
+  heal(amount: number): void {
+    if (!this.alive || this.hp >= this.maxHp) return;
+    this.hp = Math.min(this.maxHp, this.hp + amount);
+    this.world.burst(this.x, this.topY + 20, 'heal');
+  }
+
+  kill(): void {
+    if (!this.alive) return;
+    this.alive = false;
+    this.world.burst(this.x, this.y - 40, 'blood');
+    this.world.sfx('die');
+    if (this.rig) {
+      this.rig.play('die');
+      this.world.stage.time.delayedCall(600, () => this.rig?.destroy());
+    }
+    if (this.sprite) {
+      this.world.stage.tweens.add({
+        targets: this.sprite,
+        alpha: 0,
+        scaleY: 0.4,
+        duration: 260,
+        onComplete: () => this.sprite?.destroy(),
+      });
+    }
+    this.bar.destroy();
+  }
+
+  destroy(): void {
+    this.rig?.destroy();
+    this.sprite?.destroy();
+    this.bar.destroy();
+  }
+
+  update(time: number, delta: number): void {
+    if (!this.alive) return;
+    const dt = delta / 1000;
+    this.rig?.update(time, delta);
+    this.bar.update(this.x, this.topY - 16, this.hp / this.maxHp, this.y);
+
+    if (this.def.economy) {
+      this.economyTimer -= dt;
+      if (this.economyTimer <= 0) {
+        this.economyTimer = this.def.economy.interval;
+        this.world.awardGold(this.def.economy.amount, this.x, this.topY);
+      }
+    }
+
+    if (this.def.aura) {
+      this.auraTimer -= dt;
+      if (this.auraTimer <= 0) {
+        this.auraTimer = this.def.aura.interval;
+        this.pulseAura();
+      }
+    }
+
+    const attack = this.def.attack;
+    if (!attack) return;
+    this.cooldown -= dt * this.world.rallyFactor;
+    if (this.cooldown > 0) return;
+
+    const target = this.findTarget(attack.range, attack.targets !== 'ground');
+    if (!target) return;
+    this.cooldown = 1 / attack.rate;
+
+    const fire = (): void => {
+      if (!this.alive) return;
+      if (attack.projectile) {
+        this.world.spawnProjectile({
+          from: { x: this.x + 30, y: this.topY + 40 },
+          target,
+          damage: this.damage,
+          kind: attack.projectile,
+          splash: attack.splash ?? 0,
+          pierce: attack.pierce ?? 0,
+          hitsAir: attack.targets !== 'ground',
+          row: this.row,
+        });
+        this.world.sfx(
+          attack.projectile === 'cannonball'
+            ? 'cannon'
+            : attack.projectile === 'arrow' || attack.projectile === 'bolt' || attack.projectile === 'spear_throw'
+              ? 'arrow'
+              : 'magic',
+        );
+      } else {
+        // Melee: hit the target, plus anything caught in the swing.
+        this.world.sfx('melee');
+        this.world.burst(target.x - 20, target.y - 60, 'hit');
+        target.takeDamage(this.damage);
+        if (attack.splash) {
+          for (const e of this.world.enemies) {
+            if (e === target || !e.alive || e.row !== this.row) continue;
+            if (Math.abs(e.x - target.x) <= attack.splash) e.takeDamage(this.damage * 0.6);
+          }
+        }
+        if (this.def.trait === 'knockback') target.knockback(26);
+      }
+    };
+
+    if (this.rig) {
+      this.pendingShot = fire;
+      this.rig.play(attack.projectile ? 'cast' : 'attack', () => {
+        this.pendingShot?.();
+        this.pendingShot = undefined;
+      });
+    } else {
+      fire();
+      if (this.sprite) {
+        this.world.stage.tweens.add({
+          targets: this.sprite,
+          scaleX: 0.94,
+          scaleY: 0.92,
+          duration: 90,
+          yoyo: true,
+        });
+      }
+    }
+  }
+
+  private pulseAura(): void {
+    const aura = this.def.aura;
+    if (!aura) return;
+    if (aura.kind === 'heal') {
+      for (const d of this.world.defenders) {
+        if (!d.alive || d === this) continue;
+        if (Phaser.Math.Distance.Between(d.x, d.y, this.x, this.y) <= aura.radius) d.heal(aura.value);
+      }
+      this.world.burst(this.x, this.topY, 'heal');
+    } else if (aura.kind === 'slow') {
+      for (const e of this.world.enemies) {
+        if (!e.alive) continue;
+        if (Phaser.Math.Distance.Between(e.x, e.y, this.x, this.y) <= aura.radius) e.applySlow(aura.value, 1.6);
+      }
+    } else if (aura.kind === 'burn') {
+      for (const e of this.world.enemies) {
+        if (!e.alive) continue;
+        if (Phaser.Math.Distance.Between(e.x, e.y, this.x, this.y) <= aura.radius) {
+          e.takeDamage(aura.value);
+          e.applySlow(0.25, 1.2);
+        }
+      }
+    }
+  }
+
+  private findTarget(range: number, canHitAir: boolean): Enemy | undefined {
+    let best: Enemy | undefined;
+    for (const e of this.world.enemies) {
+      if (!e.alive || e.row !== this.row) continue;
+      if (e.flying && !canHitAir) continue;
+      if (e.x < this.x - 20) continue;
+      if (e.x - this.x > range) continue;
+      if (!best || e.x < best.x) best = e;
+    }
+    return best;
+  }
+}
+
+/* ----------------------------------------------------------------- enemy - */
+
+export interface EnemyOptions {
+  hpScale: number;
+  damageScale: number;
+}
+
+export class Enemy {
+  readonly def: EnemyDef;
+  row: number;
+  x: number;
+  y: number;
+  hp: number;
+  readonly maxHp: number;
+  readonly damage: number;
+  alive = true;
+  readonly flying: boolean;
+
+  private readonly rig: Rig;
+  private readonly bar: HealthBar;
+  private slowFactor = 1;
+  private slowTimer = 0;
+  private frozenTimer = 0;
+  private attackCooldown = 0;
+  private target?: Defender;
+  private hoverPhase = Math.random() * 6;
+  private healTimer = 2;
+  private summonTimer = 6;
+  private charged = false;
+  /** Set once the enemy is close enough to hit the wall. */
+  atWall = false;
+
+  constructor(
+    private readonly world: BattleWorld,
+    def: EnemyDef,
+    row: number,
+    x: number,
+    opts: EnemyOptions,
+  ) {
+    this.def = def;
+    this.row = row;
+    this.x = x;
+    this.maxHp = Math.round(def.hp * opts.hpScale);
+    this.hp = this.maxHp;
+    this.damage = Math.round(def.damage * opts.damageScale);
+    this.flying = Boolean(def.flying);
+    this.y = laneGroundY(row) - (this.flying ? 70 : 0);
+
+    const art = characterArt(ALL_CHARACTER_ART[def.art]!);
+    this.rig = new Rig(world.stage, x, this.y, art, {
+      facing: -1,
+      scale: def.scale ?? 1,
+      phase: Math.random() * 6,
+    });
+    this.rig.setDepth(this.y + (this.flying ? 200 : 0));
+    if (def.tint) this.rig.tintAll(def.tint);
+    if (this.flying) this.rig.setShadowVisible(false);
+    this.bar = new HealthBar(world.stage, def.special === 'boss' ? 220 : 96, 'red');
+  }
+
+  get topY(): number {
+    return this.y - this.rig.worldHeight;
+  }
+
+  get isBoss(): boolean {
+    return this.def.special === 'boss';
+  }
+
+  applySlow(factor: number, duration: number): void {
+    this.slowFactor = Math.min(this.slowFactor, 1 - factor);
+    this.slowTimer = Math.max(this.slowTimer, duration);
+    this.rig.tintAll(0x9fd8ff);
+  }
+
+  freeze(duration: number): void {
+    this.frozenTimer = Math.max(this.frozenTimer, duration);
+    this.rig.tintAll(0x8fd0ff);
+  }
+
+  knockback(px: number): void {
+    this.x += px;
+  }
+
+  takeDamage(amount: number, ignoreArmor = false): void {
+    if (!this.alive) return;
+    const armor = ignoreArmor ? 0 : this.def.armor;
+    const dealt = damageAfterArmor(amount, armor);
+    this.hp -= dealt;
+    this.rig.flash(0xffffff, 70);
+    if (this.hp <= 0) this.die();
+  }
+
+  private die(): void {
+    if (!this.alive) return;
+    this.alive = false;
+    this.rig.play('die');
+    this.bar.destroy();
+    this.world.burst(this.x, this.y - 50, 'blood');
+    this.world.sfx('die');
+    this.world.onEnemyKilled(this);
+    // Powder goblins take the neighbourhood with them.
+    if (this.def.special === 'bomber') {
+      this.world.burst(this.x, this.y - 40, 'explosion');
+      this.world.sfx('explode');
+      for (const d of this.world.defenders) {
+        if (d.alive && Math.abs(d.x - this.x) < 170 && d.row === this.row) d.takeDamage(this.damage);
+      }
+    }
+    this.world.stage.time.delayedCall(700, () => this.rig.destroy());
+  }
+
+  destroy(): void {
+    this.rig.destroy();
+    this.bar.destroy();
+  }
+
+  update(time: number, delta: number): void {
+    if (!this.alive) {
+      this.rig.update(time, delta);
+      return;
+    }
+    const dt = delta / 1000;
+
+    if (this.slowTimer > 0) {
+      this.slowTimer -= dt;
+      if (this.slowTimer <= 0) {
+        this.slowFactor = 1;
+        this.rig.clearTintAll();
+      }
+    }
+    if (this.frozenTimer > 0) {
+      this.frozenTimer -= dt;
+      if (this.frozenTimer <= 0) this.rig.clearTintAll();
+      this.rig.update(time, 0);
+      this.syncView();
+      return;
+    }
+
+    // Support behaviours
+    if (this.def.special === 'healer') {
+      this.healTimer -= dt;
+      if (this.healTimer <= 0) {
+        this.healTimer = 3;
+        let healed = false;
+        for (const e of this.world.enemies) {
+          if (e === this || !e.alive || e.hp >= e.maxHp) continue;
+          if (Math.abs(e.x - this.x) > 320 || e.row !== this.row) continue;
+          e.hp = Math.min(e.maxHp, e.hp + e.maxHp * 0.16);
+          this.world.burst(e.x, e.topY, 'magic');
+          healed = true;
+        }
+        if (healed) this.rig.play('cast');
+      }
+    }
+    if (this.def.special === 'summoner') {
+      this.summonTimer -= dt;
+      if (this.summonTimer <= 0) {
+        this.summonTimer = 9;
+        this.rig.play('cast', () => this.world.stage.events.emit('summon', this));
+      }
+    }
+
+    this.attackCooldown -= dt;
+
+    // Find something to hit: the front-most defender within reach.
+    if (!this.target || !this.target.alive) this.target = this.findBlocker();
+
+    const wallReach = WALL_FACE_X + this.def.range * 0.5;
+    if (this.target) {
+      const dist = this.x - this.target.x;
+      if (dist <= this.def.range) {
+        this.attackTarget(this.target);
+        this.syncView();
+        this.rig.update(time, delta);
+        return;
+      }
+    } else if (this.x <= wallReach) {
+      this.atWall = true;
+      this.attackWall();
+      this.syncView();
+      this.rig.update(time, delta);
+      return;
+    }
+
+    // Otherwise: march.
+    let speed = this.def.speed * this.slowFactor;
+    if (this.def.special === 'charger' && !this.charged && this.x < 700) {
+      this.charged = true;
+      speed *= 1.6;
+    }
+    if (this.def.special === 'leaper' && this.target && this.x - this.target.x < 260) {
+      // Shadow fiends hop over the first line of defence.
+      this.x -= speed * dt * 2.4;
+      this.target = undefined;
+    } else {
+      this.x -= speed * dt;
+    }
+    if (this.rig.current !== 'walk' && !this.rig.isBusy) this.rig.play('walk');
+    this.syncView();
+    this.rig.update(time, delta);
+  }
+
+  private attackTarget(target: Defender): void {
+    if (this.attackCooldown > 0) {
+      if (!this.rig.isBusy) this.rig.play('idle');
+      return;
+    }
+    this.attackCooldown = 1 / this.def.rate;
+    if (this.def.projectile) {
+      this.rig.play('cast', () => {
+        this.world.spawnProjectile({
+          from: { x: this.x - 24, y: this.topY + 40 },
+          targetPoint: { x: target.x, y: target.topY + 30 },
+          damage: this.damage,
+          kind: this.def.projectile!,
+          splash: 0,
+          pierce: 0,
+          hitsAir: true,
+          row: this.row,
+          hostile: true,
+        });
+      });
+    } else {
+      this.rig.play('attack', () => {
+        if (!target.alive) return;
+        target.takeDamage(this.damage);
+        this.world.burst(target.x + 24, target.y - 60, 'hit');
+        this.world.sfx('melee');
+        // Powder goblins detonate on contact instead of chipping away.
+        if (this.def.special === 'bomber') this.takeDamage(this.hp * 2, true);
+      });
+    }
+  }
+
+  private attackWall(): void {
+    if (this.attackCooldown > 0) {
+      if (!this.rig.isBusy) this.rig.play('idle');
+      return;
+    }
+    this.attackCooldown = 1 / this.def.rate;
+    this.rig.play('attack', () => {
+      this.world.damageWall(this.damage, this.y);
+      this.world.sfx('gate');
+      this.world.shake(this.isBoss ? 12 : 5);
+      if (this.def.special === 'bomber') this.takeDamage(this.hp * 2, true);
+    });
+  }
+
+  private findBlocker(): Defender | undefined {
+    let best: Defender | undefined;
+    for (const d of this.world.defenders) {
+      if (!d.alive || d.row !== this.row) continue;
+      if (d.x > this.x) continue;
+      // Flyers ignore ground defenders until they reach the wall.
+      if (this.flying && d.def.role !== 'wall') continue;
+      if (!best || d.x > best.x) best = d;
+    }
+    return best;
+  }
+
+  private syncView(): void {
+    const hover = this.flying ? Math.sin(this.hoverPhase + performance.now() / 420) * 10 : 0;
+    this.rig.setPosition(this.x, this.y + hover);
+    this.rig.setDepth(this.y + (this.flying ? 200 : 0));
+    this.bar.update(this.x, this.topY - 18, this.hp / this.maxHp, this.y + (this.flying ? 200 : 0));
+  }
+}
+
+/* ------------------------------------------------------------ projectile - */
+
+export interface ProjectileOptions {
+  from: { x: number; y: number };
+  target?: Enemy;
+  targetPoint?: { x: number; y: number };
+  damage: number;
+  kind: ProjectileId;
+  splash: number;
+  pierce: number;
+  hitsAir: boolean;
+  row: number;
+  /** Enemy projectiles damage defenders instead. */
+  hostile?: boolean;
+}
+
+export class Projectile {
+  private readonly sprite: Phaser.GameObjects.Image;
+  private readonly speed: number;
+  private readonly arc: boolean;
+  private life = 4;
+  private hitCount = 0;
+  private readonly hitIds = new Set<Enemy>();
+  alive = true;
+
+  constructor(
+    private readonly world: BattleWorld,
+    private readonly opts: ProjectileOptions,
+  ) {
+    this.sprite = world.stage.add.image(opts.from.x, opts.from.y, `shot.${opts.kind}`);
+    this.sprite.setDepth(opts.from.y + 400);
+    this.sprite.setScale(0.62);
+    if (opts.hostile) this.sprite.setFlipX(true);
+    this.speed = opts.kind === 'cannonball' || opts.kind === 'rock' ? 620 : 980;
+    this.arc = opts.kind === 'cannonball' || opts.kind === 'rock' || opts.kind === 'bomb';
+  }
+
+  private currentTargetPoint(): { x: number; y: number } {
+    if (this.opts.target && this.opts.target.alive) {
+      return { x: this.opts.target.x, y: this.opts.target.topY + 40 };
+    }
+    return this.opts.targetPoint ?? { x: this.opts.hostile ? -100 : 2000, y: this.opts.from.y };
+  }
+
+  update(_time: number, delta: number): void {
+    if (!this.alive) return;
+    const dt = delta / 1000;
+    this.life -= dt;
+    const tp = this.currentTargetPoint();
+    const dx = tp.x - this.sprite.x;
+    const dy = tp.y - this.sprite.y;
+    const dist = Math.hypot(dx, dy) || 1;
+    const step = this.speed * dt;
+    this.sprite.x += (dx / dist) * step;
+    this.sprite.y += (dy / dist) * step;
+    this.sprite.setRotation(this.arc ? this.sprite.rotation + dt * 9 : Math.atan2(dy, dx));
+
+    if (this.opts.hostile) {
+      for (const d of this.world.defenders) {
+        if (!d.alive || d.row !== this.opts.row) continue;
+        if (Math.abs(d.x - this.sprite.x) < 46 && Math.abs(d.y - 60 - this.sprite.y) < 90) {
+          d.takeDamage(this.opts.damage);
+          this.explode();
+          return;
+        }
+      }
+      if (this.sprite.x < 120 || this.life <= 0) this.destroy();
+      return;
+    }
+
+    for (const e of this.world.enemies) {
+      if (!e.alive || this.hitIds.has(e)) continue;
+      if (e.row !== this.opts.row) continue;
+      if (e.flying && !this.opts.hitsAir) continue;
+      if (Math.abs(e.x - this.sprite.x) > 44) continue;
+      if (Math.abs(e.y - 50 - this.sprite.y) > 110) continue;
+      this.hitIds.add(e);
+      e.takeDamage(this.opts.damage);
+      this.world.burst(this.sprite.x, this.sprite.y, this.opts.splash ? 'explosion' : 'hit');
+      this.hitCount += 1;
+      if (this.opts.splash > 0) {
+        this.explode();
+        return;
+      }
+      if (this.hitCount > this.opts.pierce) {
+        this.destroy();
+        return;
+      }
+    }
+
+    if (this.sprite.x > 1300 || this.life <= 0) this.destroy();
+  }
+
+  private explode(): void {
+    if (this.opts.splash > 0) {
+      this.world.sfx('explode');
+      this.world.shake(4);
+      for (const e of this.world.enemies) {
+        if (!e.alive || this.hitIds.has(e)) continue;
+        const d = Phaser.Math.Distance.Between(e.x, e.y - 50, this.sprite.x, this.sprite.y);
+        if (d <= this.opts.splash) e.takeDamage(this.opts.damage * 0.7);
+      }
+      this.world.burst(this.sprite.x, this.sprite.y, 'explosion');
+    }
+    this.destroy();
+  }
+
+  destroy(): void {
+    this.alive = false;
+    this.sprite.destroy();
+  }
+}
+
+export const LANE_COUNT = GRID.rows;
