@@ -69,7 +69,7 @@ function specs(): TextureSpec[] {
   for (const id of ['spark', 'smoke', 'ember', 'slash', 'shockwave', 'holy_ring', 'frost_ring', 'blood'] as props.FxId[]) {
     add(`fx.${id}`, props.effect(id));
   }
-  for (const id of ['coin', 'mana', 'gem', 'heart', 'skull', 'crown'] as props.PickupId[]) {
+  for (const id of ['coin', 'mana', 'gem', 'heart', 'skull', 'crown', 'star', 'star_empty'] as props.PickupId[]) {
     add(`icon.${id}`, props.pickup(id));
   }
 

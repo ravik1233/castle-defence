@@ -140,7 +140,7 @@ export function effect(id: FxId): Svg {
   }
 }
 
-export type PickupId = 'coin' | 'gem' | 'heart' | 'skull' | 'crown' | 'mana';
+export type PickupId = 'coin' | 'gem' | 'heart' | 'skull' | 'crown' | 'mana' | 'star' | 'star_empty';
 
 export function pickup(id: PickupId): Svg {
   switch (id) {
@@ -179,6 +179,22 @@ export function pickup(id: PickupId): Svg {
         s.circle(17, 20, 4.6, '#2b2536', { depth: 0 });
         s.circle(27, 20, 4.6, '#2b2536', { depth: 0 });
       });
+    case 'star':
+    case 'star_empty': {
+      const filled = id === 'star';
+      const body = filled ? '#ffd257' : '#4a4060';
+      return draw(48, 46, (s) => {
+        if (filled) s.glow(24, 22, 22, '#ffd257', 0.5);
+        const pts: string[] = [];
+        for (let i = 0; i < 10; i += 1) {
+          const r = i % 2 === 0 ? 21 : 9;
+          const a = -Math.PI / 2 + (i * Math.PI) / 5;
+          pts.push(`${24 + Math.cos(a) * r} ${23 + Math.sin(a) * r * 1.02}`);
+        }
+        s.path(`M ${pts.join(' L ')} Z`, body, { width: 3.5 });
+        if (filled) s.sheen('M 17 15 L 24 8 L 28 16 L 23 20 Z', 0.45);
+      });
+    }
     case 'crown':
       return draw(60, 46, (s) => {
         s.glow(30, 26, 26, '#ffd257', 0.55);

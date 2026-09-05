@@ -3,7 +3,7 @@
  */
 import Phaser from 'phaser';
 import { DESIGN } from '../core/layout';
-import { CROWN_PACK_BENEFITS, store, type StoreProduct } from '../systems/iap';
+import { CROWN_PACK_BENEFITS, isWebTestBuild, store, type StoreProduct } from '../systems/iap';
 import { profile } from '../systems/profile';
 import { audio } from '../systems/audio';
 import { COLORS, TextButton, showDialog, textStyle } from '../ui/kit';
@@ -44,11 +44,11 @@ export class StoreScene extends Phaser.Scene {
     });
 
     const owned = profile.hasCrownPack;
-    this.buyButton = new TextButton(this, w / 2, h - 300, owned ? 'OWNED - THANK YOU' : 'LOADING...', {
-      width: 640,
+    this.buyButton = new TextButton(this, w / 2, h - 300, owned ? 'OWNED — THANK YOU' : 'LOADING...', {
+      width: 680,
       height: 124,
       tone: owned ? 'stone' : 'gold',
-      size: 'title',
+      size: owned ? 'body' : 'title',
       enabled: false,
       onClick: () => void this.buy(),
     });
@@ -65,7 +65,9 @@ export class StoreScene extends Phaser.Scene {
       .text(
         w / 2,
         h - 70,
-        'No ads, no loot boxes, no subscriptions. The base game stays free.',
+        isWebTestBuild()
+          ? 'Web test build: unlocking here is free and local to this browser.'
+          : 'No ads, no loot boxes, no subscriptions. The base game stays free.',
         { ...textStyle('tiny', COLORS.muted), align: 'center', wordWrap: { width: w - 160 } },
       )
       .setOrigin(0.5);

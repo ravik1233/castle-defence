@@ -10,7 +10,7 @@ import { profile } from '../systems/profile';
 import { ensureBattleTextures } from '../systems/textures';
 import { ads } from '../systems/ads';
 import { audio } from '../systems/audio';
-import { COLORS, TextButton, floatText, showDialog, textStyle } from '../ui/kit';
+import { COLORS, TextButton, floatText, showDialog, starRow, textStyle } from '../ui/kit';
 
 interface ResultData {
   levelId: string;
@@ -56,13 +56,19 @@ export class ResultScene extends Phaser.Scene {
     this.add.text(w / 2, 300, lvl.name, textStyle('body', COLORS.parchment)).setOrigin(0.5);
 
     if (victory) {
-      for (let i = 0; i < 3; i += 1) {
-        const star = this.add
-          .text(w / 2 - 130 + i * 130, 430, '*', textStyle('huge', i < this.result.stars ? COLORS.gold : '#4a4060'))
-          .setOrigin(0.5)
-          .setScale(0);
-        this.tweens.add({ targets: star, scale: 1, duration: 300, delay: 200 + i * 220, ease: 'Back.easeOut' });
-      }
+      const stars = starRow(this, w / 2, 440, this.result.stars, 130);
+      stars.each((s: Phaser.GameObjects.GameObject, i: number) => {
+        const img = s as Phaser.GameObjects.Image;
+        img.setScale(0);
+        this.tweens.add({
+          targets: img,
+          scaleX: 130 / img.width,
+          scaleY: 130 / img.height,
+          duration: 320,
+          delay: 220 + i * 240,
+          ease: 'Back.easeOut',
+        });
+      });
       this.payout = profile.recordVictory(lvl.id, this.result.stars, this.result.wave, lvl.reward);
     } else {
       profile.recordDefeat(lvl.id, this.result.wave);
@@ -88,7 +94,8 @@ export class ResultScene extends Phaser.Scene {
       }
     }
 
-    let by = 900;
+    // Buttons sit low, in thumb reach.
+    let by = 1180;
     if (victory && profile.showAds && !this.doubled) {
       new TextButton(this, w / 2, by, `WATCH AD FOR +${this.payout} GOLD`, {
         width: 660,

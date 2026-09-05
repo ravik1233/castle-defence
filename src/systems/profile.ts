@@ -162,9 +162,13 @@ export class Profile {
 
   /* --------------------------------------------------------------- cards - */
 
+  /**
+   * Crown Pack defenders are available the moment the pack is bought - that is
+   * what was sold. Their gold cost is what keeps them out of the first levels.
+   */
   isCardUnlocked(defenderId: string): boolean {
     const def = defender(defenderId);
-    if (def.premium && !this.hasCrownPack) return false;
+    if (def.premium) return this.hasCrownPack;
     return def.unlockLevel <= this.campaignProgress;
   }
 

@@ -6,8 +6,12 @@ import { ALL_LEVELS } from '../data/levels';
 import { profile } from './profile';
 import { writeSave, loadSave } from './save';
 
-/** Grants the Crown Pack, all campaign progress and a pile of gold. */
+/**
+ * Grants the Crown Pack, all campaign progress and a pile of gold.
+ * Never reachable in a shipping build - the caller is gated on the QA flag.
+ */
 export function unlockEverythingForTesting(): void {
+  if (!import.meta.env.DEV && !__QA_BUILD__) return;
   const data = loadSave();
   for (const lvl of ALL_LEVELS) {
     data.levels[lvl.id] = { stars: 3, bestWave: lvl.waves };

@@ -14,6 +14,7 @@ import { SettingsScene } from './scenes/Settings';
 import { ResultScene } from './scenes/Result';
 import { audio } from './systems/audio';
 import { ads } from './systems/ads';
+import { initNativeShell } from './systems/native';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -57,6 +58,16 @@ window.addEventListener('pointerdown', unlock, { once: true });
 window.addEventListener('keydown', unlock, { once: true });
 
 void ads.init();
+
+// On device: hide the splash, own the status bar, and make the Android back
+// button walk back through screens rather than quitting mid-battle.
+void initNativeShell(() => {
+  const active = game.scene.getScenes(true)[0];
+  const key = active?.scene.key;
+  if (!key || key === 'MainMenu') return false;
+  active.scene.start(key === 'Battle' || key === 'Result' ? 'Map' : 'MainMenu');
+  return true;
+});
 
 // Hand the screen over from the HTML splash once Phaser has a canvas up.
 game.events.once('ready', () => {

@@ -104,7 +104,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
    * drives a real battle through this rather than faking pointer events.
    */
   private installTestHooks(): void {
-    if (import.meta.env.PROD) return;
+    if (!import.meta.env.DEV && !__QA_BUILD__) return;
     (globalThis as unknown as { __battle?: unknown }).__battle = {
       place: (id: string, row: number, col: number): boolean => {
         if (!this.canPlaceAt(row, col)) return false;
@@ -113,6 +113,12 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       },
       spawn: (id: string, row: number): void => this.spawnEnemy(id, row),
       nextWave: (): void => this.startWave(),
+      // Jumps to the final wave so the victory path can be exercised.
+      endWaves: (): void => {
+        this.waveIndex = this.waves.length - 1;
+        this.spawnQueue.length = 0;
+        this.updateHud();
+      },
       addGold: (n: number): void => {
         this.gold += n;
         this.updateHud();
@@ -126,6 +132,9 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         defenders: this.defenders.filter((d) => d.alive).length,
         kills: this.killCount,
         finished: this.finished,
+        enemyDump: this.enemies
+          .filter((e) => e.alive)
+          .map((e) => ({ id: e.def.id, row: e.row, x: Math.round(e.x), hp: Math.round(e.hp) })),
       }),
       castAt: (spellIndex: number, x: number, y: number): void => {
         const spell = this.spells[spellIndex]?.spell;
@@ -172,6 +181,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     audio.setTension(0);
 
     if (!this.skipBriefing) this.announce(this.levelDef.name, this.levelDef.brief);
+    if (this.levelDef.id === 'c1l1' && !profile.raw.tutorialDone) this.showTutorialHints();
     this.installTestHooks();
 
     this.events.on('summon', (source: Enemy) => {
@@ -769,6 +779,38 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       this.banner('THE DEMON KING', COLORS.danger);
       this.shake(20);
     }
+  }
+
+  /**
+   * The only tutorial in the game: two hints on the first level, shown once.
+   * The Tithe Shrine hint is the one that matters - players who skip the
+   * economy lose the second wave and do not come back.
+   */
+  private showTutorialHints(): void {
+    const hint = (text: string, y: number, delay: number): void => {
+      const t = this.add
+        .text(DESIGN.width / 2, y, text, {
+          ...textStyle('small', COLORS.parchment),
+          align: 'center',
+          backgroundColor: '#1b1626dd',
+          padding: { x: 22, y: 14 },
+          wordWrap: { width: 760 },
+        })
+        .setOrigin(0.5)
+        .setDepth(6500)
+        .setAlpha(0);
+      this.tweens.add({ targets: t, alpha: 1, duration: 300, delay });
+      this.tweens.add({
+        targets: t,
+        alpha: 0,
+        duration: 400,
+        delay: delay + 7000,
+        onComplete: () => t.destroy(),
+      });
+    };
+    hint('Tap a card, then tap the field to place it.', FIELD.y + 90, 900);
+    hint('Build Tithe Shrines first - they are your only income.', FIELD.y + 220, 4200);
+    profile.markTutorialDone();
   }
 
   private banner(text: string, color: string): void {

@@ -10,7 +10,7 @@ import { WALL_SKINS } from '../art/structures';
 import { profile, PREMIUM_SKINS } from '../systems/profile';
 import { ensureAllCastleSkins } from '../systems/textures';
 import { audio } from '../systems/audio';
-import { COLORS, Counter, TextButton, showDialog, textStyle } from '../ui/kit';
+import { COLORS, Counter, TextButton, fitText, showDialog, textStyle } from '../ui/kit';
 
 type Tab = 'deck' | 'upgrades' | 'hero' | 'castle';
 
@@ -124,9 +124,13 @@ export class ArmoryScene extends Phaser.Scene {
 
       const head = def.art.kind === 'unit' ? `unit.${def.art.id}.head` : def.art.key;
       if (this.textures.exists(head)) {
-        c.add(this.add.image(0, -24, head).setScale(def.art.kind === 'unit' ? 0.42 : 0.34));
+        const img = this.add.image(0, -22, head);
+        // Fit the art into a fixed box so units and buildings line up.
+        const box = def.art.kind === 'unit' ? 92 : 104;
+        img.setScale(Math.min(box / img.width, box / img.height));
+        c.add(img);
       }
-      c.add(this.add.text(0, 48, def.name, textStyle('tiny', COLORS.parchment)).setOrigin(0.5));
+      c.add(fitText(this.add.text(0, 48, def.name, textStyle('tiny', COLORS.parchment)).setOrigin(0.5), 180));
       c.add(
         this.add
           .text(0, 76, unlocked ? `${def.cost}g` : def.premium ? 'Crown Pack' : `Lv ${def.unlockLevel}`, textStyle('tiny', unlocked ? COLORS.gold : COLORS.danger))

@@ -47,6 +47,38 @@ export function textStyle(
   };
 }
 
+/** Shrinks a text object until it fits, so long names never overflow. */
+export function fitText(text: Phaser.GameObjects.Text, maxWidth: number): Phaser.GameObjects.Text {
+  let guard = 0;
+  while (text.width > maxWidth && guard < 30) {
+    const size = parseInt(String(text.style.fontSize), 10);
+    if (size <= 12) break;
+    text.setFontSize(size - 2);
+    guard += 1;
+  }
+  return text;
+}
+
+/** A row of filled/empty stars, centred on x. */
+export function starRow(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  earned: number,
+  size = 46,
+  total = 3,
+): Phaser.GameObjects.Container {
+  const c = scene.add.container(x, y);
+  const gap = size * 0.92;
+  for (let i = 0; i < total; i += 1) {
+    const star = scene.add
+      .image(-((total - 1) / 2) * gap + i * gap, 0, i < earned ? 'icon.star' : 'icon.star_empty')
+      .setDisplaySize(size, size);
+    c.add(star);
+  }
+  return c;
+}
+
 export interface ButtonOptions {
   width?: number;
   height?: number;

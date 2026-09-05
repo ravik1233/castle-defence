@@ -6,6 +6,7 @@ import Phaser from 'phaser';
 import { BACKDROP_SCALE, addTexture, buildTextures, ensureBiome } from '../art/registry';
 import { mapBackdrop, menuBackdrop } from '../art/scenery';
 import { DESIGN, FIELD, GRID } from '../core/layout';
+import { level } from '../data/levels';
 import { profile } from '../systems/profile';
 import { ensureBattleTextures, ensureCastleSkin } from '../systems/textures';
 import { FONT } from '../ui/kit';
@@ -75,12 +76,13 @@ export class PreloadScene extends Phaser.Scene {
 
     // Deep link for testing: ?scene=Battle&level=c2l4&unlock=1
     const params = new URLSearchParams(globalThis.location?.search ?? '');
-    if (params.get('unlock') === '1') unlockEverythingForTesting();
+    if (params.get('unlock') === '1' && (import.meta.env.DEV || __QA_BUILD__)) {
+      unlockEverythingForTesting();
+    }
     const target = params.get('scene');
     if (target) {
       const levelId = params.get('level') ?? 'c1l1';
       if (target === 'Battle') {
-        const { level } = await import('../data/levels');
         await ensureBattleTextures(this, level(levelId).biome, profile.activeSkin);
       }
       this.scene.start(target, { levelId, skipBriefing: params.get('nomodal') === '1' });

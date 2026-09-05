@@ -48,14 +48,19 @@ const FALLBACK_PRODUCT: StoreProduct = {
   priceLabel: `$${CROWN_PACK_PRICE_USD.toFixed(2)}`,
 };
 
-/** Browser/dev adapter: grants the pack locally so the content is testable. */
+/**
+ * Browser adapter. There is no store outside the app, so this grants the pack
+ * locally and says so plainly on the button - the web build exists to test the
+ * game, and the real purchase only happens through Google Play or the App
+ * Store on device.
+ */
 class MockStore implements StoreAdapter {
   async ready(): Promise<boolean> {
     return true;
   }
 
   async product(): Promise<StoreProduct> {
-    return FALLBACK_PRODUCT;
+    return { ...FALLBACK_PRODUCT, priceLabel: 'TEST BUILD - FREE' };
   }
 
   async purchase(): Promise<PurchaseResult> {
@@ -145,14 +150,22 @@ class NativeStore implements StoreAdapter {
 }
 
 function pickAdapter(): StoreAdapter {
-  const isNative = Boolean(
+  return isNativePlatform() ? new NativeStore() : new MockStore();
+}
+
+function isNativePlatform(): boolean {
+  return Boolean(
     (globalThis as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor
       ?.isNativePlatform?.(),
   );
-  return isNative ? new NativeStore() : new MockStore();
 }
 
 export const store: StoreAdapter = pickAdapter();
+
+/** True in the browser build, where purchases are simulated locally. */
+export function isWebTestBuild(): boolean {
+  return !isNativePlatform();
+}
 
 /** What the Crown Pack gives, shown verbatim on the store screen. */
 export const CROWN_PACK_BENEFITS = [

@@ -26,10 +26,13 @@ export function isDead(state: CombatantState): boolean {
   return state.hp <= 0;
 }
 
-/** Star rating from the share of wall health left at the end. */
+/**
+ * Star rating from the share of wall health left at the end.
+ * Three stars means the gate was never touched at all.
+ */
 export function starsForWall(wallHp: number, wallMax: number): number {
   const pct = wallHp / wallMax;
-  if (pct >= 0.999) return 3;
+  if (pct >= 0.9999) return 3;
   if (pct >= 0.6) return 2;
   return 1;
 }

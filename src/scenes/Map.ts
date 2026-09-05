@@ -6,7 +6,7 @@ import type { LevelDef } from '../data/types';
 import { profile } from '../systems/profile';
 import { ensureBattleTextures } from '../systems/textures';
 import { audio } from '../systems/audio';
-import { COLORS, Counter, TextButton, showDialog, textStyle } from '../ui/kit';
+import { COLORS, Counter, TextButton, fitText, showDialog, starRow, textStyle } from '../ui/kit';
 
 export class MapScene extends Phaser.Scene {
   private chapterIndex = 0;
@@ -53,9 +53,10 @@ export class MapScene extends Phaser.Scene {
     };
 
     add(
-      this.add
-        .text(w / 2, 210, chapter.name.toUpperCase(), textStyle('title', '#43301a'))
-        .setOrigin(0.5),
+      fitText(
+        this.add.text(w / 2, 214, chapter.name.toUpperCase(), textStyle('title', '#43301a')).setOrigin(0.5),
+        w - 300,
+      ),
     );
     const stars = profile.chapterStars(chapter.id);
     add(
@@ -66,7 +67,7 @@ export class MapScene extends Phaser.Scene {
 
     if (this.chapterIndex > 0) {
       add(
-        new TextButton(this, 110, 240, '<', {
+        new TextButton(this, 96, 292, '<', {
           width: 110,
           height: 96,
           tone: 'stone',
@@ -79,7 +80,7 @@ export class MapScene extends Phaser.Scene {
     }
     if (this.chapterIndex < CHAPTERS.length - 1) {
       add(
-        new TextButton(this, w - 110, 240, '>', {
+        new TextButton(this, w - 96, 292, '>', {
           width: 110,
           height: 96,
           tone: 'stone',
@@ -138,18 +139,14 @@ export class MapScene extends Phaser.Scene {
       if (!unlocked) {
         node.add(this.add.image(0, 0, 'icon.skull').setDisplaySize(46, 46).setAlpha(0.7));
       }
-      if (record) {
-        for (let s = 0; s < 3; s += 1) {
-          const star = this.add
-            .text(-36 + s * 36, 62, '*', textStyle('body', s < record.stars ? COLORS.gold : '#7a6a52'))
-            .setOrigin(0.5);
-          node.add(star);
-        }
-      }
+      if (record) node.add(starRow(this, 0, 68, record.stars, 34));
       node.add(
-        this.add
-          .text(side < 0 ? 78 : -78, -4, lvl.name, textStyle('small', '#3a2a18'))
-          .setOrigin(side < 0 ? 0 : 1, 0.5),
+        fitText(
+          this.add
+            .text(side < 0 ? 78 : -78, -4, lvl.name, textStyle('small', '#3a2a18'))
+            .setOrigin(side < 0 ? 0 : 1, 0.5),
+          380,
+        ),
       );
 
       node.setSize(300, 110);
