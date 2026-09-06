@@ -1,426 +1,5 @@
 {
   "_comment": "Texture key -> file in this folder. A *.rig entry is a painted parts assembly; a *.frames entry is a drawn animation strip. Written by the scripts/import-*.mjs tools.",
-  "unit.aldric.head": "unit.aldric.head.png",
-  "unit.aldric.armFront": "unit.aldric.armFront.png",
-  "unit.aldric.armBack": "unit.aldric.armBack.png",
-  "unit.aldric.torso": "unit.aldric.torso.png",
-  "unit.aldric.legBack": "unit.aldric.legBack.png",
-  "unit.aldric.legFront": "unit.aldric.legFront.png",
-  "unit.aldric.weapon": "unit.aldric.weapon.png",
-  "unit.aldric.offhand": "unit.aldric.offhand.png",
-  "unit.aldric.rig": {
-    "height": 512,
-    "parts": {
-      "head": {
-        "x": 0,
-        "y": -363,
-        "w": 134,
-        "h": 160,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "armFront": {
-        "x": 97,
-        "y": -343,
-        "w": 97,
-        "h": 237,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "armBack": {
-        "x": -126,
-        "y": -343,
-        "w": 114,
-        "h": 226,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "torso": {
-        "x": 0,
-        "y": -165,
-        "w": 241,
-        "h": 206,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "legBack": {
-        "x": -43,
-        "y": -165,
-        "w": 88,
-        "h": 185,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "legFront": {
-        "x": 43,
-        "y": -165,
-        "w": 99,
-        "h": 180,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "weapon": {
-        "x": 150,
-        "y": -229,
-        "w": 267,
-        "h": 65,
-        "pivot": [
-          0.16,
-          0.5
-        ]
-      },
-      "offhand": {
-        "x": -121,
-        "y": -260,
-        "w": 141,
-        "h": 99,
-        "pivot": [
-          0.5,
-          0.5
-        ]
-      }
-    }
-  },
-  "unit.arbalest.head": "unit.arbalest.head.png",
-  "unit.arbalest.armBack": "unit.arbalest.armBack.png",
-  "unit.arbalest.armFront": "unit.arbalest.armFront.png",
-  "unit.arbalest.torso": "unit.arbalest.torso.png",
-  "unit.arbalest.legBack": "unit.arbalest.legBack.png",
-  "unit.arbalest.legFront": "unit.arbalest.legFront.png",
-  "unit.arbalest.weapon": "unit.arbalest.weapon.png",
-  "unit.arbalest.rig": {
-    "height": 512,
-    "parts": {
-      "head": {
-        "x": 0,
-        "y": -361,
-        "w": 153,
-        "h": 161,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "armBack": {
-        "x": -93,
-        "y": -340,
-        "w": 90,
-        "h": 199,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "armFront": {
-        "x": 71,
-        "y": -340,
-        "w": 92,
-        "h": 198,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "torso": {
-        "x": 0,
-        "y": -155,
-        "w": 178,
-        "h": 215,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "legBack": {
-        "x": -32,
-        "y": -155,
-        "w": 77,
-        "h": 173,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "legFront": {
-        "x": 32,
-        "y": -155,
-        "w": 102,
-        "h": 168,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "weapon": {
-        "x": 111,
-        "y": -222,
-        "w": 350,
-        "h": 93,
-        "pivot": [
-          0.16,
-          0.5
-        ]
-      }
-    }
-  },
-  "unit.archer.head": "unit.archer.head.png",
-  "unit.archer.armBack": "unit.archer.armBack.png",
-  "unit.archer.armFront": "unit.archer.armFront.png",
-  "unit.archer.torso": "unit.archer.torso.png",
-  "unit.archer.legBack": "unit.archer.legBack.png",
-  "unit.archer.legFront": "unit.archer.legFront.png",
-  "unit.archer.weapon": "unit.archer.weapon.png",
-  "unit.archer.rig": {
-    "height": 512,
-    "parts": {
-      "head": {
-        "x": 0,
-        "y": -369,
-        "w": 141,
-        "h": 151,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "armBack": {
-        "x": -90,
-        "y": -346,
-        "w": 78,
-        "h": 183,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "armFront": {
-        "x": 69,
-        "y": -346,
-        "w": 79,
-        "h": 183,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "torso": {
-        "x": 0,
-        "y": -145,
-        "w": 172,
-        "h": 234,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "legBack": {
-        "x": -31,
-        "y": -145,
-        "w": 73,
-        "h": 162,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "legFront": {
-        "x": 31,
-        "y": -145,
-        "w": 96,
-        "h": 158,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "weapon": {
-        "x": 107,
-        "y": -218,
-        "w": 420,
-        "h": 57,
-        "pivot": [
-          0.16,
-          0.5
-        ]
-      }
-    }
-  },
-  "unit.cleric.head": "unit.cleric.head.png",
-  "unit.cleric.armBack": "unit.cleric.armBack.png",
-  "unit.cleric.armFront": "unit.cleric.armFront.png",
-  "unit.cleric.torso": "unit.cleric.torso.png",
-  "unit.cleric.legBack": "unit.cleric.legBack.png",
-  "unit.cleric.legFront": "unit.cleric.legFront.png",
-  "unit.cleric.weapon": "unit.cleric.weapon.png",
-  "unit.cleric.rig": {
-    "height": 512,
-    "parts": {
-      "head": {
-        "x": 0,
-        "y": -366,
-        "w": 147,
-        "h": 156,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "armBack": {
-        "x": -91,
-        "y": -344,
-        "w": 94,
-        "h": 197,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "armFront": {
-        "x": 70,
-        "y": -344,
-        "w": 94,
-        "h": 197,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "torso": {
-        "x": 0,
-        "y": -154,
-        "w": 176,
-        "h": 221,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "legBack": {
-        "x": -32,
-        "y": -154,
-        "w": 96,
-        "h": 173,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "legFront": {
-        "x": 32,
-        "y": -154,
-        "w": 106,
-        "h": 167,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "weapon": {
-        "x": 109,
-        "y": -222,
-        "w": 348,
-        "h": 80,
-        "pivot": [
-          0.16,
-          0.5
-        ]
-      }
-    }
-  },
-  "unit.demon_knight.head": "unit.demon_knight.head.png",
-  "unit.demon_knight.armBack": "unit.demon_knight.armBack.png",
-  "unit.demon_knight.armFront": "unit.demon_knight.armFront.png",
-  "unit.demon_knight.torso": "unit.demon_knight.torso.png",
-  "unit.demon_knight.legBack": "unit.demon_knight.legBack.png",
-  "unit.demon_knight.legFront": "unit.demon_knight.legFront.png",
-  "unit.demon_knight.weapon": "unit.demon_knight.weapon.png",
-  "unit.demon_knight.rig": {
-    "height": 512,
-    "parts": {
-      "head": {
-        "x": 0,
-        "y": -392,
-        "w": 128,
-        "h": 127,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "armBack": {
-        "x": -95,
-        "y": -370,
-        "w": 106,
-        "h": 232,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "armFront": {
-        "x": 73,
-        "y": -370,
-        "w": 109,
-        "h": 232,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "torso": {
-        "x": 0,
-        "y": -184,
-        "w": 182,
-        "h": 217,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "legBack": {
-        "x": -33,
-        "y": -184,
-        "w": 81,
-        "h": 209,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "legFront": {
-        "x": 33,
-        "y": -184,
-        "w": 84,
-        "h": 199,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "weapon": {
-        "x": 113,
-        "y": -251,
-        "w": 269,
-        "h": 86,
-        "pivot": [
-          0.16,
-          0.5
-        ]
-      }
-    }
-  },
   "unit.dwarf_engineer.head": "unit.dwarf_engineer.head.png",
   "unit.dwarf_engineer.armBack": "unit.dwarf_engineer.armBack.png",
   "unit.dwarf_engineer.armFront": "unit.dwarf_engineer.armFront.png",
@@ -782,800 +361,6 @@
       }
     }
   },
-  "unit.frostmage.head": "unit.frostmage.head.png",
-  "unit.frostmage.armBack": "unit.frostmage.armBack.png",
-  "unit.frostmage.armFront": "unit.frostmage.armFront.png",
-  "unit.frostmage.torso": "unit.frostmage.torso.png",
-  "unit.frostmage.legBack": "unit.frostmage.legBack.png",
-  "unit.frostmage.legFront": "unit.frostmage.legFront.png",
-  "unit.frostmage.weapon": "unit.frostmage.weapon.png",
-  "unit.frostmage.rig": {
-    "height": 512,
-    "parts": {
-      "head": {
-        "x": 0,
-        "y": -348,
-        "w": 181,
-        "h": 176,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "armBack": {
-        "x": -87,
-        "y": -327,
-        "w": 89,
-        "h": 187,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "armFront": {
-        "x": 67,
-        "y": -327,
-        "w": 89,
-        "h": 187,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "torso": {
-        "x": 0,
-        "y": -146,
-        "w": 167,
-        "h": 210,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "legBack": {
-        "x": -30,
-        "y": -146,
-        "w": 91,
-        "h": 164,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "legFront": {
-        "x": 30,
-        "y": -146,
-        "w": 101,
-        "h": 159,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "weapon": {
-        "x": 104,
-        "y": -211,
-        "w": 376,
-        "h": 81,
-        "pivot": [
-          0.16,
-          0.5
-        ]
-      }
-    }
-  },
-  "unit.goblin.head": "unit.goblin.head.png",
-  "unit.goblin.armBack": "unit.goblin.armBack.png",
-  "unit.goblin.armFront": "unit.goblin.armFront.png",
-  "unit.goblin.torso": "unit.goblin.torso.png",
-  "unit.goblin.legBack": "unit.goblin.legBack.png",
-  "unit.goblin.legFront": "unit.goblin.legFront.png",
-  "unit.goblin.weapon": "unit.goblin.weapon.png",
-  "unit.goblin.rig": {
-    "height": 512,
-    "parts": {
-      "head": {
-        "x": 0,
-        "y": -389,
-        "w": 182,
-        "h": 129,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "armBack": {
-        "x": -106,
-        "y": -363,
-        "w": 93,
-        "h": 183,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "armFront": {
-        "x": 81,
-        "y": -363,
-        "w": 83,
-        "h": 195,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "torso": {
-        "x": 0,
-        "y": -145,
-        "w": 203,
-        "h": 253,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "legBack": {
-        "x": -37,
-        "y": -145,
-        "w": 129,
-        "h": 175,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "legFront": {
-        "x": 37,
-        "y": -145,
-        "w": 123,
-        "h": 158,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "weapon": {
-        "x": 126,
-        "y": -224,
-        "w": 235,
-        "h": 62,
-        "pivot": [
-          0.16,
-          0.5
-        ]
-      }
-    }
-  },
-  "unit.goblin_bomber.head": "unit.goblin_bomber.head.png",
-  "unit.goblin_bomber.armBack": "unit.goblin_bomber.armBack.png",
-  "unit.goblin_bomber.armFront": "unit.goblin_bomber.armFront.png",
-  "unit.goblin_bomber.torso": "unit.goblin_bomber.torso.png",
-  "unit.goblin_bomber.legBack": "unit.goblin_bomber.legBack.png",
-  "unit.goblin_bomber.legFront": "unit.goblin_bomber.legFront.png",
-  "unit.goblin_bomber.weapon": "unit.goblin_bomber.weapon.png",
-  "unit.goblin_bomber.rig": {
-    "height": 512,
-    "parts": {
-      "head": {
-        "x": 0,
-        "y": -382,
-        "w": 215,
-        "h": 137,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "armBack": {
-        "x": -114,
-        "y": -358,
-        "w": 150,
-        "h": 209,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "armFront": {
-        "x": 88,
-        "y": -358,
-        "w": 82,
-        "h": 206,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "torso": {
-        "x": 0,
-        "y": -151,
-        "w": 219,
-        "h": 240,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "legBack": {
-        "x": -39,
-        "y": -151,
-        "w": 125,
-        "h": 181,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "legFront": {
-        "x": 39,
-        "y": -151,
-        "w": 128,
-        "h": 164,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "weapon": {
-        "x": 136,
-        "y": -226,
-        "w": 140,
-        "h": 105,
-        "pivot": [
-          0.16,
-          0.5
-        ]
-      }
-    }
-  },
-  "unit.goblin_runner.head": "unit.goblin_runner.head.png",
-  "unit.goblin_runner.armBack": "unit.goblin_runner.armBack.png",
-  "unit.goblin_runner.wings": "unit.goblin_runner.wings.png",
-  "unit.goblin_runner.torso": "unit.goblin_runner.torso.png",
-  "unit.goblin_runner.legBack": "unit.goblin_runner.legBack.png",
-  "unit.goblin_runner.armFront": "unit.goblin_runner.armFront.png",
-  "unit.goblin_runner.legFront": "unit.goblin_runner.legFront.png",
-  "unit.goblin_runner.weapon": "unit.goblin_runner.weapon.png",
-  "unit.goblin_runner.rig": {
-    "height": 512,
-    "parts": {
-      "head": {
-        "x": 0,
-        "y": -357,
-        "w": 255,
-        "h": 163,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "armBack": {
-        "x": -135,
-        "y": -329,
-        "w": 119,
-        "h": 234,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "wings": {
-        "x": 83,
-        "y": -329,
-        "w": 97,
-        "h": 249,
-        "pivot": [
-          0.5,
-          0.28
-        ]
-      },
-      "torso": {
-        "x": 0,
-        "y": -83,
-        "w": 261,
-        "h": 286,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "legBack": {
-        "x": -47,
-        "y": -83,
-        "w": 154,
-        "h": 221,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "armFront": {
-        "x": 104,
-        "y": -329,
-        "w": 156,
-        "h": 199,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "legFront": {
-        "x": 47,
-        "y": -83,
-        "w": 51,
-        "h": 90,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "weapon": {
-        "x": 162,
-        "y": -172,
-        "w": 269,
-        "h": 61,
-        "pivot": [
-          0.16,
-          0.5
-        ]
-      }
-    }
-  },
-  "unit.guardian.head": "unit.guardian.head.png",
-  "unit.guardian.armBack": "unit.guardian.armBack.png",
-  "unit.guardian.wings": "unit.guardian.wings.png",
-  "unit.guardian.torso": "unit.guardian.torso.png",
-  "unit.guardian.legBack": "unit.guardian.legBack.png",
-  "unit.guardian.armFront": "unit.guardian.armFront.png",
-  "unit.guardian.weapon": "unit.guardian.weapon.png",
-  "unit.guardian.legFront": "unit.guardian.legFront.png",
-  "unit.guardian.rig": {
-    "height": 512,
-    "parts": {
-      "head": {
-        "x": 0,
-        "y": -357,
-        "w": 148,
-        "h": 166,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "armBack": {
-        "x": -107,
-        "y": -336,
-        "w": 83,
-        "h": 152,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "armFront": {
-        "x": 82,
-        "y": -336,
-        "w": 83,
-        "h": 154,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "torso": {
-        "x": 0,
-        "y": -148,
-        "w": 205,
-        "h": 218,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "legBack": {
-        "x": -37,
-        "y": -148,
-        "w": 77,
-        "h": 176,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "legFront": {
-        "x": 37,
-        "y": -148,
-        "w": 103,
-        "h": 161,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "weapon": {
-        "x": 127,
-        "y": -216,
-        "w": 142,
-        "h": 101,
-        "pivot": [
-          0.16,
-          0.5
-        ]
-      },
-      "wings": {
-        "x": 66,
-        "y": -336,
-        "w": 169,
-        "h": 58,
-        "pivot": [
-          0.5,
-          0.28
-        ]
-      }
-    }
-  },
-  "unit.hobgoblin.head": "unit.hobgoblin.head.png",
-  "unit.hobgoblin.armBack": "unit.hobgoblin.armBack.png",
-  "unit.hobgoblin.wings": "unit.hobgoblin.wings.png",
-  "unit.hobgoblin.torso": "unit.hobgoblin.torso.png",
-  "unit.hobgoblin.legBack": "unit.hobgoblin.legBack.png",
-  "unit.hobgoblin.armFront": "unit.hobgoblin.armFront.png",
-  "unit.hobgoblin.legFront": "unit.hobgoblin.legFront.png",
-  "unit.hobgoblin.weapon": "unit.hobgoblin.weapon.png",
-  "unit.hobgoblin.rig": {
-    "height": 512,
-    "parts": {
-      "head": {
-        "x": 0,
-        "y": -389,
-        "w": 126,
-        "h": 129,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "armBack": {
-        "x": -92,
-        "y": -367,
-        "w": 88,
-        "h": 175,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "armFront": {
-        "x": 71,
-        "y": -367,
-        "w": 74,
-        "h": 177,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "torso": {
-        "x": 0,
-        "y": -175,
-        "w": 176,
-        "h": 223,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "legBack": {
-        "x": -32,
-        "y": -175,
-        "w": 78,
-        "h": 201,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "legFront": {
-        "x": 32,
-        "y": -175,
-        "w": 88,
-        "h": 191,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "wings": {
-        "x": 56,
-        "y": -367,
-        "w": 65,
-        "h": 65,
-        "pivot": [
-          0.5,
-          0.28
-        ]
-      },
-      "weapon": {
-        "x": 109,
-        "y": -244,
-        "w": 162,
-        "h": 45,
-        "pivot": [
-          0.16,
-          0.5
-        ]
-      }
-    }
-  },
-  "unit.imp.head": "unit.imp.head.png",
-  "unit.imp.wings": "unit.imp.wings.png",
-  "unit.imp.cape": "unit.imp.cape.png",
-  "unit.imp.armBack": "unit.imp.armBack.png",
-  "unit.imp.armFront": "unit.imp.armFront.png",
-  "unit.imp.torso": "unit.imp.torso.png",
-  "unit.imp.legBack": "unit.imp.legBack.png",
-  "unit.imp.legFront": "unit.imp.legFront.png",
-  "unit.imp.offhand": "unit.imp.offhand.png",
-  "unit.imp.weapon": "unit.imp.weapon.png",
-  "unit.imp.rig": {
-    "height": 512,
-    "parts": {
-      "head": {
-        "x": 0,
-        "y": -384,
-        "w": 126,
-        "h": 136,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "wings": {
-        "x": 57,
-        "y": -363,
-        "w": 133,
-        "h": 94,
-        "pivot": [
-          0.5,
-          0.28
-        ]
-      },
-      "cape": {
-        "x": -57,
-        "y": -363,
-        "w": 140,
-        "h": 86,
-        "pivot": [
-          0.5,
-          0.28
-        ]
-      },
-      "armBack": {
-        "x": -92,
-        "y": -363,
-        "w": 83,
-        "h": 159,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "armFront": {
-        "x": 71,
-        "y": -363,
-        "w": 100,
-        "h": 152,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "torso": {
-        "x": 0,
-        "y": -179,
-        "w": 178,
-        "h": 214,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "legBack": {
-        "x": -32,
-        "y": -179,
-        "w": 72,
-        "h": 209,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "legFront": {
-        "x": 32,
-        "y": -179,
-        "w": 86,
-        "h": 194,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "weapon": {
-        "x": 110,
-        "y": -245,
-        "w": 248,
-        "h": 96,
-        "pivot": [
-          0.16,
-          0.5
-        ]
-      }
-    }
-  },
-  "unit.militia.head": "unit.militia.head.png",
-  "unit.militia.armBack": "unit.militia.armBack.png",
-  "unit.militia.armFront": "unit.militia.armFront.png",
-  "unit.militia.torso": "unit.militia.torso.png",
-  "unit.militia.legBack": "unit.militia.legBack.png",
-  "unit.militia.legFront": "unit.militia.legFront.png",
-  "unit.militia.weapon": "unit.militia.weapon.png",
-  "unit.militia.rig": {
-    "height": 512,
-    "parts": {
-      "head": {
-        "x": 0,
-        "y": -359,
-        "w": 156,
-        "h": 165,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "armBack": {
-        "x": -78,
-        "y": -338,
-        "w": 89,
-        "h": 199,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "armFront": {
-        "x": 60,
-        "y": -338,
-        "w": 89,
-        "h": 199,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "torso": {
-        "x": 0,
-        "y": -158,
-        "w": 150,
-        "h": 209,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "legBack": {
-        "x": -27,
-        "y": -158,
-        "w": 79,
-        "h": 177,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "legFront": {
-        "x": 27,
-        "y": -158,
-        "w": 104,
-        "h": 172,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "weapon": {
-        "x": 93,
-        "y": -223,
-        "w": 462,
-        "h": 55,
-        "pivot": [
-          0.16,
-          0.5
-        ]
-      }
-    }
-  },
-  "unit.monk.head": "unit.monk.head.png",
-  "unit.monk.armBack": "unit.monk.armBack.png",
-  "unit.monk.armFront": "unit.monk.armFront.png",
-  "unit.monk.torso": "unit.monk.torso.png",
-  "unit.monk.legBack": "unit.monk.legBack.png",
-  "unit.monk.legFront": "unit.monk.legFront.png",
-  "unit.monk.weapon": "unit.monk.weapon.png",
-  "unit.monk.rig": {
-    "height": 512,
-    "parts": {
-      "head": {
-        "x": 0,
-        "y": -379,
-        "w": 108,
-        "h": 140,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "armBack": {
-        "x": -92,
-        "y": -356,
-        "w": 95,
-        "h": 201,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "armFront": {
-        "x": 71,
-        "y": -356,
-        "w": 87,
-        "h": 194,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "torso": {
-        "x": 0,
-        "y": -158,
-        "w": 177,
-        "h": 231,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "legBack": {
-        "x": -32,
-        "y": -158,
-        "w": 80,
-        "h": 175,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "legFront": {
-        "x": 32,
-        "y": -158,
-        "w": 104,
-        "h": 171,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "weapon": {
-        "x": 110,
-        "y": -229,
-        "w": 292,
-        "h": 95,
-        "pivot": [
-          0.16,
-          0.5
-        ]
-      }
-    }
-  },
   "unit.orc.head": "unit.orc.head.png",
   "unit.orc.armBack": "unit.orc.armBack.png",
   "unit.orc.armFront": "unit.orc.armFront.png",
@@ -1740,253 +525,6 @@
       }
     }
   },
-  "unit.orc_warlord.head": "unit.orc_warlord.head.png",
-  "unit.orc_warlord.armBack": "unit.orc_warlord.armBack.png",
-  "unit.orc_warlord.armFront": "unit.orc_warlord.armFront.png",
-  "unit.orc_warlord.torso": "unit.orc_warlord.torso.png",
-  "unit.orc_warlord.legBack": "unit.orc_warlord.legBack.png",
-  "unit.orc_warlord.legFront": "unit.orc_warlord.legFront.png",
-  "unit.orc_warlord.weapon": "unit.orc_warlord.weapon.png",
-  "unit.orc_warlord.rig": {
-    "height": 512,
-    "parts": {
-      "head": {
-        "x": 0,
-        "y": -389,
-        "w": 159,
-        "h": 129,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "armBack": {
-        "x": -104,
-        "y": -367,
-        "w": 103,
-        "h": 166,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "armFront": {
-        "x": 80,
-        "y": -367,
-        "w": 73,
-        "h": 174,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "torso": {
-        "x": 0,
-        "y": -172,
-        "w": 201,
-        "h": 226,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "legBack": {
-        "x": -36,
-        "y": -172,
-        "w": 73,
-        "h": 198,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "legFront": {
-        "x": 36,
-        "y": -172,
-        "w": 89,
-        "h": 187,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "weapon": {
-        "x": 124,
-        "y": -243,
-        "w": 244,
-        "h": 59,
-        "pivot": [
-          0.16,
-          0.5
-        ]
-      }
-    }
-  },
-  "unit.paladin.head": "unit.paladin.head.png",
-  "unit.paladin.armBack": "unit.paladin.armBack.png",
-  "unit.paladin.armFront": "unit.paladin.armFront.png",
-  "unit.paladin.torso": "unit.paladin.torso.png",
-  "unit.paladin.legBack": "unit.paladin.legBack.png",
-  "unit.paladin.legFront": "unit.paladin.legFront.png",
-  "unit.paladin.weapon": "unit.paladin.weapon.png",
-  "unit.paladin.rig": {
-    "height": 512,
-    "parts": {
-      "head": {
-        "x": 0,
-        "y": -368,
-        "w": 121,
-        "h": 154,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "armBack": {
-        "x": -96,
-        "y": -345,
-        "w": 102,
-        "h": 200,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "armFront": {
-        "x": 74,
-        "y": -345,
-        "w": 88,
-        "h": 208,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "torso": {
-        "x": 0,
-        "y": -150,
-        "w": 185,
-        "h": 227,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "legBack": {
-        "x": -33,
-        "y": -150,
-        "w": 77,
-        "h": 170,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "legFront": {
-        "x": 33,
-        "y": -150,
-        "w": 82,
-        "h": 163,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "weapon": {
-        "x": 115,
-        "y": -220,
-        "w": 359,
-        "h": 84,
-        "pivot": [
-          0.16,
-          0.5
-        ]
-      }
-    }
-  },
-  "unit.pyromancer.head": "unit.pyromancer.head.png",
-  "unit.pyromancer.cape": "unit.pyromancer.cape.png",
-  "unit.pyromancer.armFront": "unit.pyromancer.armFront.png",
-  "unit.pyromancer.torso": "unit.pyromancer.torso.png",
-  "unit.pyromancer.armBack": "unit.pyromancer.armBack.png",
-  "unit.pyromancer.legFront": "unit.pyromancer.legFront.png",
-  "unit.pyromancer.legBack": "unit.pyromancer.legBack.png",
-  "unit.pyromancer.weapon": "unit.pyromancer.weapon.png",
-  "unit.pyromancer.rig": {
-    "height": 512,
-    "parts": {
-      "head": {
-        "x": 0,
-        "y": -371,
-        "w": 182,
-        "h": 149,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "legBack": {
-        "x": -30,
-        "y": -153,
-        "w": 99,
-        "h": 197,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "armFront": {
-        "x": 66,
-        "y": -349,
-        "w": 98,
-        "h": 204,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "torso": {
-        "x": 0,
-        "y": -153,
-        "w": 165,
-        "h": 228,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "cape": {
-        "x": -53,
-        "y": -349,
-        "w": 87,
-        "h": 106,
-        "pivot": [
-          0.5,
-          0.28
-        ]
-      },
-      "legFront": {
-        "x": 30,
-        "y": -153,
-        "w": 120,
-        "h": 166,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "weapon": {
-        "x": 102,
-        "y": -223,
-        "w": 292,
-        "h": 76,
-        "pivot": [
-          0.16,
-          0.5
-        ]
-      }
-    }
-  },
   "unit.seraphina.armBack": "unit.seraphina.armBack.png",
   "unit.seraphina.armFront": "unit.seraphina.armFront.png",
   "unit.seraphina.head": "unit.seraphina.head.png",
@@ -2062,265 +600,6 @@
         "y": -222,
         "w": 354,
         "h": 64,
-        "pivot": [
-          0.16,
-          0.5
-        ]
-      }
-    }
-  },
-  "unit.shaman.head": "unit.shaman.head.png",
-  "unit.shaman.cape": "unit.shaman.cape.png",
-  "unit.shaman.wings": "unit.shaman.wings.png",
-  "unit.shaman.torso": "unit.shaman.torso.png",
-  "unit.shaman.armBack": "unit.shaman.armBack.png",
-  "unit.shaman.armFront": "unit.shaman.armFront.png",
-  "unit.shaman.legBack": "unit.shaman.legBack.png",
-  "unit.shaman.weapon": "unit.shaman.weapon.png",
-  "unit.shaman.legFront": "unit.shaman.legFront.png",
-  "unit.shaman.rig": {
-    "height": 512,
-    "parts": {
-      "head": {
-        "x": 0,
-        "y": -382,
-        "w": 154,
-        "h": 137,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "legBack": {
-        "x": -33,
-        "y": -166,
-        "w": 88,
-        "h": 170,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "legFront": {
-        "x": 33,
-        "y": -166,
-        "w": 71,
-        "h": 180,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "armBack": {
-        "x": -96,
-        "y": -360,
-        "w": 41,
-        "h": 86,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "torso": {
-        "x": 0,
-        "y": -166,
-        "w": 185,
-        "h": 225,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "cape": {
-        "x": -59,
-        "y": -360,
-        "w": 115,
-        "h": 133,
-        "pivot": [
-          0.5,
-          0.28
-        ]
-      },
-      "wings": {
-        "x": 59,
-        "y": -360,
-        "w": 114,
-        "h": 131,
-        "pivot": [
-          0.5,
-          0.28
-        ]
-      },
-      "weapon": {
-        "x": 114,
-        "y": -236,
-        "w": 237,
-        "h": 68,
-        "pivot": [
-          0.16,
-          0.5
-        ]
-      }
-    }
-  },
-  "unit.troll.head": "unit.troll.head.png",
-  "unit.troll.armBack": "unit.troll.armBack.png",
-  "unit.troll.armFront": "unit.troll.armFront.png",
-  "unit.troll.torso": "unit.troll.torso.png",
-  "unit.troll.legBack": "unit.troll.legBack.png",
-  "unit.troll.legFront": "unit.troll.legFront.png",
-  "unit.troll.weapon": "unit.troll.weapon.png",
-  "unit.troll.rig": {
-    "height": 512,
-    "parts": {
-      "head": {
-        "x": 0,
-        "y": -397,
-        "w": 125,
-        "h": 120,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "armBack": {
-        "x": -105,
-        "y": -374,
-        "w": 80,
-        "h": 189,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "armFront": {
-        "x": 81,
-        "y": -374,
-        "w": 80,
-        "h": 189,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "torso": {
-        "x": 0,
-        "y": -175,
-        "w": 202,
-        "h": 231,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "legBack": {
-        "x": -36,
-        "y": -175,
-        "w": 78,
-        "h": 199,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "legFront": {
-        "x": 36,
-        "y": -175,
-        "w": 89,
-        "h": 190,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "weapon": {
-        "x": 125,
-        "y": -247,
-        "w": 251,
-        "h": 96,
-        "pivot": [
-          0.16,
-          0.5
-        ]
-      }
-    }
-  },
-  "unit.wraith.head": "unit.wraith.head.png",
-  "unit.wraith.cape": "unit.wraith.cape.png",
-  "unit.wraith.armFront": "unit.wraith.armFront.png",
-  "unit.wraith.torso": "unit.wraith.torso.png",
-  "unit.wraith.armBack": "unit.wraith.armBack.png",
-  "unit.wraith.legFront": "unit.wraith.legFront.png",
-  "unit.wraith.weapon": "unit.wraith.weapon.png",
-  "unit.wraith.legBack": "unit.wraith.legBack.png",
-  "unit.wraith.rig": {
-    "height": 512,
-    "parts": {
-      "head": {
-        "x": 0,
-        "y": -390,
-        "w": 120,
-        "h": 129,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "armBack": {
-        "x": -92,
-        "y": -368,
-        "w": 101,
-        "h": 179,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "armFront": {
-        "x": 71,
-        "y": -368,
-        "w": 100,
-        "h": 162,
-        "pivot": [
-          0.5,
-          0.1
-        ]
-      },
-      "torso": {
-        "x": 0,
-        "y": -182,
-        "w": 177,
-        "h": 217,
-        "pivot": [
-          0.5,
-          1
-        ]
-      },
-      "legBack": {
-        "x": -32,
-        "y": -182,
-        "w": 105,
-        "h": 221,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "legFront": {
-        "x": 32,
-        "y": -182,
-        "w": 82,
-        "h": 198,
-        "pivot": [
-          0.5,
-          0.08
-        ]
-      },
-      "weapon": {
-        "x": 110,
-        "y": -249,
-        "w": 247,
-        "h": 136,
         "pivot": [
           0.16,
           0.5
@@ -2511,7 +790,7 @@
   "unit.militia.frame2": "unit.militia.frame2.png",
   "unit.militia.frames": {
     "count": 5,
-    "width": 391,
+    "width": 298,
     "height": 320,
     "names": [
       "idle",
@@ -2522,5 +801,328 @@
     ]
   },
   "unit.militia.frame3": "unit.militia.frame3.png",
-  "unit.militia.frame4": "unit.militia.frame4.png"
+  "unit.militia.frame4": "unit.militia.frame4.png",
+  "unit.aldric.frame0": "unit.aldric.frame0.png",
+  "unit.aldric.frame1": "unit.aldric.frame1.png",
+  "unit.aldric.frame2": "unit.aldric.frame2.png",
+  "unit.aldric.frame3": "unit.aldric.frame3.png",
+  "unit.aldric.frame4": "unit.aldric.frame4.png",
+  "unit.aldric.frames": {
+    "count": 5,
+    "width": 382,
+    "height": 320,
+    "names": [
+      "idle",
+      "walkA",
+      "walkB",
+      "attack",
+      "die"
+    ]
+  },
+  "unit.arbalest.frame0": "unit.arbalest.frame0.png",
+  "unit.arbalest.frame1": "unit.arbalest.frame1.png",
+  "unit.arbalest.frame2": "unit.arbalest.frame2.png",
+  "unit.arbalest.frame3": "unit.arbalest.frame3.png",
+  "unit.arbalest.frame4": "unit.arbalest.frame4.png",
+  "unit.arbalest.frames": {
+    "count": 5,
+    "width": 254,
+    "height": 320,
+    "names": [
+      "idle",
+      "walkA",
+      "walkB",
+      "attack",
+      "die"
+    ]
+  },
+  "unit.archer.frame0": "unit.archer.frame0.png",
+  "unit.archer.frame1": "unit.archer.frame1.png",
+  "unit.archer.frame2": "unit.archer.frame2.png",
+  "unit.archer.frame3": "unit.archer.frame3.png",
+  "unit.archer.frame4": "unit.archer.frame4.png",
+  "unit.archer.frames": {
+    "count": 5,
+    "width": 208,
+    "height": 321,
+    "names": [
+      "idle",
+      "walkA",
+      "walkB",
+      "attack",
+      "die"
+    ]
+  },
+  "unit.cleric.frame0": "unit.cleric.frame0.png",
+  "unit.cleric.frame1": "unit.cleric.frame1.png",
+  "unit.cleric.frame2": "unit.cleric.frame2.png",
+  "unit.cleric.frame3": "unit.cleric.frame3.png",
+  "unit.cleric.frame4": "unit.cleric.frame4.png",
+  "unit.cleric.frames": {
+    "count": 5,
+    "width": 539,
+    "height": 320,
+    "names": [
+      "idle",
+      "walkA",
+      "walkB",
+      "attack",
+      "die"
+    ]
+  },
+  "unit.demon_knight.frame0": "unit.demon_knight.frame0.png",
+  "unit.demon_knight.frame1": "unit.demon_knight.frame1.png",
+  "unit.demon_knight.frame2": "unit.demon_knight.frame2.png",
+  "unit.demon_knight.frame3": "unit.demon_knight.frame3.png",
+  "unit.demon_knight.frame4": "unit.demon_knight.frame4.png",
+  "unit.demon_knight.frames": {
+    "count": 5,
+    "width": 250,
+    "height": 391,
+    "names": [
+      "idle",
+      "walkA",
+      "walkB",
+      "attack",
+      "die"
+    ]
+  },
+  "unit.frostmage.frame0": "unit.frostmage.frame0.png",
+  "unit.frostmage.frame1": "unit.frostmage.frame1.png",
+  "unit.frostmage.frame2": "unit.frostmage.frame2.png",
+  "unit.frostmage.frame3": "unit.frostmage.frame3.png",
+  "unit.frostmage.frame4": "unit.frostmage.frame4.png",
+  "unit.frostmage.frames": {
+    "count": 5,
+    "width": 351,
+    "height": 392,
+    "names": [
+      "idle",
+      "walkA",
+      "walkB",
+      "attack",
+      "die"
+    ]
+  },
+  "unit.goblin.frame0": "unit.goblin.frame0.png",
+  "unit.goblin.frame1": "unit.goblin.frame1.png",
+  "unit.goblin.frame2": "unit.goblin.frame2.png",
+  "unit.goblin.frame3": "unit.goblin.frame3.png",
+  "unit.goblin.frame4": "unit.goblin.frame4.png",
+  "unit.goblin.frames": {
+    "count": 5,
+    "width": 366,
+    "height": 376,
+    "names": [
+      "idle",
+      "walkA",
+      "walkB",
+      "attack",
+      "die"
+    ]
+  },
+  "unit.goblin_bomber.frame0": "unit.goblin_bomber.frame0.png",
+  "unit.goblin_bomber.frame1": "unit.goblin_bomber.frame1.png",
+  "unit.goblin_bomber.frame2": "unit.goblin_bomber.frame2.png",
+  "unit.goblin_bomber.frame3": "unit.goblin_bomber.frame3.png",
+  "unit.goblin_bomber.frame4": "unit.goblin_bomber.frame4.png",
+  "unit.goblin_bomber.frames": {
+    "count": 5,
+    "width": 332,
+    "height": 386,
+    "names": [
+      "idle",
+      "walkA",
+      "walkB",
+      "attack",
+      "die"
+    ]
+  },
+  "unit.goblin_runner.frame0": "unit.goblin_runner.frame0.png",
+  "unit.goblin_runner.frame1": "unit.goblin_runner.frame1.png",
+  "unit.goblin_runner.frame2": "unit.goblin_runner.frame2.png",
+  "unit.goblin_runner.frame3": "unit.goblin_runner.frame3.png",
+  "unit.goblin_runner.frame4": "unit.goblin_runner.frame4.png",
+  "unit.goblin_runner.frames": {
+    "count": 5,
+    "width": 345,
+    "height": 320,
+    "names": [
+      "idle",
+      "walkA",
+      "walkB",
+      "attack",
+      "die"
+    ]
+  },
+  "unit.guardian.frame0": "unit.guardian.frame0.png",
+  "unit.guardian.frame1": "unit.guardian.frame1.png",
+  "unit.guardian.frame2": "unit.guardian.frame2.png",
+  "unit.guardian.frame3": "unit.guardian.frame3.png",
+  "unit.guardian.frame4": "unit.guardian.frame4.png",
+  "unit.guardian.frames": {
+    "count": 5,
+    "width": 379,
+    "height": 320,
+    "names": [
+      "idle",
+      "walkA",
+      "walkB",
+      "attack",
+      "die"
+    ]
+  },
+  "unit.hobgoblin.frame0": "unit.hobgoblin.frame0.png",
+  "unit.hobgoblin.frame1": "unit.hobgoblin.frame1.png",
+  "unit.hobgoblin.frame2": "unit.hobgoblin.frame2.png",
+  "unit.hobgoblin.frame3": "unit.hobgoblin.frame3.png",
+  "unit.hobgoblin.frame4": "unit.hobgoblin.frame4.png",
+  "unit.hobgoblin.frames": {
+    "count": 5,
+    "width": 287,
+    "height": 320,
+    "names": [
+      "idle",
+      "walkA",
+      "walkB",
+      "attack",
+      "die"
+    ]
+  },
+  "unit.imp.frame0": "unit.imp.frame0.png",
+  "unit.imp.frame1": "unit.imp.frame1.png",
+  "unit.imp.frame2": "unit.imp.frame2.png",
+  "unit.imp.frame3": "unit.imp.frame3.png",
+  "unit.imp.frame4": "unit.imp.frame4.png",
+  "unit.imp.frames": {
+    "count": 5,
+    "width": 340,
+    "height": 320,
+    "names": [
+      "idle",
+      "walkA",
+      "walkB",
+      "attack",
+      "die"
+    ]
+  },
+  "unit.monk.frame0": "unit.monk.frame0.png",
+  "unit.monk.frame1": "unit.monk.frame1.png",
+  "unit.monk.frame2": "unit.monk.frame2.png",
+  "unit.monk.frame3": "unit.monk.frame3.png",
+  "unit.monk.frame4": "unit.monk.frame4.png",
+  "unit.monk.frames": {
+    "count": 5,
+    "width": 231,
+    "height": 320,
+    "names": [
+      "idle",
+      "walkA",
+      "walkB",
+      "attack",
+      "die"
+    ]
+  },
+  "unit.orc_warlord.frame0": "unit.orc_warlord.frame0.png",
+  "unit.orc_warlord.frame1": "unit.orc_warlord.frame1.png",
+  "unit.orc_warlord.frame2": "unit.orc_warlord.frame2.png",
+  "unit.orc_warlord.frame3": "unit.orc_warlord.frame3.png",
+  "unit.orc_warlord.frame4": "unit.orc_warlord.frame4.png",
+  "unit.orc_warlord.frames": {
+    "count": 5,
+    "width": 263,
+    "height": 399,
+    "names": [
+      "idle",
+      "walkA",
+      "walkB",
+      "attack",
+      "die"
+    ]
+  },
+  "unit.paladin.frame0": "unit.paladin.frame0.png",
+  "unit.paladin.frame1": "unit.paladin.frame1.png",
+  "unit.paladin.frame2": "unit.paladin.frame2.png",
+  "unit.paladin.frame3": "unit.paladin.frame3.png",
+  "unit.paladin.frame4": "unit.paladin.frame4.png",
+  "unit.paladin.frames": {
+    "count": 5,
+    "width": 331,
+    "height": 320,
+    "names": [
+      "idle",
+      "walkA",
+      "walkB",
+      "attack",
+      "die"
+    ]
+  },
+  "unit.pyromancer.frame0": "unit.pyromancer.frame0.png",
+  "unit.pyromancer.frame1": "unit.pyromancer.frame1.png",
+  "unit.pyromancer.frame2": "unit.pyromancer.frame2.png",
+  "unit.pyromancer.frame3": "unit.pyromancer.frame3.png",
+  "unit.pyromancer.frame4": "unit.pyromancer.frame4.png",
+  "unit.pyromancer.frames": {
+    "count": 5,
+    "width": 312,
+    "height": 324,
+    "names": [
+      "idle",
+      "walkA",
+      "walkB",
+      "attack",
+      "die"
+    ]
+  },
+  "unit.shaman.frame0": "unit.shaman.frame0.png",
+  "unit.shaman.frame1": "unit.shaman.frame1.png",
+  "unit.shaman.frame2": "unit.shaman.frame2.png",
+  "unit.shaman.frame3": "unit.shaman.frame3.png",
+  "unit.shaman.frame4": "unit.shaman.frame4.png",
+  "unit.shaman.frames": {
+    "count": 5,
+    "width": 472,
+    "height": 320,
+    "names": [
+      "idle",
+      "walkA",
+      "walkB",
+      "attack",
+      "die"
+    ]
+  },
+  "unit.troll.frame0": "unit.troll.frame0.png",
+  "unit.troll.frame1": "unit.troll.frame1.png",
+  "unit.troll.frame2": "unit.troll.frame2.png",
+  "unit.troll.frame3": "unit.troll.frame3.png",
+  "unit.troll.frame4": "unit.troll.frame4.png",
+  "unit.troll.frames": {
+    "count": 5,
+    "width": 276,
+    "height": 320,
+    "names": [
+      "idle",
+      "walkA",
+      "walkB",
+      "attack",
+      "die"
+    ]
+  },
+  "unit.wraith.frame0": "unit.wraith.frame0.png",
+  "unit.wraith.frame1": "unit.wraith.frame1.png",
+  "unit.wraith.frame2": "unit.wraith.frame2.png",
+  "unit.wraith.frame3": "unit.wraith.frame3.png",
+  "unit.wraith.frame4": "unit.wraith.frame4.png",
+  "unit.wraith.frames": {
+    "count": 5,
+    "width": 337,
+    "height": 331,
+    "names": [
+      "idle",
+      "walkA",
+      "walkB",
+      "attack",
+      "die"
+    ]
+  }
 }
