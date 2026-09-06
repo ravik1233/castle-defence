@@ -2505,5 +2505,22 @@
   },
   "unit.orc.cape": "unit.orc.cape.png",
   "unit.orc.wings": "unit.orc.wings.png",
-  "unit.seraphina.cape": "unit.seraphina.cape.png"
+  "unit.seraphina.cape": "unit.seraphina.cape.png",
+  "unit.militia.frame0": "unit.militia.frame0.png",
+  "unit.militia.frame1": "unit.militia.frame1.png",
+  "unit.militia.frame2": "unit.militia.frame2.png",
+  "unit.militia.frames": {
+    "count": 5,
+    "width": 391,
+    "height": 320,
+    "names": [
+      "idle",
+      "walkA",
+      "walkB",
+      "attack",
+      "die"
+    ]
+  },
+  "unit.militia.frame3": "unit.militia.frame3.png",
+  "unit.militia.frame4": "unit.militia.frame4.png"
 }
