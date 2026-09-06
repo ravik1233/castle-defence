@@ -12,3 +12,10 @@ ios/
 coverage/
 .vite/
 screenshots/
+
+# Raw generator output. A Gemini PNG is 5-6 MB; the whole set is ~190 MB, which
+# GitHub refuses on upload and which would sit in the repo's history forever.
+# Only the processed result belongs in git: after chroma-key, trim and downscale
+# the same art lands in public/assets/painted/ at a couple of hundred KB apiece.
+art-in/*
+!art-in/README.md
