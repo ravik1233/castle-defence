@@ -165,10 +165,14 @@ Attach the unit's finished single-figure art as a reference image, then:
 > same face, same weapon, same proportions - draw a 5-frame animation strip of
 > that same character.
 >
-> Layout: one horizontal row, five equal square cells, left to right, no gaps,
-> no dividing lines, no numbers, no text. The character is the same size in
-> every cell and stands on the same ground line in every cell, feet at the same
-> height, body centred in its cell. Facing right in all five.
+> One horizontal row of five poses, left to right, evenly spaced, all the same
+> size, all standing on the same ground line with their feet at the same
+> height. Facing right in all five.
+>
+> Every figure must be completely separate. No figure, weapon, or weapon tip
+> may touch, cross, or overlap the figure beside it - leave clear empty
+> background between them. Every figure and its whole weapon must be fully
+> inside the image with a margin on all sides, nothing cropped by the edge.
 >
 > Frame 1: standing idle, weight settled, weapon held ready.
 > Frame 2: walking, near leg forward mid-stride, opposite arm forward.
@@ -176,11 +180,20 @@ Attach the unit's finished single-figure art as a reference image, then:
 > Frame 4: attacking, the strike at full extension.
 > Frame 5: dying, falling backwards off balance, weapon dropping.
 >
-> Flat solid #00FF6A background across the whole strip. No shadows on the
-> ground, no border, no frame, no text.
+> Wide image, roughly 4:1. The figures fill the height of the image with only
+> a small margin above and below. Flat solid #00FF6A background. No ground
+> shadow, no border, no frame, no text, no dividing lines.
 
 Use magenta `#FF00E5` instead for any green character, exactly as for the
 single figures.
+
+The overlap and margin paragraph is there because the first real strip put the
+attacking spear through the dying man's head, and clipped the last weapon off
+the edge. Two figures that touch are one shape as far as the importer is
+concerned, and it cannot tell them apart.
+
+The wide-image line is there because the first strip left the bottom third
+empty, which spends resolution on background instead of character.
 
 ### Checking a strip before generating 24 more
 
@@ -188,9 +201,15 @@ Open it and look for these, in order - each one is fatal and none is fixable
 in code:
 
 1. Are all five the same character? Watch the helmet, the belt, the weapon.
-2. Are the feet on one line? Lay a ruler along the bottom of the boots.
-3. Is the character the same size in each cell?
-4. Is every cell the same width, with the character centred in it?
+   Gemini is good at this - it is the rest of the list that tends to fail.
+2. Does any figure or weapon touch the one beside it? Look hardest at the
+   attack frame, whose weapon reaches furthest.
+3. Is anything cropped by the edge of the image, a spear tip especially?
+4. Are the feet roughly on one line, and the figures roughly one size?
+
+Points 2 and 3 are fatal - regenerate. Point 4 is not: the importer trims each
+figure and normalises it to a common height and ground line, so moderate drift
+comes out fine.
 
 If the strip passes, name it `art-in/unit.<id>.frames.png` and say so - the
 importer for these is not written yet, deliberately, because it should be
