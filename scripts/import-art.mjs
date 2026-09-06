@@ -106,23 +106,66 @@ for (const file of files) {
       ctx.putImageData(data, 0, 0);
     }
 
-    // Trim fully transparent margins so the art is anchored precisely.
-    let minX = c.width;
-    let minY = c.height;
-    let maxX = -1;
-    let maxY = -1;
     const alpha = ctx.getImageData(0, 0, c.width, c.height).data;
+
+    // Column occupancy, used both to trim and to spot a multi-up sheet.
+    const solidCols = new Array(c.width).fill(0);
+    let minY = c.height;
+    let maxY = -1;
     for (let y = 0; y < c.height; y += 1) {
       for (let x = 0; x < c.width; x += 1) {
         if (alpha[(y * c.width + x) * 4 + 3] > 8) {
-          if (x < minX) minX = x;
-          if (x > maxX) maxX = x;
+          solidCols[x] += 1;
           if (y < minY) minY = y;
           if (y > maxY) maxY = y;
         }
       }
     }
-    if (maxX < 0) return { error: 'image is fully transparent after keying' };
+    if (maxY < 0) return { error: 'image is fully transparent after keying' };
+
+    /*
+     * Image models like to answer "a character" with a sheet of three poses.
+     * Trimming that to its content bounds would import all three as one
+     * sprite, so runs of empty columns are treated as gaps between figures
+     * and the widest figure is taken.
+     */
+    const gapThreshold = Math.max(6, Math.round(c.width * 0.012));
+    const islands = [];
+    let runStart = -1;
+    let emptyRun = 0;
+    for (let x = 0; x <= c.width; x += 1) {
+      const filled = x < c.width && solidCols[x] > 0;
+      if (filled) {
+        if (runStart < 0) runStart = x;
+        emptyRun = 0;
+      } else if (runStart >= 0) {
+        emptyRun += 1;
+        if (emptyRun >= gapThreshold || x === c.width) {
+          islands.push([runStart, x - emptyRun]);
+          runStart = -1;
+          emptyRun = 0;
+        }
+      }
+    }
+    const wide = islands.filter(([a, b]) => b - a > c.width * 0.06);
+    const chosen = wide.length
+      ? wide.reduce((best, cur) => (cur[1] - cur[0] > best[1] - best[0] ? cur : best))
+      : [0, c.width - 1];
+    const minX = chosen[0];
+    const maxX = chosen[1];
+
+    // Vertical bounds of the chosen figure only.
+    minY = c.height;
+    maxY = -1;
+    for (let y = 0; y < c.height; y += 1) {
+      for (let x = minX; x <= maxX; x += 1) {
+        if (alpha[(y * c.width + x) * 4 + 3] > 8) {
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+          break;
+        }
+      }
+    }
 
     const tw = maxX - minX + 1;
     const th = maxY - minY + 1;
@@ -137,6 +180,7 @@ for (const file of files) {
       height: th,
       source: `${img.width}x${img.height}`,
       keyed: removed > 0,
+      figures: wide.length,
     };
   }, { src: dataUri, isBackdrop: key.startsWith('bg.') });
 
@@ -150,7 +194,8 @@ for (const file of files) {
   manifest[key] = outName;
   console.log(
     `  ${key}: ${result.source} -> ${result.width}x${result.height}` +
-      (result.keyed ? ' (background removed)' : ''),
+      (result.keyed ? ' (background removed)' : '') +
+      (result.figures > 1 ? ` (sheet of ${result.figures}, took the widest)` : ''),
   );
 }
 

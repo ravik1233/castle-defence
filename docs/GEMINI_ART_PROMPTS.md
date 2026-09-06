@@ -26,6 +26,17 @@ magenta.
 flips enemies horizontally itself. A character facing left will attack
 backwards.
 
+**3. One character per image, whole figure inside the frame.** Models like to
+answer "a character" with a sheet of three poses. The importer copes - it
+splits on the gaps and takes the widest figure - but you get a cleaner result
+asking for one. Add *"a single character, one figure only, centred, whole
+figure and weapon inside the frame with a small margin"* and, if it still
+returns a sheet, just let the importer handle it.
+
+**4. Keep the weapon roughly within the figure's height.** The game scales a
+sprite so its full height fits a lane, so a spear standing a head above the
+character makes the character himself render smaller than his neighbours.
+
 ## The style prompt
 
 Start every prompt with this block. Generate **one** character first, get it
@@ -35,11 +46,11 @@ others — Gemini holds style well when it can see an example.
 > Mobile game character art in the style of Clash Royale and Plants vs
 > Zombies: bold clean shapes, thick dark outline, saturated colours, soft
 > painted shading with a single light source from the upper left, subtle rim
-> light, slightly exaggerated cartoon proportions with a large head and big
-> hands. Full body, side view in three-quarter turn, facing right, standing in
-> an idle combat pose. Flat solid #00FF6A background, no shadow on the ground,
-> no text, no border, no frame. Centred, whole figure visible with a small
-> margin.
+> light, exaggerated cartoon proportions - noticeably large head, big hands,
+> short sturdy legs. A single character, one figure only. Full body, side view
+> in three-quarter turn, facing right, standing in an idle combat pose. Flat
+> solid #00FF6A background, no shadow on the ground, no text, no border, no
+> frame. Centred, whole figure and weapon inside the frame with a small margin.
 
 Then add the character line from the table, then:
 
@@ -123,6 +134,14 @@ UI, no text, painted mobile game art"*.
 | `bg.woods.png` | A burnt forest of black leafless trees under a bruised purple sky, grey ash drifting, cold and dead. |
 | `bg.abyss.png` | Cracked volcanic rock glowing with orange lava veins under a blood-red sky, jagged obsidian spires, embers rising. |
 | `bg.throne.png` | The black basalt floor of a demon throne room, towering pillars, glowing red runes, deep shadow and hellfire light. |
+
+## On proportions
+
+Image models default to realistic human proportions. At gameplay size a
+character is about 135px tall on a phone, and a realistic head becomes a dot.
+Push for a **large head and big hands** in every prompt - it is the single
+change that most improves how the cast reads in play, and it is what makes
+Clash Royale and Plants vs Zombies legible at thumbnail size.
 
 ## Getting a consistent set
 
