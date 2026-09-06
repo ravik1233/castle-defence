@@ -8,7 +8,7 @@
  */
 
 export const SAVE_KEY = 'lastgate.save.v1';
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 export interface LevelRecord {
   /** 1-3, based on how much wall health survived. */
@@ -24,6 +24,12 @@ export interface Settings {
   bigUi: boolean;
   /** 'auto' picks a tier from the device and the measured frame rate. */
   quality: 'auto' | 'high' | 'low';
+  /**
+   * Draws a marker where the game thinks a press landed, with the mapping
+   * error. Defaults on while an input offset is being diagnosed on real
+   * hardware; flip the default in defaultSave() before release.
+   */
+  touchDebug: boolean;
 }
 
 export interface SaveData {
@@ -61,7 +67,7 @@ export function defaultSave(): SaveData {
     crownPack: false,
     ownedSkins: ['stone'],
     activeSkin: 'stone',
-    settings: { sfx: true, music: true, haptics: true, bigUi: false, quality: 'auto' },
+    settings: { sfx: true, music: true, haptics: true, bigUi: false, quality: 'auto', touchDebug: true },
     stats: { kills: 0, battles: 0, victories: 0, goldEarned: 0 },
     tutorialDone: false,
     adFreeUntil: 0,
@@ -86,6 +92,11 @@ const MIGRATIONS: Record<number, Migration> = {
     ...d,
     settings: { quality: 'auto', ...(d.settings as object) },
     version: 4,
+  }),
+  4: (d) => ({
+    ...d,
+    settings: { touchDebug: true, ...(d.settings as object) },
+    version: 5,
   }),
 };
 

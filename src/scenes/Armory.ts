@@ -31,17 +31,17 @@ export class ArmoryScene extends Phaser.Scene {
     this.add.image(w / 2, DESIGN.height / 2, 'bg.menu').setDisplaySize(w, DESIGN.height).setAlpha(0.22);
 
     this.deck = profile.effectiveDeck();
-    this.goldCounter = new Counter(this, 44, 70, 'icon.coin', profile.gold, 'body');
-    new TextButton(this, w - 92, 70, '<', {
-      width: 120,
-      height: 92,
+    this.goldCounter = new Counter(this, 40, 48, 'icon.coin', profile.gold, 'body');
+    new TextButton(this, w - 70, 48, '<', {
+      width: 104,
+      height: 76,
       tone: 'stone',
       onClick: () => {
         profile.setDeck(this.deck);
         this.scene.start('MainMenu');
       },
     });
-    this.add.text(w / 2, 70, 'ARMOURY', textStyle('title', COLORS.gold)).setOrigin(0.5);
+    this.add.text(w / 2, 48, 'ARMOURY', textStyle('title', COLORS.gold)).setOrigin(0.5);
 
     const tabs: Array<[Tab, string]> = [
       ['deck', 'DECK'],
@@ -50,10 +50,11 @@ export class ArmoryScene extends Phaser.Scene {
       ['castle', 'CASTLE'],
     ];
     tabs.forEach(([id, label], i) => {
-      const bw = 240;
-      new TextButton(this, 150 + i * (bw + 16), 190, label, {
+      const bw = 260;
+      const total = tabs.length * bw + (tabs.length - 1) * 16;
+      new TextButton(this, (w - total) / 2 + bw / 2 + i * (bw + 16), 132, label, {
         width: bw,
-        height: 88,
+        height: 76,
         size: 'small',
         tone: 'stone',
         onClick: () => {
@@ -104,22 +105,22 @@ export class ArmoryScene extends Phaser.Scene {
     const w = DESIGN.width;
     this.track(
       this.add
-        .text(w / 2, 268, 'Tap to add or remove. Six cards go to war.', textStyle('small', COLORS.muted))
+        .text(w / 2, 196, 'Tap to add or remove. Six cards go to war.', textStyle('small', COLORS.muted))
         .setOrigin(0.5),
     );
 
-    const cols = 4;
-    const cw = 232;
-    const ch = 210;
+    const cols = 7;
+    const cw = 250;
+    const ch = 230;
     const startX = (w - cols * cw) / 2 + cw / 2;
     DEFENDERS.forEach((def, i) => {
       const unlocked = profile.isCardUnlocked(def.id);
       const x = startX + (i % cols) * cw;
-      const y = 380 + Math.floor(i / cols) * ch;
+      const y = 330 + Math.floor(i / cols) * ch;
       const c = this.track(this.add.container(x, y));
       const inDeck = this.deck.includes(def.id);
 
-      const frame = this.add.image(0, 0, 'ui.card').setDisplaySize(200, 180);
+      const frame = this.add.image(0, 0, 'ui.card').setDisplaySize(214, 190);
       frame.setTint(inDeck ? 0x9ff0b4 : unlocked ? 0xffffff : 0x6a6478);
       c.add(frame);
 
@@ -185,35 +186,47 @@ export class ArmoryScene extends Phaser.Scene {
     const w = DESIGN.width;
     this.track(
       this.add
-        .text(w / 2, 268, 'Gold spent here is permanent.', textStyle('small', COLORS.muted))
+        .text(w / 2, 196, 'Gold spent here is permanent.', textStyle('small', COLORS.muted))
         .setOrigin(0.5),
     );
     const unlocked = DEFENDERS.filter((d) => profile.isCardUnlocked(d.id));
-    unlocked.slice(0, 9).forEach((def, i) => {
-      const y = 350 + i * 132;
+    const colW = w / 2;
+    unlocked.slice(0, 10).forEach((def, i) => {
+      const col = i % 2;
+      const cx = colW / 2 + col * colW;
+      const y = 280 + Math.floor(i / 2) * 148;
       const lvl = profile.upgradeLevel(def.id);
       const stats = upgradedStats(def, lvl);
       const maxed = lvl >= MAX_UPGRADE_LEVEL;
       const cost = upgradeCost(def, lvl);
 
-      this.track(this.add.rectangle(w / 2, y, w - 120, 116, 0x2a2338, 0.85).setStrokeStyle(3, 0x4a4060));
+      this.track(this.add.rectangle(cx, y, colW - 60, 128, 0x2a2338, 0.85).setStrokeStyle(3, 0x4a4060));
       const portrait = portraitFor(this, def);
       if (portrait) {
-        const img = this.add.image(120, y, portrait.key);
-        img.setScale(Math.min(80 / img.width, 80 / img.height));
+        const img = this.add.image(cx - colW / 2 + 70, y, portrait.key);
+        img.setScale(Math.min(90 / img.width, 90 / img.height));
         this.track(img);
       }
-      this.track(this.add.text(200, y - 26, `${def.name}  ${'|'.repeat(lvl)}`, textStyle('small', COLORS.parchment)).setOrigin(0, 0.5));
       this.track(
         this.add
-          .text(200, y + 20, `${stats.hp} hp   ${stats.damage ? `${stats.damage} dmg` : 'support'}`, textStyle('tiny', COLORS.muted))
+          .text(cx - colW / 2 + 130, y - 26, `${def.name}  ${'|'.repeat(lvl)}`, textStyle('small', COLORS.parchment))
+          .setOrigin(0, 0.5),
+      );
+      this.track(
+        this.add
+          .text(
+            cx - colW / 2 + 130,
+            y + 20,
+            `${stats.hp} hp   ${stats.damage ? `${stats.damage} dmg` : 'support'}`,
+            textStyle('tiny', COLORS.muted),
+          )
           .setOrigin(0, 0.5),
       );
 
       this.track(
-        new TextButton(this, w - 190, y, maxed ? 'MAX' : `${cost}g`, {
-          width: 250,
-          height: 88,
+        new TextButton(this, cx + colW / 2 - 150, y, maxed ? 'MAX' : `${cost}g`, {
+          width: 220,
+          height: 82,
           size: 'small',
           tone: maxed ? 'stone' : profile.gold >= cost ? 'gold' : 'stone',
           enabled: !maxed && profile.gold >= cost,
@@ -232,40 +245,45 @@ export class ArmoryScene extends Phaser.Scene {
 
   private drawHero(): void {
     const w = DESIGN.width;
+    const colW = w / 2;
     HEROES.forEach((h, i) => {
-      const y = 420 + i * 520;
+      const cx = colW / 2 + i * colW;
+      const y = 620;
       const owned = !h.premium || profile.hasCrownPack;
       const active = profile.heroId === h.id;
       this.track(
         this.add
-          .rectangle(w / 2, y, w - 120, 470, active ? 0x33405e : 0x2a2338, 0.9)
+          .rectangle(cx, y, colW - 70, 640, active ? 0x33405e : 0x2a2338, 0.9)
           .setStrokeStyle(4, active ? 0xf5c542 : 0x4a4060),
       );
       const head = `unit.${h.art}.head`;
-      if (this.textures.exists(head)) this.track(this.add.image(180, y - 110, head).setScale(0.6));
-      this.track(this.add.text(300, y - 150, h.name, textStyle('title', COLORS.gold)).setOrigin(0, 0.5));
-      this.track(this.add.text(300, y - 96, h.title, textStyle('small', COLORS.muted)).setOrigin(0, 0.5));
+      if (this.textures.exists(head)) this.track(this.add.image(cx - 250, y - 200, head).setScale(0.5));
+      this.track(this.add.text(cx - 170, y - 230, h.name, textStyle('title', COLORS.gold)).setOrigin(0, 0.5));
+      this.track(this.add.text(cx - 170, y - 178, h.title, textStyle('small', COLORS.muted)).setOrigin(0, 0.5));
       this.track(
         this.add
-          .text(120, y - 40, h.blurb, { ...textStyle('small'), wordWrap: { width: w - 260 } })
+          .text(cx - 320, y - 120, h.blurb, { ...textStyle('small'), wordWrap: { width: colW - 130 } })
           .setOrigin(0, 0),
       );
       h.spells.forEach((s, si) => {
-        const sy = y + 70 + si * 96;
+        const sy = y + 10 + si * 110;
         if (this.textures.exists(s.icon)) {
-          this.track(this.add.image(160, sy, s.icon).setDisplaySize(70, 70));
+          this.track(this.add.image(cx - 280, sy, s.icon).setDisplaySize(64, 64));
         }
-        this.track(this.add.text(215, sy - 18, s.name, textStyle('small', COLORS.parchment)).setOrigin(0, 0.5));
+        this.track(this.add.text(cx - 230, sy - 20, s.name, textStyle('small', COLORS.parchment)).setOrigin(0, 0.5));
         this.track(
           this.add
-            .text(215, sy + 16, `${s.blurb}  (${s.cooldown}s)`, { ...textStyle('tiny', COLORS.muted), wordWrap: { width: w - 400 } })
+            .text(cx - 230, sy + 18, `${s.blurb}  (${s.cooldown}s)`, {
+              ...textStyle('tiny', COLORS.muted),
+              wordWrap: { width: colW - 170 },
+            })
             .setOrigin(0, 0.5),
         );
       });
       this.track(
-        new TextButton(this, w / 2, y + 200, active ? 'LEADING' : owned ? 'CHOOSE' : 'CROWN PACK', {
-          width: 420,
-          height: 92,
+        new TextButton(this, cx, y + 250, active ? 'LEADING' : owned ? 'CHOOSE' : 'CROWN PACK', {
+          width: 380,
+          height: 86,
           tone: active ? 'stone' : owned ? 'green' : 'gold',
           enabled: !active,
           onClick: () => {
@@ -287,26 +305,26 @@ export class ArmoryScene extends Phaser.Scene {
   private drawCastle(): void {
     const w = DESIGN.width;
     this.track(
-      this.add.text(w / 2, 268, 'The banner they see before they die.', textStyle('small', COLORS.muted)).setOrigin(0.5),
+      this.add.text(w / 2, 196, 'The banner they see before they die.', textStyle('small', COLORS.muted)).setOrigin(0.5),
     );
     WALL_SKINS.forEach((skin, i) => {
-      const x = w / 2 - 250 + (i % 2) * 500;
-      const y = 480 + Math.floor(i / 2) * 560;
+      const x = (w / WALL_SKINS.length) * (i + 0.5);
+      const y = 590;
       const owned = profile.ownsSkin(skin.id);
       const active = profile.activeSkin === skin.id;
       this.track(
         this.add
-          .rectangle(x, y, 440, 500, active ? 0x33405e : 0x2a2338, 0.9)
+          .rectangle(x, y, w / WALL_SKINS.length - 40, 560, active ? 0x33405e : 0x2a2338, 0.9)
           .setStrokeStyle(4, active ? 0xf5c542 : 0x4a4060),
       );
       if (this.textures.exists(`keep.${skin.id}`)) {
-        this.track(this.add.image(x, y - 40, `keep.${skin.id}`).setScale(0.9).setAlpha(owned ? 1 : 0.4));
+        this.track(this.add.image(x, y - 60, `keep.${skin.id}`).setScale(0.85).setAlpha(owned ? 1 : 0.4));
       }
-      this.track(this.add.text(x, y + 130, skin.name, textStyle('small', COLORS.parchment)).setOrigin(0.5));
+      this.track(this.add.text(x, y + 120, skin.name, textStyle('small', COLORS.parchment)).setOrigin(0.5));
       this.track(
         new TextButton(this, x, y + 200, active ? 'FLYING' : owned ? 'RAISE' : 'CROWN PACK', {
-          width: 340,
-          height: 86,
+          width: 320,
+          height: 82,
           size: 'small',
           tone: active ? 'stone' : owned ? 'green' : 'gold',
           enabled: !active,

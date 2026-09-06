@@ -25,7 +25,7 @@ export async function ensureBattleTextures(
   biome: BiomeId,
   skinId: string,
 ): Promise<void> {
-  await ensureBiome(scene, biome, DESIGN.width, FIELD.height + FIELD.horizon, GRID.rows);
+  await ensureBiome(scene, biome, DESIGN.width, FIELD.height + FIELD.horizon, GRID.rows, FIELD.horizon);
   await ensureCastleSkin(scene, skinId);
 }
 

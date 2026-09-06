@@ -117,14 +117,20 @@ export class Defender {
       this.rig.setDepth(this.y);
       this.rig.play('spawn');
     } else {
-      this.sprite = scene.add.image(this.x, this.y + 8, def.art.key);
+      this.sprite = scene.add.image(this.x, this.y + 6, def.art.key);
       this.sprite.setOrigin(0.5, 1);
-      this.sprite.setScale(0.86);
+      // Fit the building to its lane rather than trusting a fixed scale: the
+      // textures are supersampled, so a raw scale is meaningless.
+      const fit = Math.min(
+        (GRID.cellH * 0.98) / this.sprite.height,
+        (GRID.cellW * 0.9) / this.sprite.width,
+      );
+      this.sprite.setScale(fit);
       this.sprite.setDepth(this.y);
       scene.tweens.add({
         targets: this.sprite,
-        scaleY: { from: 0.5, to: 0.86 },
-        scaleX: { from: 1.05, to: 0.86 },
+        scaleY: { from: fit * 0.55, to: fit },
+        scaleX: { from: fit * 1.15, to: fit },
         duration: 260,
         ease: 'Back.easeOut',
       });
@@ -133,7 +139,7 @@ export class Defender {
   }
 
   get topY(): number {
-    return this.y - (this.rig ? this.rig.worldHeight : 110);
+    return this.y - (this.rig ? this.rig.worldHeight : (this.sprite?.displayHeight ?? 110));
   }
 
   takeDamage(amount: number): void {

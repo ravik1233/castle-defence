@@ -22,40 +22,43 @@ export class StoreScene extends Phaser.Scene {
     this.add.image(w / 2, h / 2, 'bg.menu').setDisplaySize(w, h);
     this.add.rectangle(w / 2, h / 2, w, h, 0x140f1e, 0.55);
 
-    new TextButton(this, w - 92, 74, '<', {
-      width: 120,
-      height: 92,
+    new TextButton(this, w - 70, 48, '<', {
+      width: 104,
+      height: 76,
       tone: 'stone',
       onClick: () => this.scene.start('MainMenu'),
     });
 
-    this.add.image(w / 2, 250, 'icon.crown').setScale(2.4);
-    this.add.text(w / 2, 380, 'THE CROWN PACK', textStyle('title', COLORS.gold)).setOrigin(0.5);
+    // Crown and pitch on the left, what you get on the right.
+    const left = w * 0.28;
+    this.add.image(left, 280, 'icon.crown').setScale(2.2);
+    this.add.text(left, 420, 'THE CROWN PACK', textStyle('title', COLORS.gold)).setOrigin(0.5);
     this.add
-      .text(w / 2, 442, 'One purchase. Everything in it. Forever.', textStyle('small', COLORS.parchment))
+      .text(left, 482, 'One purchase. Everything in it. Forever.', textStyle('small', COLORS.parchment))
       .setOrigin(0.5);
 
+    const listX = w * 0.55;
     CROWN_PACK_BENEFITS.forEach((line, i) => {
-      const y = 540 + i * 92;
-      this.add.image(140, y, 'icon.gem').setDisplaySize(46, 46);
+      const y = 250 + i * 96;
+      this.add.image(listX, y, 'icon.gem').setDisplaySize(44, 44);
       this.add
-        .text(190, y, line, { ...textStyle('small'), wordWrap: { width: w - 280 } })
+        .text(listX + 46, y, line, { ...textStyle('small'), wordWrap: { width: w - listX - 120 } })
         .setOrigin(0, 0.5);
     });
 
     const owned = profile.hasCrownPack;
-    this.buyButton = new TextButton(this, w / 2, h - 300, owned ? 'OWNED — THANK YOU' : 'LOADING...', {
-      width: 680,
-      height: 124,
+    this.buyButton = new TextButton(this, left, h - 260, owned ? 'OWNED — THANK YOU' : 'LOADING...', {
+      width: 620,
+      height: 112,
       tone: owned ? 'stone' : 'gold',
       size: owned ? 'body' : 'title',
       enabled: false,
       onClick: () => void this.buy(),
     });
 
-    new TextButton(this, w / 2, h - 160, 'RESTORE PURCHASE', {
-      width: 480,
-      height: 92,
+    new TextButton(this, left, h - 140, 'RESTORE PURCHASE', {
+      width: 460,
+      height: 84,
       size: 'small',
       tone: 'stone',
       onClick: () => void this.restore(),
@@ -63,12 +66,12 @@ export class StoreScene extends Phaser.Scene {
 
     this.add
       .text(
-        w / 2,
-        h - 70,
+        w * 0.62,
+        h - 60,
         isWebTestBuild()
           ? 'Web test build: unlocking here is free and local to this browser.'
           : 'No ads, no loot boxes, no subscriptions. The base game stays free.',
-        { ...textStyle('tiny', COLORS.muted), align: 'center', wordWrap: { width: w - 160 } },
+        { ...textStyle('tiny', COLORS.muted), align: 'center', wordWrap: { width: 620 } },
       )
       .setOrigin(0.5);
 

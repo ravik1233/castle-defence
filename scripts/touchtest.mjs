@@ -85,12 +85,12 @@ for (const device of DEVICES) {
 
   // Round trip: design point -> screen pixels -> back through Phaser.
   for (const [dx, dy] of [
-    [540, 960],
-    [540, 1450],
-    [200, 300],
-    [900, 1700],
-    [60, 60],
-    [1020, 1860],
+    [960, 540],
+    [300, 200],
+    [1600, 900],
+    [80, 80],
+    [1840, 1000],
+    [960, 140],
   ]) {
     const screen = await page.evaluate(
       ([x, y]) => {
@@ -116,14 +116,29 @@ for (const device of DEVICES) {
     }
   }
 
-  // End to end: press the DEFEND button by its on-screen position.
+  // End to end: find the DEFEND button by its label and press where it is
+  // drawn. Looking it up rather than hard-coding a position keeps this test
+  // honest when the layout changes.
   const btn = await page.evaluate(() => {
-    const r = globalThis.__game.canvas.getBoundingClientRect();
+    const g = globalThis.__game;
+    const scene = g.scene.getScenes(true)[0];
+    const found = scene.children.list.find(
+      (o) =>
+        o.type === 'Container' &&
+        o.list?.some((c) => c.type === 'Text' && c.text === 'DEFEND'),
+    );
+    if (!found) return null;
+    const r = g.canvas.getBoundingClientRect();
     return {
-      x: r.left + (540 / globalThis.__game.scale.width) * r.width,
-      y: r.top + (1056 / globalThis.__game.scale.height) * r.height,
+      x: r.left + (found.x / g.scale.width) * r.width,
+      y: r.top + (found.y / g.scale.height) * r.height,
     };
   });
+  if (!btn) {
+    fail(`${device.name}: could not find the DEFEND button`);
+    await page.close();
+    continue;
+  }
   await page.mouse.click(btn.x, btn.y);
   await page.waitForTimeout(900);
   const scene = await page.evaluate(() => globalThis.__game.scene.getScenes(true)[0].scene.key);

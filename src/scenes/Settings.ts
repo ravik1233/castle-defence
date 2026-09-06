@@ -6,6 +6,7 @@ import { audio } from '../systems/audio';
 import { COLORS, TextButton, showDialog, textStyle } from '../ui/kit';
 import { fullscreenSupported, isFullscreen, isInstalled, toggleFullscreen } from '../systems/install';
 import { quality } from '../systems/quality';
+import { setTouchDebugVisible } from '../systems/viewport';
 
 export class SettingsScene extends Phaser.Scene {
   private rows: Phaser.GameObjects.GameObject[] = [];
@@ -18,10 +19,10 @@ export class SettingsScene extends Phaser.Scene {
     const w = DESIGN.width;
     this.add.rectangle(w / 2, DESIGN.height / 2, w, DESIGN.height, 0x1b1626);
     this.add.image(w / 2, DESIGN.height / 2, 'bg.menu').setDisplaySize(w, DESIGN.height).setAlpha(0.2);
-    this.add.text(w / 2, 90, 'SETTINGS', textStyle('title', COLORS.gold)).setOrigin(0.5);
-    new TextButton(this, w - 92, 90, '<', {
-      width: 120,
-      height: 92,
+    this.add.text(w / 2, 56, 'SETTINGS', textStyle('title', COLORS.gold)).setOrigin(0.5);
+    new TextButton(this, w - 70, 56, '<', {
+      width: 104,
+      height: 76,
       tone: 'stone',
       onClick: () => this.scene.start('MainMenu'),
     });
@@ -37,14 +38,28 @@ export class SettingsScene extends Phaser.Scene {
       ['Sound effects', s.sfx, () => profile.updateSettings({ sfx: !s.sfx })],
       ['Music', s.music, () => profile.updateSettings({ music: !s.music })],
       ['Haptics', s.haptics, () => profile.updateSettings({ haptics: !s.haptics })],
+      [
+        'Touch debug',
+        s.touchDebug,
+        () => {
+          profile.updateSettings({ touchDebug: !s.touchDebug });
+          setTouchDebugVisible(!s.touchDebug);
+        },
+      ],
     ];
+    // Two columns: a landscape screen has width to spare and no height.
+    const colX = [w * 0.27, w * 0.73];
+    const rowY = (i: number): number => 220 + Math.floor(i / 2) * 130;
+    const labelX = (i: number): number => colX[i % 2]! - 300;
+    const btnX = (i: number): number => colX[i % 2]! + 190;
+
     toggles.forEach(([label, on, toggle], i) => {
-      const y = 280 + i * 150;
-      this.rows.push(this.add.text(120, y, label, textStyle('body')).setOrigin(0, 0.5));
+      const y = rowY(i);
+      this.rows.push(this.add.text(labelX(i), y, label, textStyle('body')).setOrigin(0, 0.5));
       this.rows.push(
-        new TextButton(this, w - 220, y, on ? 'ON' : 'OFF', {
-          width: 220,
-          height: 92,
+        new TextButton(this, btnX(i), y, on ? 'ON' : 'OFF', {
+          width: 200,
+          height: 84,
           tone: on ? 'green' : 'stone',
           onClick: () => {
             toggle();
@@ -56,11 +71,11 @@ export class SettingsScene extends Phaser.Scene {
     });
 
     const cycle: Array<'auto' | 'high' | 'low'> = ['auto', 'high', 'low'];
-    this.rows.push(this.add.text(120, 730, 'Graphics', textStyle('body')).setOrigin(0, 0.5));
+    this.rows.push(this.add.text(labelX(3), rowY(3), 'Graphics', textStyle('body')).setOrigin(0, 0.5));
     this.rows.push(
-      new TextButton(this, w - 220, 730, quality.describe(), {
-        width: 300,
-        height: 92,
+      new TextButton(this, btnX(3), rowY(3), quality.describe(), {
+        width: 280,
+        height: 84,
         size: 'small',
         tone: 'blue',
         onClick: () => {
@@ -73,11 +88,11 @@ export class SettingsScene extends Phaser.Scene {
     );
 
     if (!isInstalled() && fullscreenSupported()) {
-      this.rows.push(this.add.text(120, 880, 'Fullscreen', textStyle('body')).setOrigin(0, 0.5));
+      this.rows.push(this.add.text(labelX(4), rowY(4), 'Fullscreen', textStyle('body')).setOrigin(0, 0.5));
       this.rows.push(
-        new TextButton(this, w - 220, 880, isFullscreen() ? 'ON' : 'OFF', {
-          width: 220,
-          height: 92,
+        new TextButton(this, btnX(4), rowY(4), isFullscreen() ? 'ON' : 'OFF', {
+          width: 200,
+          height: 84,
           tone: isFullscreen() ? 'green' : 'stone',
           onClick: () => {
             void toggleFullscreen().then(() => this.draw());
@@ -86,7 +101,7 @@ export class SettingsScene extends Phaser.Scene {
       );
     }
 
-    const y0 = 1010;
+    const y0 = 700;
     this.rows.push(
       this.add
         .text(w / 2, y0, `${profile.raw.stats.kills} slain  ·  ${profile.raw.stats.victories} gates held`, textStyle('small', COLORS.muted))
@@ -94,8 +109,8 @@ export class SettingsScene extends Phaser.Scene {
     );
 
     this.rows.push(
-      new TextButton(this, w / 2, y0 + 120, 'RESET CAMPAIGN', {
-        width: 520,
+      new TextButton(this, w / 2, y0 + 90, 'RESET CAMPAIGN', {
+        width: 480,
         tone: 'red',
         onClick: () =>
           showDialog(this, {
@@ -121,7 +136,7 @@ export class SettingsScene extends Phaser.Scene {
       this.add
         .text(
           w / 2,
-          DESIGN.height - 220,
+          DESIGN.height - 150,
           'THE LAST GATE\nA castle defence against the Demon King.\nArt, code and sound generated in-engine.',
           { ...textStyle('tiny', COLORS.muted), align: 'center' },
         )
@@ -130,9 +145,9 @@ export class SettingsScene extends Phaser.Scene {
 
     if (import.meta.env.DEV) {
       this.rows.push(
-        new TextButton(this, w / 2, DESIGN.height - 110, profile.hasCrownPack ? 'DEV: DROP PACK' : 'DEV: GRANT PACK', {
-          width: 460,
-          height: 84,
+        new TextButton(this, w / 2, DESIGN.height - 56, profile.hasCrownPack ? 'DEV: DROP PACK' : 'DEV: GRANT PACK', {
+          width: 420,
+          height: 64,
           size: 'small',
           tone: 'blue',
           onClick: () => {

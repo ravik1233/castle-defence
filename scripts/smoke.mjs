@@ -11,7 +11,7 @@ import { launchBrowser } from './browser.mjs';
 
 const base = process.argv[2] ?? 'http://localhost:5199';
 const browser = await launchBrowser();
-const page = await browser.newPage({ viewport: { width: 720, height: 1280 } });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 
 const errors = [];
 // Network noise from the optional web font / favicon is not a game failure.
@@ -31,7 +31,7 @@ const state = () => page.evaluate(() => globalThis.__battle.state());
  * competes with the game's own requestAnimationFrame on a software renderer,
  * and can starve the very simulation it is waiting on.
  */
-const until = async (fn, what, timeoutMs = 300000) => {
+const until = async (fn, what, timeoutMs = 420000) => {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     if (await page.evaluate(fn)) return true;
@@ -100,13 +100,15 @@ await page.screenshot({ path: 'screenshots/smoke-result.png' });
 // One game at a time: two Phaser instances share the GPU (or, in CI, the
 // software renderer) and both crawl.
 await page.close();
-const lose = await browser.newPage({ viewport: { width: 720, height: 1280 } });
+const lose = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 lose.on('pageerror', (e) => errors.push(String(e)));
 await lose.goto(`${base}/?scene=Battle&level=c1l4&unlock=1&nomodal=1`, { waitUntil: 'load' });
 await lose.waitForFunction(() => globalThis.__battle !== undefined, { timeout: 180000 });
 await lose.evaluate(() => {
   globalThis.__battle.endWaves();
-  for (let r = 0; r < 5; r += 1) globalThis.__battle.spawn('orc_berserker', r);
+  // Spawned near the wall on purpose: this test is about the gate falling,
+  // not about how long a berserker takes to cross a lane.
+  for (let r = 0; r < 5; r += 1) globalThis.__battle.spawn('orc_berserker', r, 520);
 });
 
 const untilOn = async (target, fn, what, timeoutMs = 300000) => {

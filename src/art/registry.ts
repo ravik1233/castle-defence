@@ -119,10 +119,16 @@ export async function ensureBiome(
   width: number,
   height: number,
   rows: number,
+  horizon: number,
 ): Promise<void> {
   const key = `bg.${biome}`;
   if (scene.textures.exists(key)) return;
-  await addTexture(scene, key, scenery.battlefield(scenery.BIOMES[biome], width, height, rows), BACKDROP_SCALE);
+  await addTexture(
+    scene,
+    key,
+    scenery.battlefield(scenery.BIOMES[biome], width, height, rows, horizon),
+    BACKDROP_SCALE,
+  );
 }
 
 /**

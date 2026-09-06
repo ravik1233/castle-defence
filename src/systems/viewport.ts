@@ -92,11 +92,10 @@ export function installViewportFit(game: Phaser.Game, parentId = 'game'): void {
 }
 
 /**
- * The game is designed portrait. On a phone or tablet held sideways it would
- * otherwise be a narrow strip in the middle of a black screen, which reads as
+ * The game is designed landscape. On a phone or tablet held upright it would
+ * otherwise be a short strip in the middle of a black screen, which reads as
  * broken rather than as a choice - so it asks to be turned. Desktop is left
- * alone: a laptop cannot be rotated, and a letterboxed portrait game in a
- * browser window is normal.
+ * alone: a laptop cannot be rotated, and it is landscape already.
  */
 export function installOrientationHint(): void {
   const touch = matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
@@ -109,14 +108,14 @@ export function installOrientationHint(): void {
   hint.innerHTML =
     '<div style="font-size:64px;line-height:1">⟳</div>' +
     '<div style="font-size:22px;color:#f5c542;letter-spacing:.12em">TURN YOUR DEVICE</div>' +
-    '<div style="opacity:.75;max-width:22em">The Last Gate is played in portrait.</div>';
+    '<div style="opacity:.75;max-width:22em">The Last Gate is played in landscape.</div>';
   document.body.append(hint);
 
   const update = (): void => {
     const w = window.visualViewport?.width ?? innerWidth;
     const h = window.visualViewport?.height ?? innerHeight;
-    // Only when clearly sideways, so a nearly-square tablet is left playable.
-    hint.style.display = w > h * 1.2 ? 'grid' : 'none';
+    // Only when clearly upright, so a nearly-square tablet is left playable.
+    hint.style.display = h > w * 1.15 ? 'grid' : 'none';
   };
   update();
   for (const event of ['resize', 'orientationchange'] as const) {
@@ -130,13 +129,26 @@ export function installOrientationHint(): void {
  * Enabled with ?touchdebug=1 - the fastest way to confirm a tap lands where
  * a finger actually is on a real device.
  */
+let debugVisible = true;
+
+/** Turns the readout on or off without a reload. */
+export function setTouchDebugVisible(on: boolean): void {
+  debugVisible = on;
+  const el = document.getElementById('touchdebug');
+  if (el) el.style.display = on ? 'block' : 'none';
+  const dot = document.getElementById('touchdebug-dot');
+  if (dot) dot.style.display = on ? 'block' : 'none';
+}
+
 export function installTouchDebug(game: Phaser.Game): void {
   const dot = document.createElement('div');
+  dot.id = 'touchdebug-dot';
   dot.style.cssText =
     'position:fixed;width:36px;height:36px;margin:-18px 0 0 -18px;border-radius:50%;' +
     'border:3px solid #5fd07a;background:rgba(95,208,122,.25);pointer-events:none;z-index:99999;' +
     'transition:opacity .5s ease;opacity:0';
   const label = document.createElement('div');
+  label.id = 'touchdebug';
   label.style.cssText =
     'position:fixed;left:8px;bottom:8px;z-index:99999;color:#5fd07a;font:12px/1.4 monospace;' +
     'background:rgba(0,0,0,.6);padding:6px 8px;border-radius:6px;pointer-events:none';
@@ -158,15 +170,23 @@ export function installTouchDebug(game: Phaser.Game): void {
       const expectY = ((e.clientY - r.top) / r.height) * game.scale.height;
       const errX = Math.round((p?.worldX ?? 0) - expectX);
       const errY = Math.round((p?.worldY ?? 0) - expectY);
+      const vv = window.visualViewport;
       label.textContent =
-        `screen ${Math.round(e.clientX)},${Math.round(e.clientY)}  ` +
-        `game ${Math.round(p?.worldX ?? 0)},${Math.round(p?.worldY ?? 0)}\n` +
-        `expected ${Math.round(expectX)},${Math.round(expectY)}   ERROR ${errX},${errY}\n` +
+        `ERROR ${errX},${errY}   ${Math.abs(errX) + Math.abs(errY) > 8 ? '<-- WRONG' : 'ok'}\n` +
+        `press ${Math.round(e.clientX)},${Math.round(e.clientY)} -> game ${Math.round(p?.worldX ?? 0)},${Math.round(p?.worldY ?? 0)}\n` +
+        `expected ${Math.round(expectX)},${Math.round(expectY)}\n` +
         `rect ${Math.round(r.x)},${Math.round(r.y)} ${Math.round(r.width)}x${Math.round(r.height)}\n` +
         `phaser ${Math.round(b.x)},${Math.round(b.y)} ${Math.round(b.width)}x${Math.round(b.height)}\n` +
-        `viewport ${innerWidth}x${innerHeight} dpr ${window.devicePixelRatio}`;
+        `win ${innerWidth}x${innerHeight} vv ${Math.round(vv?.width ?? 0)}x${Math.round(vv?.height ?? 0)}` +
+        ` off ${Math.round(vv?.offsetLeft ?? 0)},${Math.round(vv?.offsetTop ?? 0)} zoom ${(vv?.scale ?? 1).toFixed(2)}\n` +
+        `scroll ${Math.round(scrollX)},${Math.round(scrollY)} dpr ${window.devicePixelRatio}` +
+        `  design ${game.scale.width}x${game.scale.height}`;
       dot.style.borderColor = Math.abs(errX) + Math.abs(errY) > 8 ? '#e8455c' : '#5fd07a';
       label.style.whiteSpace = 'pre';
+      if (!debugVisible) {
+        dot.style.opacity = '0';
+        label.style.display = 'none';
+      }
     },
     { passive: true },
   );

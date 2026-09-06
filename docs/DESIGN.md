@@ -17,6 +17,15 @@ gate reaches zero, and that is the end of humanity, not a lost level.
 
 A battle lasts 3–6 minutes: right for a phone, long enough to build an economy.
 
+## Why landscape
+
+The lanes run horizontally: enemies enter at the right edge and walk into the
+wall on the left. Lane direction should match the long axis of the screen -
+which is why Plants vs Zombies is landscape and Clash Royale, whose lanes run
+up the screen, is portrait. Portrait here bought one-thumb play at the cost of
+six cramped columns and no sightline down a lane; landscape gives eight columns
+and room to see a wave coming.
+
 ## Economy
 
 | | |

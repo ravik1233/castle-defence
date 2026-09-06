@@ -10,14 +10,15 @@ Screenshots are regenerated rather than committed:
 
 ```bash
 npm run dev &
-node scripts/shot.mjs "/?scene=Battle&level=c2l6&unlock=1&nomodal=1" battle.png 1080 1920 25000 --viewport
+node scripts/shot.mjs "/?scene=Battle&level=c2l6&unlock=1&nomodal=1" battle.png 1920 1080 25000 --viewport
 node scripts/shot.mjs /preview.html art.png 1000 1500      # the whole cast
 ```
 
 ## What it is
 
-- Portrait, one-thumb, lane defence: Plants vs. Zombies pacing with a
-  Clash-style card tray and a hero you tap to cast with.
+- Landscape lane defence: Plants vs. Zombies pacing with a Clash-style card
+  tray and a hero you tap to cast with. Landscape because the lanes run
+  horizontally - lane direction should match the long axis of the screen.
 - 38 hand-named levels across four chapters, each with a seeded wave
   generator so every player fights identical waves.
 - 14 defenders, 14 enemy types, a Demon King boss, two heroes.

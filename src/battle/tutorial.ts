@@ -99,15 +99,15 @@ export class Tutorial {
       ease: 'Sine.easeInOut',
     });
 
-    this.banner = scene.add.container(DESIGN.width / 2, FIELD.y + FIELD.height - 90);
-    const plate = scene.add.image(0, 0, 'ui.panel.small').setDisplaySize(760, 190);
+    this.banner = scene.add.container(DESIGN.width / 2, FIELD.y + FIELD.height - 80);
+    const plate = scene.add.image(0, 0, 'ui.panel.small').setDisplaySize(820, 150);
     this.label = scene.add
-      .text(0, -8, '', { ...textStyle('small'), align: 'center', wordWrap: { width: 660 } })
+      .text(0, -6, '', { ...textStyle('small'), align: 'center', wordWrap: { width: 740 } })
       .setOrigin(0.5);
     this.banner.add([plate, this.label]);
     this.layer.add(this.banner);
 
-    const skip = new TextButton(scene, DESIGN.width - 130, FIELD.y + 44, 'SKIP', {
+    const skip = new TextButton(scene, DESIGN.width - 120, FIELD.y + 50, 'SKIP', {
       width: 190,
       height: 78,
       size: 'small',
@@ -137,10 +137,10 @@ export class Tutorial {
     const target = step.target();
     if (target) {
       this.ring.setPosition(target.x, target.y).setVisible(true);
-      this.pointer.setPosition(target.x, target.y + 130).setVisible(true);
+      this.pointer.setPosition(target.x, target.y + 110).setVisible(true);
       // Keep the banner away from whatever is being pointed at.
       this.banner.y =
-        target.y > FIELD.y + FIELD.height * 0.55 ? FIELD.y + 130 : FIELD.y + FIELD.height - 90;
+        target.y > FIELD.y + FIELD.height * 0.5 ? FIELD.y + 110 : FIELD.y + FIELD.height - 80;
     } else {
       this.ring.setVisible(false);
       this.pointer.setVisible(false);

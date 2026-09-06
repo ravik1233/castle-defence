@@ -49,21 +49,21 @@ export class ResultScene extends Phaser.Scene {
     this.add.rectangle(w / 2, h / 2, w, h, victory ? 0x14261e : 0x2a1018, 0.72);
 
     this.add
-      .text(w / 2, 220, victory ? 'THE GATE HELD' : 'THE GATE FELL', textStyle('huge', victory ? COLORS.gold : COLORS.danger))
+      .text(w / 2, 130, victory ? 'THE GATE HELD' : 'THE GATE FELL', textStyle('huge', victory ? COLORS.gold : COLORS.danger))
       .setOrigin(0.5);
 
     const lvl = levelById(this.result.levelId);
-    this.add.text(w / 2, 300, lvl.name, textStyle('body', COLORS.parchment)).setOrigin(0.5);
+    this.add.text(w / 2, 208, lvl.name, textStyle('body', COLORS.parchment)).setOrigin(0.5);
 
     if (victory) {
-      const stars = starRow(this, w / 2, 440, this.result.stars, 130);
+      const stars = starRow(this, w / 2, 320, this.result.stars, 110);
       stars.each((s: Phaser.GameObjects.GameObject, i: number) => {
         const img = s as Phaser.GameObjects.Image;
         img.setScale(0);
         this.tweens.add({
           targets: img,
-          scaleX: 130 / img.width,
-          scaleY: 130 / img.height,
+          scaleX: 110 / img.width,
+          scaleY: 110 / img.height,
           duration: 320,
           delay: 220 + i * 240,
           ease: 'Back.easeOut',
@@ -73,7 +73,7 @@ export class ResultScene extends Phaser.Scene {
     } else {
       profile.recordDefeat(lvl.id, this.result.wave);
       this.add
-        .text(w / 2, 430, `You held to wave ${this.result.wave} of ${lvl.waves}.`, textStyle('body', COLORS.parchment))
+        .text(w / 2, 320, `You held to wave ${this.result.wave} of ${lvl.waves}.`, textStyle('body', COLORS.parchment))
         .setOrigin(0.5);
     }
 
@@ -82,8 +82,11 @@ export class ResultScene extends Phaser.Scene {
       victory ? `gate at ${Math.round((this.result.wallHp / this.result.wallMax) * 100)}%` : 'gate destroyed',
       victory ? `+${this.payout} gold` : 'no reward',
     ];
+    // The three stats read as a row across, not a stack down.
     stats.forEach((line, i) => {
-      this.add.text(w / 2, 560 + i * 62, line, textStyle('small', COLORS.muted)).setOrigin(0.5);
+      this.add
+        .text(w / 2 + (i - 1) * 380, 430, line, textStyle('small', COLORS.muted))
+        .setOrigin(0.5);
     });
 
     // New cards unlocked by this victory.
@@ -94,44 +97,43 @@ export class ResultScene extends Phaser.Scene {
       }
     }
 
-    // Buttons sit low, in thumb reach.
-    let by = 1180;
+    let by = 560;
     if (victory && profile.showAds && !this.doubled) {
       new TextButton(this, w / 2, by, `WATCH AD FOR +${this.payout} GOLD`, {
-        width: 660,
-        height: 108,
+        width: 620,
+        height: 96,
         size: 'small',
         tone: 'gold',
         onClick: () => void this.watchForGold(),
       });
-      by += 132;
+      by += 118;
     }
 
     const next = this.nextLevelId();
     if (victory && next) {
       new TextButton(this, w / 2, by, 'NEXT BATTLE', {
-        width: 560,
-        height: 116,
+        width: 520,
+        height: 104,
         tone: 'green',
         size: 'title',
         onClick: () => void this.goToBattle(next),
       });
-      by += 138;
+      by += 124;
     } else {
       new TextButton(this, w / 2, by, victory ? 'RETURN' : 'TRY AGAIN', {
-        width: 560,
-        height: 116,
+        width: 520,
+        height: 104,
         tone: victory ? 'green' : 'red',
         size: 'title',
         onClick: () =>
           victory ? void this.leave(() => this.scene.start('Map')) : void this.goToBattle(lvl.id),
       });
-      by += 138;
+      by += 124;
     }
 
     new TextButton(this, w / 2, by, 'THE MAP', {
-      width: 420,
-      height: 96,
+      width: 380,
+      height: 84,
       size: 'small',
       tone: 'stone',
       onClick: () => void this.leave(() => this.scene.start('Map')),

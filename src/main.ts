@@ -15,8 +15,14 @@ import { ResultScene } from './scenes/Result';
 import { audio } from './systems/audio';
 import { ads } from './systems/ads';
 import { initNativeShell } from './systems/native';
-import { installOrientationHint, installTouchDebug, installViewportFit } from './systems/viewport';
+import {
+  installOrientationHint,
+  installTouchDebug,
+  installViewportFit,
+  setTouchDebugVisible,
+} from './systems/viewport';
 import { initInstall } from './systems/install';
+import { profile } from './systems/profile';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -60,7 +66,14 @@ export const game = new Phaser.Game(config);
 installViewportFit(game);
 installOrientationHint();
 initInstall();
-if (new URLSearchParams(location.search).get('touchdebug') === '1') installTouchDebug(game);
+// Always installed; visibility follows the setting (and the URL override),
+// so it can be turned off in-game without a reload.
+installTouchDebug(game);
+setTouchDebugVisible(
+  new URLSearchParams(location.search).get('touchdebug') === '0'
+    ? false
+    : new URLSearchParams(location.search).get('touchdebug') === '1' || profile.settings.touchDebug,
+);
 
 // Audio contexts need a gesture on mobile; the first touch anywhere unlocks it.
 const unlock = (): void => {

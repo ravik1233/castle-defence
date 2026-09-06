@@ -25,7 +25,7 @@ export class PreloadScene extends Phaser.Scene {
     const title = this.add
       .text(width / 2, height * 0.38, 'THE LAST GATE', {
         fontFamily: FONT,
-        fontSize: '76px',
+        fontSize: '84px',
         color: '#f5c542',
         fontStyle: '700',
         stroke: '#140f1e',
@@ -70,7 +70,7 @@ export class PreloadScene extends Phaser.Scene {
     await addTexture(this, 'bg.menu', menuBackdrop(DESIGN.width, DESIGN.height), BACKDROP_SCALE);
     await addTexture(this, 'bg.map', mapBackdrop(DESIGN.width, DESIGN.height), BACKDROP_SCALE);
     await ensureCastleSkin(this, profile.activeSkin);
-    await ensureBiome(this, 'fields', DESIGN.width, FIELD.height + FIELD.horizon, GRID.rows);
+    await ensureBiome(this, 'fields', DESIGN.width, FIELD.height + FIELD.horizon, GRID.rows, FIELD.horizon);
 
     audio.unlock();
 

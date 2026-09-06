@@ -120,7 +120,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         this.placeDefender(id, row, col);
         return true;
       },
-      spawn: (id: string, row: number): void => this.spawnEnemy(id, row),
+      spawn: (id: string, row: number, x?: number): void => this.spawnEnemy(id, row, x ?? SPAWN_X),
       nextWave: (): void => this.startWave(),
       // Jumps to the final wave so the victory path can be exercised.
       endWaves: (): void => {
@@ -240,8 +240,9 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       .setDisplaySize(WALL.width, FIELD.height + FIELD.horizon)
       .setDepth(2000);
     this.add
-      .image(WALL.width - 34, FIELD.y + FIELD.height / 2, `gate.${skin.id}`)
+      .image(WALL.width * 0.55, FIELD.y + FIELD.height / 2, `gate.${skin.id}`)
       .setOrigin(0.5, 0.5)
+      .setDisplaySize(WALL.gateWidth, FIELD.height * 0.42)
       .setDepth(2002);
 
     this.cellMarker = this.add
@@ -263,30 +264,33 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
   private buildHud(): void {
     this.add.rectangle(DESIGN.width / 2, HUD.height / 2, DESIGN.width, HUD.height, 0x1b1626, 0.94).setDepth(3000);
-    this.goldCounter = new Counter(this, 40, 52, 'icon.coin', this.gold);
+
+    this.goldCounter = new Counter(this, 40, HUD.height / 2, 'icon.coin', this.gold);
     this.goldCounter.setDepth(3001);
 
     this.waveText = this.add
-      .text(DESIGN.width / 2, 40, '', textStyle('small', COLORS.parchment))
-      .setOrigin(0.5, 0)
+      .text(300, HUD.height / 2, '', textStyle('small', COLORS.parchment))
+      .setOrigin(0, 0.5)
       .setDepth(3001);
 
+    // Gate health sits centre-top: the one number that decides the run.
+    const barW = 520;
     this.add
-      .rectangle(DESIGN.width / 2, 114, 520, 34, 0x2a2338)
+      .rectangle(DESIGN.width / 2, HUD.height / 2, barW, 38, 0x2a2338)
       .setStrokeStyle(4, 0x0f0c1a)
       .setDepth(3001);
     this.wallBar = this.add
-      .rectangle(DESIGN.width / 2 - 258, 114, 516, 28, 0x5fd07a)
+      .rectangle(DESIGN.width / 2 - barW / 2 + 2, HUD.height / 2, barW - 4, 32, 0x5fd07a)
       .setOrigin(0, 0.5)
       .setDepth(3002);
     this.wallLabel = this.add
-      .text(DESIGN.width / 2, 114, 'GATE', textStyle('tiny', COLORS.ink, { strokeThickness: 0 }))
+      .text(DESIGN.width / 2, HUD.height / 2, 'GATE', textStyle('tiny', COLORS.ink, { strokeThickness: 0 }))
       .setOrigin(0.5)
       .setDepth(3003);
 
-    new TextButton(this, DESIGN.width - 76, 56, '||', {
+    new TextButton(this, DESIGN.width - 72, HUD.height / 2, '||', {
       width: 96,
-      height: 84,
+      height: 74,
       tone: 'stone',
       onClick: () => this.openPause(),
     }).setDepth(3002);
@@ -323,29 +327,26 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     const deck = this.deckForLevel();
     this.add.rectangle(DESIGN.width / 2, TRAY.y + TRAY.height / 2, DESIGN.width, TRAY.height, 0x221c33, 0.92).setDepth(3000);
 
-    const total = deck.length * TRAY.cardW + (deck.length - 1) * TRAY.gap;
-    const startX = (DESIGN.width - total) / 2 + TRAY.cardW / 2;
-
     deck.forEach((id, i) => {
       const def = defender(id);
-      const x = startX + i * (TRAY.cardW + TRAY.gap);
-      const y = TRAY.y + TRAY.height / 2 - 4;
+      const x = TRAY.x0 + TRAY.cardW / 2 + i * (TRAY.cardW + TRAY.gap);
+      const y = TRAY.y + TRAY.height / 2;
       const container = this.add.container(x, y).setDepth(3001);
 
       const frame = this.add.image(0, 0, 'ui.card').setDisplaySize(TRAY.cardW, TRAY.cardH);
       container.add(frame);
 
-      const art = this.cardArt(id, 0, -18, 0.42);
+      const art = this.cardArt(id, 0, -10, 0.27);
       container.add(art);
 
       const costText = this.add
-        .text(0, TRAY.cardH / 2 - 26, String(def.cost), textStyle('small', COLORS.gold))
+        .text(10, TRAY.cardH / 2 - 20, String(def.cost), textStyle('tiny', COLORS.gold))
         .setOrigin(0.5);
       container.add(costText);
-      container.add(this.add.image(-34, TRAY.cardH / 2 - 26, 'icon.coin').setDisplaySize(30, 30));
+      container.add(this.add.image(-20, TRAY.cardH / 2 - 20, 'icon.coin').setDisplaySize(24, 24));
 
       const overlay = this.add
-        .rectangle(0, 0, TRAY.cardW - 12, TRAY.cardH - 12, 0x0b0713, 0.62)
+        .rectangle(0, 0, TRAY.cardW - 10, TRAY.cardH - 10, 0x0b0713, 0.62)
         .setOrigin(0.5)
         .setVisible(false);
       container.add(overlay);
@@ -436,47 +437,47 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private buildHeroBar(): void {
     const hero = heroDef(profile.heroId);
     const y = HERO_BAR.y + HERO_BAR.height / 2;
-    this.add.rectangle(DESIGN.width / 2, y, DESIGN.width, HERO_BAR.height, 0x221c33, 0.92).setDepth(3000);
 
-    const portraitKey = `unit.${hero.art}.head`;
-    if (this.textures.exists(portraitKey)) {
-      this.add.image(110, y, portraitKey).setScale(0.5).setDepth(3001);
-    }
-    this.add
-      .text(190, y - 30, hero.name, textStyle('small', COLORS.gold))
-      .setOrigin(0, 0.5)
-      .setDepth(3001);
-    this.add
-      .text(190, y + 16, hero.title, textStyle('tiny', COLORS.muted))
-      .setOrigin(0, 0.5)
-      .setDepth(3001)
-      .setFixedSize(300, 0);
-
-    // The sell tool lives beside the hero, out of the card row.
-    new TextButton(this, DESIGN.width / 2 + 50, y, 'SELL', {
-      width: 150,
-      height: 100,
+    // The sell tool sits between the cards and the hero.
+    new TextButton(this, HERO_BAR.x - 90, y, 'SELL', {
+      width: 130,
+      height: 84,
       tone: 'red',
       size: 'small',
       onClick: () => this.selectCard('__sell__'),
     }).setDepth(3001);
 
+    const portraitKey = `unit.${hero.art}.head`;
+    if (this.textures.exists(portraitKey)) {
+      this.add.image(HERO_BAR.x + 40, y, portraitKey).setScale(0.38).setDepth(3001);
+    }
+    this.add
+      .text(HERO_BAR.x + 100, y - 20, hero.name, textStyle('small', COLORS.gold))
+      .setOrigin(0, 0.5)
+      .setDepth(3001);
+    this.add
+      .text(HERO_BAR.x + 100, y + 18, hero.title, textStyle('tiny', COLORS.muted))
+      .setOrigin(0, 0.5)
+      .setDepth(3001)
+      .setFixedSize(300, 0);
+
     hero.spells.forEach((spell, i) => {
-      const x = DESIGN.width - 240 + i * 150;
-      const container = this.add.container(x, y).setDepth(3001);
-      const ring = this.add.image(0, 0, 'ui.button.blue').setDisplaySize(126, 126);
+      const x = DESIGN.width - 250 + i * 150;
+      // Label above the button: below it would fall off the bottom edge.
+      this.add
+        .text(x, TRAY.y + 20, spell.name, textStyle('tiny', COLORS.muted))
+        .setOrigin(0.5)
+        .setDepth(3001);
+      const container = this.add.container(x, TRAY.y + TRAY.height / 2 + 14).setDepth(3001);
+      const ring = this.add.image(0, 0, 'ui.button.blue').setDisplaySize(112, 100);
       container.add(ring);
-      const icon = this.add.image(0, 0, spell.icon).setDisplaySize(78, 78);
+      const icon = this.add.image(0, 0, spell.icon).setDisplaySize(66, 66);
       container.add(icon);
       const overlay = this.add.graphics();
       container.add(overlay);
-      container.setSize(126, 126);
-      container.setInteractive(new Phaser.Geom.Rectangle(-63, -63, 126, 126), Phaser.Geom.Rectangle.Contains);
+      container.setSize(112, 100);
+      container.setInteractive(new Phaser.Geom.Rectangle(-56, -50, 112, 100), Phaser.Geom.Rectangle.Contains);
       container.on('pointerdown', () => this.selectSpell(spell));
-      this.add
-        .text(x, y + 74, spell.name, textStyle('tiny', COLORS.muted))
-        .setOrigin(0.5)
-        .setDepth(3001);
       this.spells.push({ spell, container, cooldownLeft: 0, overlay, ready: ring });
     });
   }
@@ -827,14 +828,14 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
   private banner(text: string, color: string): void {
     const t = this.add
-      .text(DESIGN.width / 2, FIELD.y + 120, text, textStyle('title', color))
+      .text(DESIGN.width / 2, FIELD.y + FIELD.height * 0.42, text, textStyle('title', color))
       .setOrigin(0.5)
       .setDepth(7000)
       .setAlpha(0);
     this.tweens.add({
       targets: t,
       alpha: 1,
-      y: FIELD.y + 90,
+      y: FIELD.y + FIELD.height * 0.34,
       duration: 260,
       yoyo: true,
       hold: 900,
@@ -921,8 +922,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       const affordable = this.gold >= card.cost;
       const ready = card.cooldownLeft <= 0;
       card.overlay.setVisible(!ready || !affordable);
-      card.overlay.height = ready ? TRAY.cardH - 12 : (TRAY.cardH - 12) * (card.cooldownLeft / card.cooldown);
-      card.overlay.y = ready ? 0 : -(TRAY.cardH - 12) / 2 + card.overlay.height / 2;
+      card.overlay.height = ready ? TRAY.cardH - 10 : (TRAY.cardH - 10) * (card.cooldownLeft / card.cooldown);
+      card.overlay.y = ready ? 0 : -(TRAY.cardH - 10) / 2 + card.overlay.height / 2;
       card.costText.setColor(affordable ? COLORS.gold : COLORS.danger);
     }
 

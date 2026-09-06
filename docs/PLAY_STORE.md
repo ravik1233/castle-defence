@@ -10,7 +10,7 @@ Two ways to put this on a phone. Do them in this order.
 
 ## 1. Install it from the browser (free, instant)
 
-The game is a full PWA: manifest, service worker, maskable icons, portrait
+The game is a full PWA: manifest, service worker, maskable icons, landscape
 lock, fullscreen display. On Android, Chrome will offer to install it, and the
 installed game runs with no URL bar, no browser chrome, and works offline.
 
@@ -57,7 +57,7 @@ native files, commit it.
 In `android/app/src/main/AndroidManifest.xml`, on the main activity:
 
 ```xml
-android:screenOrientation="portrait"
+android:screenOrientation="landscape"
 android:hardwareAccelerated="true"
 ```
 
@@ -162,11 +162,11 @@ Crown Pack owners.
 - **Category**: Games → Strategy
 - **Graphics**: 512×512 icon and a 1024×500 feature graphic are required.
   `resources/icon.png` covers the icon.
-- **Screenshots**: at least two phone screenshots. Generate them:
+- **Screenshots**: at least two phone screenshots, landscape. Generate them:
 
 ```bash
 npm run dev &
-node scripts/shot.mjs "/?scene=Battle&level=c2l6&unlock=1&nomodal=1" play-1.png 1080 1920 25000 --viewport
+node scripts/shot.mjs "/?scene=Battle&level=c2l6&unlock=1&nomodal=1" play-1.png 1920 1080 25000 --viewport
 ```
 
 ### Forms Play will not let you skip
@@ -191,7 +191,7 @@ node scripts/shot.mjs "/?scene=Battle&level=c2l6&unlock=1&nomodal=1" play-1.png 
 - [ ] Real AdMob unit ids in `src/systems/ads.ts`
 - [ ] IAP product live with id `com.lastgate.crownpack`
 - [ ] Purchase and restore tested with a licence-testing account on a device
-- [ ] Portrait lock confirmed on a real phone
+- [ ] Landscape lock confirmed on a real phone
 - [ ] Upload keystore backed up somewhere you will still have it
 - [ ] Privacy policy live and linked
 - [ ] Self-host the UI font (below)

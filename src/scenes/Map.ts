@@ -20,12 +20,12 @@ export class MapScene extends Phaser.Scene {
     const w = DESIGN.width;
     const h = DESIGN.height;
     this.add.image(w / 2, h / 2, 'bg.map').setDisplaySize(w, h);
-    this.add.rectangle(w / 2, 0, w, 150, 0x1b1626, 0.92).setOrigin(0.5, 0);
+    this.add.rectangle(w / 2, 0, w, 96, 0x1b1626, 0.92).setOrigin(0.5, 0);
 
-    new Counter(this, 44, 74, 'icon.coin', profile.gold, 'body');
-    new TextButton(this, w - 92, 74, '<', {
-      width: 120,
-      height: 92,
+    new Counter(this, 40, 48, 'icon.coin', profile.gold, 'body');
+    new TextButton(this, w - 70, 48, '<', {
+      width: 104,
+      height: 76,
       tone: 'stone',
       onClick: () => this.scene.start('MainMenu'),
     });
@@ -67,7 +67,7 @@ export class MapScene extends Phaser.Scene {
 
     if (this.chapterIndex > 0) {
       add(
-        new TextButton(this, 96, 292, '<', {
+        new TextButton(this, 110, 950, '<', {
           width: 110,
           height: 96,
           tone: 'stone',
@@ -80,7 +80,7 @@ export class MapScene extends Phaser.Scene {
     }
     if (this.chapterIndex < CHAPTERS.length - 1) {
       add(
-        new TextButton(this, w - 96, 292, '>', {
+        new TextButton(this, w - 110, 950, '>', {
           width: 110,
           height: 96,
           tone: 'stone',
@@ -93,23 +93,19 @@ export class MapScene extends Phaser.Scene {
     }
 
     if (locked) {
-      add(
-        this.add
-          .text(w / 2, 640, 'Sealed', textStyle('title', '#7a2c2c'))
-          .setOrigin(0.5),
-      );
+      add(this.add.text(w / 2, 430, 'Sealed', textStyle('title', '#7a2c2c')).setOrigin(0.5));
       add(
         this.add
           .text(
             w / 2,
-            720,
+            520,
             'The Demon King withdrew to his throne.\nThe Crown Pack opens the way down.',
             { ...textStyle('small', '#6d5636'), align: 'center' },
           )
           .setOrigin(0.5),
       );
       add(
-        new TextButton(this, w / 2, 900, 'SEE THE CROWN PACK', {
+        new TextButton(this, w / 2, 700, 'SEE THE CROWN PACK', {
           width: 620,
           tone: 'gold',
           onClick: () => this.scene.start('Store'),
@@ -118,18 +114,20 @@ export class MapScene extends Phaser.Scene {
       return;
     }
 
-    // Nodes laid out on a winding path.
-    const top = 360;
-    const rowH = 132;
+    // A winding path from left to right - the direction the campaign advances.
+    const count = chapter.levels.length;
+    const first = 170;
+    const span = w - first * 2;
+    const midY = 560;
     chapter.levels.forEach((lvl, i) => {
+      const x = first + (count > 1 ? (span * i) / (count - 1) : span / 2);
+      const y = midY + (i % 2 === 0 ? -110 : 110);
       const side = i % 2 === 0 ? -1 : 1;
-      const x = w / 2 + side * (110 + (i % 3) * 40);
-      const y = top + i * rowH;
       const unlocked = profile.isLevelUnlocked(lvl.id);
       const record = profile.levelRecord(lvl.id);
 
       const node = this.add.container(x, y);
-      const disc = this.add.circle(0, 0, 52, unlocked ? 0x4a3a24 : 0x5d564a).setStrokeStyle(6, 0x2b2113);
+      const disc = this.add.circle(0, 0, 46, unlocked ? 0x4a3a24 : 0x5d564a).setStrokeStyle(6, 0x2b2113);
       node.add(disc);
       node.add(
         this.add
@@ -139,18 +137,20 @@ export class MapScene extends Phaser.Scene {
       if (!unlocked) {
         node.add(this.add.image(0, 0, 'icon.skull').setDisplaySize(46, 46).setAlpha(0.7));
       }
-      if (record) node.add(starRow(this, 0, 68, record.stars, 34));
+      if (record) node.add(starRow(this, 0, 66, record.stars, 30));
+      // Wrapped rather than shrunk, so every level name is the same size.
       node.add(
-        fitText(
-          this.add
-            .text(side < 0 ? 78 : -78, -4, lvl.name, textStyle('small', '#3a2a18'))
-            .setOrigin(side < 0 ? 0 : 1, 0.5),
-          380,
-        ),
+        this.add
+          .text(0, side < 0 ? -102 : 108, lvl.name, {
+            ...textStyle('small', '#3a2a18'),
+            align: 'center',
+            wordWrap: { width: 230 },
+          })
+          .setOrigin(0.5),
       );
 
-      node.setSize(300, 110);
-      node.setInteractive(new Phaser.Geom.Rectangle(-150, -55, 300, 110), Phaser.Geom.Rectangle.Contains);
+      node.setSize(160, 190);
+      node.setInteractive(new Phaser.Geom.Rectangle(-80, -95, 160, 190), Phaser.Geom.Rectangle.Contains);
       node.on('pointerdown', () => {
         audio.play('tap');
         if (!unlocked) {
