@@ -8,7 +8,7 @@
  * you find out that a cape got hung where a leg should be.
  */
 import Phaser from 'phaser';
-import { buildTextures, paintedRig } from './art/registry';
+import { buildTextures, paintedFrameSet, paintedRig } from './art/registry';
 import { characterArt } from './art/compose';
 import { ALL_CHARACTER_ART } from './art/cast';
 import { DEFENDERS } from './data/defenders';
@@ -24,6 +24,8 @@ function unitIds(): string[] {
   for (const d of DEFENDERS) if (d.art.kind === 'unit') ids.add(d.art.id);
   for (const e of ENEMIES) ids.add(e.art);
   for (const h of HEROES) if (typeof h.art === 'string') ids.add(h.art);
+  // Anything with a painted pack but no game data yet - new races, test strips.
+  for (const id of Object.keys(ALL_CHARACTER_ART)) if (paintedFrameSet(id)) ids.add(id);
   return [...ids].sort();
 }
 
@@ -36,7 +38,7 @@ class Bench extends Phaser.Scene {
     await buildTextures(this);
     const select = document.getElementById('unit') as HTMLSelectElement;
     for (const id of unitIds()) {
-      const painted = paintedRig(id) ? ' (painted)' : '';
+      const painted = paintedFrameSet(id) ? ' (frames)' : paintedRig(id) ? ' (painted)' : '';
       select.append(new Option(id + painted, id));
     }
     select.onchange = () => this.show(select.value);

@@ -1,5 +1,5 @@
 {
-  "_comment": "Texture key -> file in this folder. A *.rig entry is a painted parts assembly. Written by scripts/import-parts.mjs and scripts/import-art.mjs.",
+  "_comment": "Texture key -> file in this folder. A *.rig entry is a painted parts assembly; a *.frames entry is a drawn animation strip. Written by the scripts/import-*.mjs tools.",
   "unit.aldric.head": "unit.aldric.head.png",
   "unit.aldric.armFront": "unit.aldric.armFront.png",
   "unit.aldric.armBack": "unit.aldric.armBack.png",

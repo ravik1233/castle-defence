@@ -176,8 +176,28 @@ export interface PaintedRig {
   parts: Record<string, { x: number; y: number; w: number; h: number; pivot: [number, number] }>;
 }
 
+/**
+ * A drawn animation strip: poses the artist actually drew, already trimmed to
+ * a common size and seated on one ground line by scripts/import-frames.mjs.
+ * Nothing here is assembled or guessed at - the game just plays what it was
+ * given, which is why a unit with frames needs no rig at all.
+ */
+export interface PaintedFrames {
+  count: number;
+  width: number;
+  height: number;
+  names: string[];
+}
+
 /** Assemblies by unit art id, filled in as the manifest is read. */
 const paintedRigs = new Map<string, PaintedRig>();
+/** Drawn animation strips by unit art id. */
+const paintedFrames = new Map<string, PaintedFrames>();
+
+/** The drawn animation strip for a unit, if a painted pack supplied one. */
+export function paintedFrameSet(artId: string): PaintedFrames | undefined {
+  return paintedFrames.get(artId);
+}
 
 /** The painted assembly for a unit, if a painted parts pack supplied one. */
 export function paintedRig(artId: string): PaintedRig | undefined {
@@ -197,6 +217,8 @@ async function paintedOverrides(): Promise<Record<string, string>> {
     for (const [key, value] of Object.entries(json as Record<string, unknown>)) {
       if (key.endsWith('.rig') && typeof value === 'object' && value !== null) {
         paintedRigs.set(key.replace(/^unit\./, '').replace(/\.rig$/, ''), value as PaintedRig);
+      } else if (key.endsWith('.frames') && typeof value === 'object' && value !== null) {
+        paintedFrames.set(key.replace(/^unit\./, '').replace(/\.frames$/, ''), value as PaintedFrames);
       } else if (typeof value === 'string') {
         files[key] = value;
       }

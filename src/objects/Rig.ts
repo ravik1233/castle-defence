@@ -8,7 +8,7 @@
 import Phaser from 'phaser';
 import { REST_POSE, armLength, characterLayout } from '../art/compose';
 import type { CharacterArt } from '../art/humanoid';
-import { SUPERSAMPLE, paintedRig } from '../art/registry';
+import { SUPERSAMPLE, paintedFrameSet, paintedRig } from '../art/registry';
 import { WORLD_ART_SCALE } from '../core/layout';
 
 export type RigAnim = 'idle' | 'walk' | 'attack' | 'cast' | 'hurt' | 'die' | 'spawn';
@@ -47,6 +47,13 @@ export function fullSpriteKey(artId: string): string {
 /** Where a painted weapon rides when held: a little above the horizontal. */
 const WEAPON_REST = -0.18;
 
+/**
+ * How long the one-shot animations run, matching the rigged versions exactly.
+ * A frame-played swing that lands early would deal its damage before the
+ * picture shows the blow.
+ */
+const ONE_SHOT: Partial<Record<RigAnim, number>> = { attack: 0.42, cast: 0.55 };
+
 export function attackSpriteKey(artId: string): string {
   return `unit.${artId}.attack`;
 }
@@ -62,6 +69,10 @@ export class Rig extends Phaser.GameObjects.Container {
   private readonly artScale: number;
   /** Hand distance for a painted rig, whose arms are not the vector arms. */
   private readonly paintedArmLen?: number;
+  /** Set when the unit has drawn animation frames rather than a rig. */
+  private readonly frames?: Phaser.GameObjects.Image;
+  private frameCount = 0;
+  private shownFrame = -1;
   private readonly facingSign: 1 | -1;
   private anim: RigAnim = 'idle';
   private t: number;
@@ -93,6 +104,26 @@ export class Rig extends Phaser.GameObjects.Container {
       img.setOrigin(0.5, 1);
       img.setDisplaySize((img.width / img.height) * this.worldHeight, this.worldHeight);
       this.sprite = img;
+      this.add(img);
+      this.setScale(this.facingSign, 1);
+      scene.add.existing(this);
+      return;
+    }
+
+    /*
+     * Drawn frames win over everything else. If an artist has drawn the poses
+     * there is nothing to assemble, nothing to guess at, and nothing that can
+     * come out wrong: the unit simply shows the pose it is in.
+     */
+    const strip = paintedFrameSet(art.id);
+    if (strip && scene.textures.exists(`unit.${art.id}.frame0`)) {
+      this.frameCount = strip.count;
+      const img = scene.add.image(0, 0, `unit.${art.id}.frame0`);
+      // Frames share one canvas with the feet on its bottom edge, so anchoring
+      // there puts every pose on the ground without further arithmetic.
+      img.setOrigin(0.5, 1);
+      img.setDisplaySize((strip.width / strip.height) * this.worldHeight, this.worldHeight);
+      this.frames = img;
       this.add(img);
       this.setScale(this.facingSign, 1);
       scene.add.existing(this);
@@ -260,10 +291,96 @@ export class Rig extends Phaser.GameObjects.Container {
     }
   }
 
+  /** Shows one of the drawn poses. Indices follow the strip's own order. */
+  private showFrame(i: number): void {
+    const clamped = Math.max(0, Math.min(this.frameCount - 1, i));
+    if (clamped === this.shownFrame) return;
+    this.shownFrame = clamped;
+    this.frames?.setTexture(`unit.${this.art.id}.frame${clamped}`);
+  }
+
+  /**
+   * Plays the drawn poses: idle, two strides, the strike, and falling.
+   *
+   * The small motions on top - the breathing bob, the lunge into a swing, the
+   * topple on death - are the same ones the rigs use. A drawn pose says what
+   * the body is doing; the movement through it is still the game's job.
+   */
+  private updateFrames(): void {
+    const img = this.frames;
+    if (!img) return;
+    const h = this.worldHeight;
+    img.setPosition(0, 0);
+    img.setRotation(0);
+    img.setAlpha(1);
+    img.setDisplaySize(img.width * (h / img.height), h);
+
+    switch (this.anim) {
+      case 'walk': {
+        // Two strides is a whole cycle; four beats a second reads as marching.
+        this.showFrame(1 + (Math.floor(this.t * 4) % 2));
+        img.y = -Math.abs(Math.sin(this.t * 8)) * h * 0.015;
+        break;
+      }
+      case 'attack':
+      case 'cast': {
+        const k = Math.min(1, this.animT / (ONE_SHOT[this.anim] ?? 0.42));
+        this.showFrame(k > 0.28 && k < 0.82 ? 3 : 0);
+        // Lean into the blow and settle back out of it.
+        img.x = Math.sin(Math.min(1, k) * Math.PI) * h * 0.05;
+        break;
+      }
+      case 'hurt': {
+        this.showFrame(0);
+        const k = Math.min(1, this.animT / 0.24);
+        img.x = -Math.sin(k * Math.PI) * h * 0.04;
+        img.setRotation(-Math.sin(k * Math.PI) * 0.08);
+        break;
+      }
+      case 'die': {
+        const k = Math.min(1, this.animT / 0.55);
+        this.showFrame(this.frameCount - 1);
+        img.setRotation(-0.5 * k);
+        img.y = h * 0.06 * k;
+        img.setAlpha(1 - k * 0.35);
+        break;
+      }
+      case 'spawn': {
+        const k = Math.min(1, this.animT / 0.3);
+        this.showFrame(0);
+        img.setAlpha(k);
+        img.setDisplaySize(img.width * (h / img.height) * (0.7 + 0.3 * k), h * (0.7 + 0.3 * k));
+        break;
+      }
+      default: {
+        this.showFrame(0);
+        img.y = -Math.abs(Math.sin(this.t * 2.2)) * h * 0.008;
+      }
+    }
+  }
+
   override update(_time: number, delta: number): void {
     const dt = delta / 1000;
     this.t += dt;
     this.animT += dt;
+
+    if (this.frames) {
+      this.updateFrames();
+      // A swing still has to tell the game when the blow lands, on the same
+      // beat as the rigged one, or damage stops matching the picture.
+      const d = ONE_SHOT[this.anim];
+      if (d) {
+        if (!this.attackHit && this.animT >= d * 0.55) {
+          this.attackHit = true;
+          this.onAttackHit?.();
+        }
+        if (this.animT >= d) {
+          this.oneShot = false;
+          this.play('idle');
+        }
+      }
+      return;
+    }
     const sk = this.art.skeleton;
     const unit = sk.headR * this.artScale * 0.1;
 
