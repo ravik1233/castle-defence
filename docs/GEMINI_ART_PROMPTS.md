@@ -135,6 +135,67 @@ UI, no text, painted mobile game art"*.
 | `bg.abyss.png` | Cracked volcanic rock glowing with orange lava veins under a blood-red sky, jagged obsidian spires, embers rising. |
 | `bg.throne.png` | The black basalt floor of a demon throne room, towering pillars, glowing red runes, deep shadow and hellfire light. |
 
+## Animation frames (the route we are testing now)
+
+A parts sheet has to be reassembled by code, and code has to guess where the
+joints are inside each piece. That guessing is what made the first previews
+look wrong. Drawn frames need no guessing at all: the game just plays them.
+
+**The frames only work if they are registered.** Same canvas, same character
+size, feet on one common line, no shift left or right. If a frame is drawn
+slightly larger or higher than its neighbours the unit jitters as it plays,
+and no amount of code fixes that afterwards. Say it explicitly, and check it
+before generating the rest.
+
+Five frames carry a whole unit. Everything else the rig already fakes well:
+
+| Frame | What it shows |
+| --- | --- |
+| 1 idle | Standing, weight settled, weapon ready |
+| 2 walk A | Mid-stride, near leg forward, opposite arm forward |
+| 3 walk B | The opposite stride, near leg back |
+| 4 attack | The strike itself, at full extension |
+| 5 death | Falling backwards, off balance, weapon dropping |
+
+### The prompt
+
+Attach the unit's finished single-figure art as a reference image, then:
+
+> Using the attached character exactly as drawn - same colours, same armour,
+> same face, same weapon, same proportions - draw a 5-frame animation strip of
+> that same character.
+>
+> Layout: one horizontal row, five equal square cells, left to right, no gaps,
+> no dividing lines, no numbers, no text. The character is the same size in
+> every cell and stands on the same ground line in every cell, feet at the same
+> height, body centred in its cell. Facing right in all five.
+>
+> Frame 1: standing idle, weight settled, weapon held ready.
+> Frame 2: walking, near leg forward mid-stride, opposite arm forward.
+> Frame 3: walking, the opposite stride, near leg back.
+> Frame 4: attacking, the strike at full extension.
+> Frame 5: dying, falling backwards off balance, weapon dropping.
+>
+> Flat solid #00FF6A background across the whole strip. No shadows on the
+> ground, no border, no frame, no text.
+
+Use magenta `#FF00E5` instead for any green character, exactly as for the
+single figures.
+
+### Checking a strip before generating 24 more
+
+Open it and look for these, in order - each one is fatal and none is fixable
+in code:
+
+1. Are all five the same character? Watch the helmet, the belt, the weapon.
+2. Are the feet on one line? Lay a ruler along the bottom of the boots.
+3. Is the character the same size in each cell?
+4. Is every cell the same width, with the character centred in it?
+
+If the strip passes, name it `art-in/unit.<id>.frames.png` and say so - the
+importer for these is not written yet, deliberately, because it should be
+built against a real strip rather than a guess about one.
+
 ## On proportions
 
 Image models default to realistic human proportions. At gameplay size a
