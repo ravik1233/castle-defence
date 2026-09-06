@@ -27,6 +27,10 @@ const DEVICES = [
   { name: 'Pad 6 landscape ', width: 1152, height: 720, dpr: 2.5, mobile: true },
   { name: 'laptop          ', width: 1440, height: 820, dpr: 1, mobile: false },
   { name: 'laptop hidpi    ', width: 1512, height: 850, dpr: 2, mobile: false },
+  // Windows at 125% / 150% display scaling. Fractional ratios were the one
+  // case never covered, and the one a real machine reported broken on.
+  { name: 'win 125%        ', width: 1466, height: 716, dpr: 1.25, mobile: false },
+  { name: 'win 150%        ', width: 1280, height: 660, dpr: 1.5, mobile: false },
 ];
 
 for (const device of DEVICES) {

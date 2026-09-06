@@ -161,9 +161,59 @@ export function installTouchDebug(game: Phaser.Game): void {
       dot.style.top = `${e.clientY}px`;
       dot.style.opacity = '1';
       setTimeout(() => (dot.style.opacity = '0'), 700);
+
+      // The decisive marker: drawn BY the game, at the world point the game
+      // believes was pressed. If this lands somewhere other than the finger,
+      // the renderer and the input system disagree about where things are -
+      // and the gap between the two markers is the transform at fault.
+      const active = game.scene.getScenes(true)[0];
+      const ptr = active?.input.activePointer;
+      if (active && ptr) {
+        const marker = active.add
+          .circle(ptr.worldX, ptr.worldY, 26, 0xff3b30, 0.001)
+          .setStrokeStyle(6, 0xff3b30)
+          .setDepth(999999);
+        const cross = active.add
+          .text(ptr.worldX, ptr.worldY - 46, 'game thinks here', {
+            fontFamily: 'monospace',
+            fontSize: '22px',
+            color: '#ff3b30',
+          })
+          .setOrigin(0.5)
+          .setDepth(999999);
+        active.time.delayedCall(1600, () => {
+          marker.destroy();
+          cross.destroy();
+        });
+      }
       const scene = game.scene.getScenes(true)[0];
       const p = scene?.input.activePointer;
+      const cam = scene?.cameras?.main;
       const b = game.scale.canvasBounds;
+
+      // What does Phaser believe was under the press? If this says "nothing"
+      // while a button is plainly there, the hit test and the renderer
+      // disagree, and everything else here says by how much.
+      let hits = 'n/a';
+      let sceneList = '';
+      try {
+        const active = game.scene.getScenes(true);
+        sceneList = active.map((sc) => sc.scene.key).join('+');
+        if (scene && p) {
+          const objects = scene.input.hitTestPointer(p) as Array<{
+            type: string;
+            list?: Array<{ type: string; text?: string }>;
+          }>;
+          hits = objects.length
+            ? objects
+                .map((o) => o.list?.find((c) => c.type === 'Text')?.text ?? o.type)
+                .slice(0, 3)
+                .join(',')
+            : 'NOTHING';
+        }
+      } catch (err) {
+        hits = `error ${String(err).slice(0, 40)}`;
+      }
       const r = game.canvas.getBoundingClientRect();
       // Where the game *should* land for this press, if the mapping is right.
       const expectX = ((e.clientX - r.left) / r.width) * game.scale.width;
@@ -179,8 +229,16 @@ export function installTouchDebug(game: Phaser.Game): void {
         `phaser ${Math.round(b.x)},${Math.round(b.y)} ${Math.round(b.width)}x${Math.round(b.height)}\n` +
         `win ${innerWidth}x${innerHeight} vv ${Math.round(vv?.width ?? 0)}x${Math.round(vv?.height ?? 0)}` +
         ` off ${Math.round(vv?.offsetLeft ?? 0)},${Math.round(vv?.offsetTop ?? 0)} zoom ${(vv?.scale ?? 1).toFixed(2)}\n` +
-        `scroll ${Math.round(scrollX)},${Math.round(scrollY)} dpr ${window.devicePixelRatio}` +
-        `  design ${game.scale.width}x${game.scale.height}`;
+        `scroll ${Math.round(scrollX)},${Math.round(scrollY)} dpr ${window.devicePixelRatio}\n` +
+        `game ${game.scale.gameSize.width}x${game.scale.gameSize.height} ` +
+        `base ${Math.round(game.scale.baseSize.width)}x${Math.round(game.scale.baseSize.height)} ` +
+        `disp ${Math.round(game.scale.displaySize.width)}x${Math.round(game.scale.displaySize.height)}\n` +
+        `canvas attr ${game.canvas.width}x${game.canvas.height} zoomcfg ${game.scale.zoom} ` +
+        `dispScale ${game.scale.displayScale.x.toFixed(3)}\n` +
+        `cam zoom ${cam?.zoom ?? '-'} scroll ${Math.round(cam?.scrollX ?? 0)},${Math.round(cam?.scrollY ?? 0)} ` +
+        `view ${Math.round(cam?.width ?? 0)}x${Math.round(cam?.height ?? 0)}\n` +
+        `HIT: ${hits}\n` +
+        `scenes: ${sceneList}  ptr ${Math.round(p?.x ?? 0)},${Math.round(p?.y ?? 0)}`;
       dot.style.borderColor = Math.abs(errX) + Math.abs(errY) > 8 ? '#e8455c' : '#5fd07a';
       label.style.whiteSpace = 'pre';
       if (!debugVisible) {
