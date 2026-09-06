@@ -5,6 +5,7 @@ import {
   enemyScaling,
   pickTarget,
   sellValue,
+  starsForKeep,
   starsForWall,
   tensionFor,
 } from '../src/battle/combat';
@@ -98,5 +99,26 @@ describe('difficulty and economy', () => {
     expect(tensionFor({ hp: 1000, max: 1000 }, 0)).toBe(0);
     expect(tensionFor({ hp: 200, max: 1000 }, 6)).toBe(1);
     expect(tensionFor({ hp: 1000, max: 1000 }, 3)).toBeCloseTo(0.25);
+  });
+});
+
+describe('starsForKeep', () => {
+  const intact = { sections: [420, 420, 420, 420, 420], sectionMax: 420, heartHp: 700, heartMax: 700 };
+
+  it('gives three stars for a siege that never touched the wall', () => {
+    expect(starsForKeep(intact)).toBe(3);
+  });
+
+  it('drops to two once the wall is chipped', () => {
+    expect(starsForKeep({ ...intact, sections: [420, 420, 419, 420, 420] })).toBe(2);
+    expect(starsForKeep({ ...intact, sections: [420, 420, 100, 420, 420] })).toBe(2);
+  });
+
+  it('gives one star once any section is breached, however healthy the rest', () => {
+    expect(starsForKeep({ ...intact, sections: [420, 420, 0, 420, 420] })).toBe(1);
+  });
+
+  it('gives one star if the heart was struck at all', () => {
+    expect(starsForKeep({ ...intact, heartHp: 699 })).toBe(1);
   });
 });

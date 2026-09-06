@@ -37,6 +37,35 @@ export function starsForWall(wallHp: number, wallMax: number): number {
   return 1;
 }
 
+/** How a keep came through a siege. */
+export interface KeepState {
+  /** Health of each gate section, one per lane. A breached section is 0. */
+  sections: number[];
+  sectionMax: number;
+  /** The heart of the keep. Losing it loses the battle. */
+  heartHp: number;
+  heartMax: number;
+}
+
+/**
+ * Star rating for a siege.
+ *
+ * The wall is what the player is asked to hold, so it carries the rating -
+ * but a breach is not the same as losing, and a keep whose heart was struck
+ * has been through something the score should show. Three stars means no
+ * section was ever breached and the wall is close to untouched.
+ */
+export function starsForKeep(keep: KeepState): number {
+  if (keep.heartHp < keep.heartMax) return 1;
+  const breached = keep.sections.filter((hp) => hp <= 0).length;
+  if (breached > 0) return 1;
+  const total = keep.sections.reduce((a, b) => a + b, 0);
+  const pct = total / (keep.sectionMax * keep.sections.length);
+  if (pct >= 0.9999) return 3;
+  if (pct >= 0.6) return 2;
+  return 1;
+}
+
 /**
  * Difficulty scaling applied to every enemy in a level.
  * Chapters ramp, and later waves inside a level ramp a little more.

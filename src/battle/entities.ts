@@ -9,7 +9,7 @@ import Phaser from 'phaser';
 import { characterArt } from '../art/compose';
 import { ALL_CHARACTER_ART } from '../art/cast';
 import type { ProjectileId } from '../art/props';
-import { GRID, WALL_FACE_X, cellCenter, laneGroundY } from '../core/layout';
+import { GRID, KEEP, WALL_FACE_X, cellCenter, laneGroundY } from '../core/layout';
 import type { DefenderDef, EnemyDef } from '../data/types';
 import { Rig } from '../objects/Rig';
 import { applyDamage, damageAfterArmor } from './combat';
@@ -26,6 +26,10 @@ export interface BattleWorld {
   defenderAt(row: number, col: number): Defender | undefined;
   spawnProjectile(opts: ProjectileOptions): void;
   damageWall(amount: number, atY: number): void;
+  /** True once this lane's gate section has fallen and the way is open. */
+  isBreached(row: number): boolean;
+  /** Damage the heart of the keep, which only breached enemies can reach. */
+  damageHeart(amount: number): void;
   awardGold(amount: number, x: number, y: number): void;
   onEnemyKilled(enemy: Enemy): void;
   burst(x: number, y: number, kind: 'hit' | 'blood' | 'magic' | 'explosion' | 'coin' | 'heal'): void;
@@ -343,6 +347,8 @@ export class Enemy {
   private charged = false;
   /** Set once the enemy is close enough to hit the wall. */
   atWall = false;
+  /** Set once this enemy has come through a breach and is inside the keep. */
+  inside = false;
 
   constructor(
     private readonly world: BattleWorld,
@@ -479,7 +485,13 @@ export class Enemy {
     // Find something to hit: the front-most defender within reach.
     if (!this.target || !this.target.alive) this.target = this.findBlocker();
 
-    const wallReach = WALL_FACE_X + this.def.range * 0.5;
+    /*
+     * A breached lane has nothing left to stop at. The enemy walks through
+     * the gap and goes for the heart of the keep instead, which is what turns
+     * a breach into a second front rather than an instant loss.
+     */
+    const through = this.world.isBreached(this.row);
+    const wallReach = through ? KEEP.x + KEEP.radius : WALL_FACE_X + this.def.range * 0.5;
     if (this.target) {
       const dist = this.x - this.target.x;
       if (dist <= this.def.range) {
@@ -490,6 +502,7 @@ export class Enemy {
       }
     } else if (this.x <= wallReach) {
       this.atWall = true;
+      this.inside = through;
       this.attackWall();
       this.syncView();
       this.rig.update(time, delta);
@@ -552,8 +565,10 @@ export class Enemy {
       return;
     }
     this.attackCooldown = 1 / this.def.rate;
+    const inside = this.inside;
     this.rig.play('attack', () => {
-      this.world.damageWall(this.damage, this.y);
+      if (inside) this.world.damageHeart(this.damage);
+      else this.world.damageWall(this.damage, this.y);
       this.world.sfx('gate');
       this.world.shake(this.isBoss ? 12 : 5);
       if (this.def.special === 'bomber') this.takeDamage(this.hp * 2, true);

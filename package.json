@@ -25,7 +25,8 @@
     "art:sheets": "node scripts/contact-sheet.mjs",
     "art:fetch": "node scripts/fetch-drive-art.mjs",
     "art:name": "node scripts/name-art.mjs",
-    "art:frames": "node scripts/import-frames.mjs"
+    "art:frames": "node scripts/import-frames.mjs",
+    "breachtest": "node scripts/breachtest.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",

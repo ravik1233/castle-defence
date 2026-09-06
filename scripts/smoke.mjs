@@ -74,7 +74,9 @@ await until(() => globalThis.__battle.state().kills >= 5, 'the defenders to kill
 const mid = await state();
 console.log('mid-combat:', JSON.stringify({ kills: mid.kills, gold: mid.gold, wallHp: mid.wallHp }));
 if (mid.gold <= placed.gold - 5000) fail('kills paid no gold');
-if (mid.wallHp !== 1000) fail('the wall took damage it should not have');
+// Every section still at full: the defenders are holding the whole line.
+if (mid.breached !== 0) fail(`${mid.breached} sections were breached with the line holding`);
+if (mid.sections.some((hp) => hp < 420)) fail('the wall took damage it should not have');
 await page.screenshot({ path: 'screenshots/smoke-battle.png' });
 
 await page.evaluate(() => globalThis.__battle.castAt(0, 700, 700));
@@ -121,8 +123,15 @@ const untilOn = async (target, fn, what, timeoutMs = 300000) => {
   return false;
 };
 
-await untilOn(lose, () => globalThis.__battle.state().wallHp < 1000, 'the gate to take damage');
-console.log('gate under attack:', JSON.stringify(await lose.evaluate(() => globalThis.__battle.state().wallHp)));
+await untilOn(
+  lose,
+  () => globalThis.__battle.state().sections.some((hp) => hp < 420),
+  'the gate to take damage',
+);
+console.log(
+  'gate under attack:',
+  JSON.stringify(await lose.evaluate(() => globalThis.__battle.state().sections)),
+);
 await untilOn(
   lose,
   () => globalThis.__game.scene.getScenes(true).some((s) => s.scene.key === 'Result'),

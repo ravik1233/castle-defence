@@ -100,6 +100,14 @@ export function isInsideField(x: number, y: number): boolean {
 export const WALL_FACE_X = GRID.x0 - 6;
 
 /**
+ * The heart of the keep, behind the wall.
+ *
+ * A breached lane is not the end of the battle - enemies pour through into
+ * the courtyard and come for this instead, and only losing it loses the day.
+ */
+export const KEEP = { x: 72, radius: 54 } as const;
+
+/**
  * Meta screens (menu, map, armoury) lay out inside a centred column rather
  * than spreading across the full width, which would leave text unreadably wide.
  */

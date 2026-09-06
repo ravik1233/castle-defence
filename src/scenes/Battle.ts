@@ -13,8 +13,10 @@ import {
   HERO_BAR,
   HUD,
   SPAWN_X,
+  KEEP,
   TRAY,
   WALL,
+  WALL_FACE_X,
   cellCenter,
   colFromX,
   laneCenterY,
@@ -36,9 +38,21 @@ import { audio, haptic, type SfxId } from '../systems/audio';
 import { COLORS, Counter, TextButton, floatText, showDialog, tappable, textStyle } from '../ui/kit';
 import { Defender, Enemy, Projectile, type BattleWorld, type ProjectileOptions } from '../battle/entities';
 import { portraitFor } from '../art/portraits';
-import { enemyScaling, starsForWall, tensionFor } from '../battle/combat';
+import { enemyScaling, starsForKeep, tensionFor } from '../battle/combat';
+import type { KeepState } from '../battle/combat';
 
-const WALL_MAX_HP = 1000;
+/**
+ * A gate section per lane, rather than one wall across the whole field.
+ *
+ * Sections are worth more together than the old single wall, because an
+ * enemy only ever chews on its own lane's - what the player defends now is
+ * five separate things, and losing one is a setback rather than the end.
+ */
+const SECTION_MAX_HP = 420;
+const HEART_MAX_HP = 700;
+/** Gold to rebuild a breached section, and the share of it that comes back. */
+const REPAIR_COST = 75;
+const REPAIR_SHARE = 0.6;
 const PREP_SECONDS = 10;
 
 interface CardView {
@@ -70,7 +84,13 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private finished = false;
 
   private gold = 0;
-  private wallHp = WALL_MAX_HP;
+  private sections: number[] = [];
+  private heartHp = HEART_MAX_HP;
+  private sectionBars: Phaser.GameObjects.Rectangle[] = [];
+  private breachMarks: Phaser.GameObjects.Text[] = [];
+  private breachHoles: Phaser.GameObjects.Rectangle[] = [];
+  private heartBar?: Phaser.GameObjects.Rectangle;
+  private heartLabel?: Phaser.GameObjects.Text;
   private killCount = 0;
   private goldSpent = 0;
 
@@ -94,9 +114,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
   private goldCounter!: Counter;
   private waveText!: Phaser.GameObjects.Text;
-  private wallBar!: Phaser.GameObjects.Rectangle;
 
-  private wallLabel!: Phaser.GameObjects.Text;
 
   private paused = false;
   private skipBriefing = false;
@@ -128,13 +146,24 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         this.spawnQueue.length = 0;
         this.updateHud();
       },
+      // Knocks a lane's section out so the breach path can be exercised
+      // without waiting for enemies to chew through it.
+      breach: (row: number): void => {
+        this.sections[row] = 0;
+        this.onBreach(row);
+        this.updateHud();
+      },
+      repair: (row: number): void => this.repairSection(row),
       addGold: (n: number): void => {
         this.gold += n;
         this.updateHud();
       },
       state: () => ({
         gold: Math.round(this.gold),
-        wallHp: Math.round(this.wallHp),
+        wallHp: Math.round(this.sections.reduce((a, b) => a + b, 0)),
+        heartHp: Math.round(this.heartHp),
+        breached: this.sections.filter((hp) => hp <= 0).length,
+        sections: this.sections.map((hp) => Math.round(hp)),
         wave: this.waveIndex + 1,
         waves: this.waves.length,
         enemies: this.enemies.filter((e) => e.alive).length,
@@ -163,7 +192,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     this.elapsed = 0;
     this.finished = false;
     this.gold = this.levelDef.startingGold;
-    this.wallHp = WALL_MAX_HP;
+    this.sections = new Array(GRID.rows).fill(SECTION_MAX_HP);
+    this.heartHp = HEART_MAX_HP;
     this.killCount = 0;
     this.goldSpent = 0;
     this.rallyFactor = 1;
@@ -245,6 +275,9 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       .setDisplaySize(WALL.gateWidth, FIELD.height * 0.42)
       .setDepth(2002);
 
+    this.buildSections();
+    this.buildHeart();
+
     this.cellMarker = this.add
       .image(0, 0, 'ui.cell')
       .setDisplaySize(GRID.cellW, GRID.cellH)
@@ -273,18 +306,22 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       .setOrigin(0, 0.5)
       .setDepth(3001);
 
-    // Gate health sits centre-top: the one number that decides the run.
-    const barW = 520;
+    /*
+     * The heart of the keep sits centre-top, because it is now the one number
+     * that decides the run. The wall is read on the wall itself, lane by lane,
+     * where the damage is actually happening.
+     */
+    const barW = 400;
     this.add
       .rectangle(DESIGN.width / 2, HUD.height / 2, barW, 38, 0x2a2338)
       .setStrokeStyle(4, 0x0f0c1a)
       .setDepth(3001);
-    this.wallBar = this.add
+    this.heartBar = this.add
       .rectangle(DESIGN.width / 2 - barW / 2 + 2, HUD.height / 2, barW - 4, 32, 0x5fd07a)
       .setOrigin(0, 0.5)
       .setDepth(3002);
-    this.wallLabel = this.add
-      .text(DESIGN.width / 2, HUD.height / 2, 'GATE', textStyle('tiny', COLORS.ink, { strokeThickness: 0 }))
+    this.heartLabel = this.add
+      .text(DESIGN.width / 2, HUD.height / 2, 'KEEP', textStyle('tiny', COLORS.ink, { strokeThickness: 0 }))
       .setOrigin(0.5)
       .setDepth(3003);
 
@@ -298,6 +335,141 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     this.updateHud();
   }
 
+  /* ------------------------------------------------------------ the wall - */
+
+  /**
+   * One bar per lane, drawn on the wall itself.
+   *
+   * The player needs to see which lane is losing, not a single number that
+   * averages five separate fights into one. Tapping a breached section
+   * rebuilds it, so the bars are the repair control too.
+   */
+  private buildSections(): void {
+    this.sectionBars = [];
+    this.breachMarks = [];
+    for (let row = 0; row < GRID.rows; row += 1) {
+      const y = laneCenterY(row);
+      const h = GRID.cellH * 0.5;
+      this.add
+        .rectangle(WALL_FACE_X - 15, y, 22, h, 0x1a1526, 0.85)
+        .setStrokeStyle(3, 0x0f0c1a)
+        .setDepth(2100);
+      const bar = this.add
+        .rectangle(WALL_FACE_X - 15, y + h / 2 - 2, 16, h - 4, 0x5fd07a)
+        .setOrigin(0.5, 1)
+        .setDepth(2101);
+      this.sectionBars.push(bar);
+
+      /*
+       * A hole punched through the wall art. Without it a fallen section
+       * looks exactly like a standing one and enemies simply walk through
+       * solid stone, which reads as a bug rather than a breach.
+       */
+      const hole = this.add
+        .rectangle(WALL.width / 2, y, WALL.width, GRID.cellH * 0.78, 0x0b0713)
+        .setDepth(2010)
+        .setVisible(false);
+      this.breachHoles.push(hole);
+
+      const mark = this.add
+        .text(WALL_FACE_X - 15, y, 'REBUILD', textStyle('tiny', COLORS.gold))
+        .setOrigin(0.5)
+        .setDepth(2102)
+        .setVisible(false);
+      mark.setAngle(-90);
+      this.breachMarks.push(mark);
+
+      // The whole section strip is the repair button, so it is easy to hit.
+      const hit = this.add
+        .rectangle(WALL_FACE_X - 15, y, 64, h, 0xffffff, 0)
+        .setDepth(2103);
+      tappable(hit as unknown as Phaser.GameObjects.Container, 64, h);
+      hit.on('pointerdown', () => this.repairSection(row));
+    }
+  }
+
+  /**
+   * The heart of the keep, standing in the courtyard behind the wall.
+   *
+   * It has to be visible even when nothing has broken through, so the player
+   * understands what a breach threatens before one happens.
+   */
+  private buildHeart(): void {
+    const y = FIELD.y + FIELD.height / 2;
+    this.add.image(KEEP.x, y, 'fx.glow')
+      .setDisplaySize(KEEP.radius * 4, KEEP.radius * 4)
+      .setTint(0xf0b429)
+      .setAlpha(0.35)
+      .setBlendMode(Phaser.BlendModes.ADD)
+      .setDepth(2050);
+    const core = this.add.image(KEEP.x, y, 'icon.crown')
+      .setDisplaySize(KEEP.radius * 1.6, KEEP.radius * 1.6)
+      .setDepth(2051);
+    // A slow pulse, so it reads as something alive that is worth protecting.
+    this.tweens.add({
+      targets: core,
+      scaleX: core.scaleX * 1.1,
+      scaleY: core.scaleY * 1.1,
+      duration: 1400,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.inOut',
+    });
+  }
+
+  private updateSections(): void {
+    for (let row = 0; row < this.sectionBars.length; row += 1) {
+      const hp = this.sections[row] ?? 0;
+      const f = Math.max(0, hp / SECTION_MAX_HP);
+      const bar = this.sectionBars[row]!;
+      const full = GRID.cellH * 0.5 - 4;
+      bar.height = Math.max(0, full * f);
+      bar.fillColor = f > 0.55 ? 0x5fd07a : f > 0.25 ? 0xf0b429 : 0xe8455c;
+      bar.setVisible(hp > 0);
+      this.breachHoles[row]?.setVisible(hp <= 0);
+      this.breachMarks[row]?.setVisible(hp <= 0 && !this.finished);
+    }
+  }
+
+  /** How the keep is doing, for scoring and for the results screen. */
+  private keepState(): KeepState {
+    return {
+      sections: [...this.sections],
+      sectionMax: SECTION_MAX_HP,
+      heartHp: this.heartHp,
+      heartMax: HEART_MAX_HP,
+    };
+  }
+
+  isBreached(row: number): boolean {
+    return (this.sections[row] ?? 0) <= 0;
+  }
+
+  /** Rebuilds a fallen section, for gold. The one way back from a breach. */
+  private repairSection(row: number): void {
+    if (this.finished || !this.isBreached(row)) return;
+    if (this.gold < REPAIR_COST) {
+      audio.play('deny');
+      floatText(this, WALL.width + 40, laneCenterY(row), 'NOT ENOUGH GOLD', COLORS.danger, 'small');
+      return;
+    }
+    this.gold -= REPAIR_COST;
+    this.sections[row] = SECTION_MAX_HP * REPAIR_SHARE;
+    audio.play('place');
+    haptic(20);
+    floatText(this, WALL.width + 40, laneCenterY(row), 'REBUILT', COLORS.good, 'small');
+    this.updateHud();
+  }
+
+  damageHeart(amount: number): void {
+    if (this.finished) return;
+    this.heartHp -= amount;
+    this.cameras.main.flash(140, 160, 20, 40);
+    this.shake(9);
+    this.updateHud();
+    if (this.heartHp <= 0) this.endBattle(false);
+  }
+
   private updateHud(): void {
     this.goldCounter.set(this.gold);
     const total = this.waves.length;
@@ -307,10 +479,13 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         ? `First wave in ${Math.ceil(this.waveTimer)}s`
         : `Wave ${Math.min(shown, total)} / ${total}`,
     );
-    const f = Math.max(0, this.wallHp / WALL_MAX_HP);
-    this.wallBar.width = 516 * f;
-    this.wallBar.fillColor = f > 0.55 ? 0x5fd07a : f > 0.25 ? 0xf0b429 : 0xe8455c;
-    this.wallLabel.setText(`GATE ${Math.max(0, Math.ceil(this.wallHp))}`);
+    const f = Math.max(0, this.heartHp / HEART_MAX_HP);
+    if (this.heartBar) {
+      this.heartBar.width = 396 * f;
+      this.heartBar.fillColor = f > 0.55 ? 0x5fd07a : f > 0.25 ? 0xf0b429 : 0xe8455c;
+    }
+    this.heartLabel?.setText(`KEEP ${Math.max(0, Math.ceil(this.heartHp))}`);
+    this.updateSections();
   }
 
   /* ---------------------------------------------------------------- tray - */
@@ -700,11 +875,25 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
   damageWall(amount: number, atY: number): void {
     if (this.finished) return;
-    this.wallHp -= amount;
+    const row = Math.max(0, Math.min(GRID.rows - 1, rowFromY(atY)));
+    const before = this.sections[row] ?? 0;
+    if (before <= 0) return;
+    this.sections[row] = Math.max(0, before - amount);
     floatText(this, WALL.width + 20, atY - 80, `-${Math.round(amount)}`, COLORS.danger, 'small');
     this.cameras.main.flash(90, 120, 20, 30);
+    // A breach is loud. It is the moment the battle changes shape, and the
+    // player has to notice it happening in a lane they may not be watching.
+    if (this.sections[row] === 0) this.onBreach(row);
     this.updateHud();
-    if (this.wallHp <= 0) this.endBattle(false);
+  }
+
+  /** A section has fallen: the lane is open and the keep is exposed. */
+  private onBreach(row: number): void {
+    audio.play('explode');
+    haptic(40);
+    this.shake(16);
+    this.cameras.main.flash(220, 200, 40, 40);
+    floatText(this, WALL.width + 60, laneCenterY(row), 'BREACH!', COLORS.danger, 'title');
   }
 
   awardGold(amount: number, x: number, y: number): void {
@@ -939,7 +1128,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     }
 
     const nearWall = this.enemies.filter((e) => e.alive && e.x < WALL.width + 260).length;
-    audio.setTension(tensionFor({ hp: this.wallHp, max: WALL_MAX_HP }, nearWall));
+    audio.setTension(tensionFor({ hp: this.heartHp, max: HEART_MAX_HP }, nearWall));
 
     quality.sample(this.game);
   }
@@ -975,7 +1164,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     audio.play(victory ? 'victory' : 'defeat');
     profile.addKills(this.killCount);
 
-    const stars = victory ? starsForWall(this.wallHp, WALL_MAX_HP) : 0;
+    const stars = victory ? starsForKeep(this.keepState()) : 0;
     const wave = this.waveIndex + 1;
     const unlockedBefore = profile.campaignProgress;
 
@@ -986,8 +1175,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         stars,
         wave,
         kills: this.killCount,
-        wallHp: Math.max(0, Math.round(this.wallHp)),
-        wallMax: WALL_MAX_HP,
+        wallHp: Math.max(0, Math.round(this.heartHp)),
+        wallMax: HEART_MAX_HP,
         reward: this.levelDef.reward,
         levelNo: levelNumber(this.levelDef.id),
         unlockedBefore,
