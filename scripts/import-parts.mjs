@@ -104,6 +104,9 @@ await page.evaluate(() => {
     const { width: w, height: h } = c;
     const px = c.getContext('2d').getImageData(0, 0, w, h).data;
     const seen = new Uint8Array(w * h);
+    // Which piece each pixel belongs to, so a cut can be masked to just its
+    // own: bounding boxes overlap, and Gemini's sparkle sits on top of one.
+    const labels = new Int32Array(w * h).fill(-1);
     const out = [];
     const stack = new Int32Array(w * h);
 
@@ -119,9 +122,11 @@ await page.evaluate(() => {
       let maxY = -1;
       let area = 0;
 
+      const id = out.length;
       while (top > 0) {
         top -= 1;
         const p = stack[top];
+        labels[p] = id;
         const x = p % w;
         const y = (p - x) / w;
         area += 1;
@@ -143,9 +148,38 @@ await page.evaluate(() => {
           }
         }
       }
-      out.push({ x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1, area });
+      out.push({ id, x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1, area });
     }
+    window.__labels = labels;
+    window.__labelW = w;
     return out;
+  };
+
+  /** One piece, cut out and masked so nothing else in its box comes with it. */
+  window.__cut = (box, id, w, h) => {
+    const raw = document.createElement('canvas');
+    raw.width = box.w;
+    raw.height = box.h;
+    const rctx = raw.getContext('2d', { willReadFrequently: true });
+    rctx.drawImage(window.__sheet, box.x, box.y, box.w, box.h, 0, 0, box.w, box.h);
+    const data = rctx.getImageData(0, 0, box.w, box.h);
+    const px = data.data;
+    const labels = window.__labels;
+    const lw = window.__labelW;
+    for (let y = 0; y < box.h; y += 1) {
+      for (let x = 0; x < box.w; x += 1) {
+        if (labels[(box.y + y) * lw + (box.x + x)] !== id) px[(y * box.w + x) * 4 + 3] = 0;
+      }
+    }
+    rctx.putImageData(data, 0, 0);
+
+    const out = document.createElement('canvas');
+    out.width = Math.max(1, w);
+    out.height = Math.max(1, h);
+    const ctx = out.getContext('2d');
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(raw, 0, 0, out.width, out.height);
+    return out.toDataURL('image/png');
   };
 });
 
@@ -187,20 +221,37 @@ function classify(islands, sheetW, byIndex) {
   take(above[0], 'head');
 
   const below = central.filter((p) => p.cy >= torso.cy).sort((a, b) => b.cy - a.cy);
+  // A weapon is long and thin. A shield is not, and neither is a fireball.
   const longThin = (p) => Math.max(p.w, p.h) / Math.max(1, Math.min(p.w, p.h)) > 2.2;
   const weapon = below.find(longThin) ?? below[0];
   take(weapon, 'weapon');
   for (const p of below) take(p, 'offhand');
 
-  // Each flank, bottom up: leg, then arm, then a wing or cape above that.
+  /*
+   * Limbs are tall and narrow. Sorting each flank by height alone put the
+   * guardian's sword and shield in its leg slots, because they are laid out
+   * low on the flanks rather than down the middle - and a figure standing on
+   * a shield collapses.
+   *
+   * So only limb-shaped pieces can be a leg or an arm: lowest is the leg, the
+   * one above it the arm. Whatever is left over is sorted by shape.
+   */
+  const limb = (p) => p.h > p.w * 1.25;
+  const leftovers = [];
   for (const side of ['Back', 'Front']) {
     // The sheet is drawn facing right, so its right-hand column is the near side.
     const col = sides
       .filter((p) => (side === 'Front' ? p.cx > torso.cx : p.cx < torso.cx))
       .sort((a, b) => b.cy - a.cy);
-    take(col[0], `leg${side}`);
-    take(col[1], `arm${side}`);
-    for (const p of col.slice(2)) take(p, side === 'Front' ? 'wings' : 'cape');
+    const limbs = col.filter(limb);
+    take(limbs[0], `leg${side}`);
+    take(limbs[1], `arm${side}`);
+    for (const p of col) if (!named.has(p.i)) leftovers.push({ p, side });
+  }
+
+  for (const { p, side } of leftovers) {
+    if (!weapon && longThin(p)) take(p, 'weapon');
+    else take(p, side === 'Front' ? 'wings' : 'cape');
   }
 
   // Hand corrections win over all of it.
@@ -237,8 +288,10 @@ function assemble(byName) {
     head: { x: 0, y: hipY - s(torso.h * 0.96), pivot: [0.5, 1] },
     legBack: { x: -s(torso.w * 0.18), y: hipY, pivot: [0.5, 0.08] },
     legFront: { x: s(torso.w * 0.18), y: hipY, pivot: [0.5, 0.08] },
-    armBack: { x: -s(torso.w * 0.42), y: shoulderY, pivot: [0.5, 0.1] },
-    armFront: { x: s(torso.w * 0.42), y: shoulderY, pivot: [0.5, 0.1] },
+    // The figure faces right, so the far arm hangs wider to clear the chest -
+    // tucked in behind it, it is simply never seen.
+    armBack: { x: -s(torso.w * 0.52), y: shoulderY, pivot: [0.5, 0.1] },
+    armFront: { x: s(torso.w * 0.4), y: shoulderY, pivot: [0.5, 0.1] },
     // These two are whatever was left over on each flank - a pair of wings on
     // a demon, robe panels on a shaman - so each hangs on the side it was
     // drawn on rather than both stacking behind the same shoulder.
@@ -302,16 +355,8 @@ for (const file of sheets) {
     const target = rig?.parts[name];
     if (!target) continue;
     const png = await page.evaluate(
-      ({ box, w, h }) => {
-        const out = document.createElement('canvas');
-        out.width = Math.max(1, w);
-        out.height = Math.max(1, h);
-        const ctx = out.getContext('2d');
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(window.__sheet, box.x, box.y, box.w, box.h, 0, 0, out.width, out.height);
-        return out.toDataURL('image/png');
-      },
-      { box: { x: piece.x, y: piece.y, w: piece.w, h: piece.h }, w: target.w, h: target.h },
+      ({ box, id, w, h }) => window.__cut(box, id, w, h),
+      { box: { x: piece.x, y: piece.y, w: piece.w, h: piece.h }, id: piece.id, w: target.w, h: target.h },
     );
     const outName = `${key}.${name}.png`;
     writeFileSync(join(outDir, outName), Buffer.from(png.split(',')[1], 'base64'));

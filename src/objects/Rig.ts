@@ -44,6 +44,9 @@ export function fullSpriteKey(artId: string): string {
  * Everything else - walking, being hit, dying - stays procedural, so this is
  * the only extra drawing worth asking an artist for.
  */
+/** Where a painted weapon rides when held: a little above the horizontal. */
+const WEAPON_REST = -0.18;
+
 export function attackSpriteKey(artId: string): string {
   return `unit.${artId}.attack`;
 }
@@ -122,19 +125,30 @@ export class Rig extends Phaser.GameObjects.Container {
         const slot = rig.parts[name];
         const key = `unit.${art.id}.${name}`;
         if (!slot || !scene.textures.exists(key)) continue;
+        /*
+         * The same rest angles the vector rig uses. Without them every joint
+         * sits at zero, which reads as a mannequin: both arms hanging dead
+         * straight, legs parallel, and a weapon lying flat on the horizontal.
+         *
+         * The weapon is the exception. Painted weapons are drawn lying
+         * horizontally on the sheet, so it carries the angle it should sit at
+         * when held; setPose re-solves its position from the hand each frame
+         * and cancels the arm's rest angle out of the rotation, which leaves
+         * exactly this.
+         */
+        const rest = (REST_POSE as unknown as Record<string, number>)[name] ?? 0;
+        const baseRotation = name === 'weapon' ? WEAPON_REST : rest;
         const img = scene.add.image(slot.x * k, slot.y * k, key);
         img.setOrigin(slot.pivot[0], slot.pivot[1]);
         img.setDisplaySize(slot.w * k, slot.h * k);
+        img.setRotation(baseRotation);
         this.add(img);
         this.views.set(name, {
           name,
           image: img,
           baseX: slot.x * k,
           baseY: slot.y * k,
-          // The weapon is re-solved from the arm each frame, and the formula
-          // that does it subtracts the vector rest angle. Starting the painted
-          // weapon at that angle makes it come out following the hand exactly.
-          baseRotation: name === 'weapon' ? REST_POSE.armFront : 0,
+          baseRotation,
         });
       }
       const arm = rig.parts.armFront;
