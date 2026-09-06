@@ -12,7 +12,6 @@
  * beat or two after first paint.
  */
 import type Phaser from 'phaser';
-import { describeFallbackHit } from './inputfallback';
 
 function viewportSize(): { width: number; height: number } {
   const vv = window.visualViewport;
@@ -196,7 +195,6 @@ export function installTouchDebug(game: Phaser.Game): void {
       // while a button is plainly there, the hit test and the renderer
       // disagree, and everything else here says by how much.
       let hits = 'n/a';
-      let net = 'n/a';
       let sceneList = '';
       let plumbing = '';
       try {
@@ -207,7 +205,6 @@ export function installTouchDebug(game: Phaser.Game): void {
             type: string;
             list?: Array<{ type: string; text?: string }>;
           }>;
-          net = describeFallbackHit(scene, p);
           hits = objects.length
             ? objects
                 .map((o) => o.list?.find((c) => c.type === 'Text')?.text ?? o.type)
@@ -254,7 +251,6 @@ export function installTouchDebug(game: Phaser.Game): void {
         `cam zoom ${cam?.zoom ?? '-'} scroll ${Math.round(cam?.scrollX ?? 0)},${Math.round(cam?.scrollY ?? 0)} ` +
         `view ${Math.round(cam?.width ?? 0)}x${Math.round(cam?.height ?? 0)}\n` +
         `HIT: ${hits}\n` +
-        `NET: ${net}\n` +
         `${plumbing}\n` +
         `loop ${game.loop.running ? 'run' : 'STOPPED'} fps ${Math.round(game.loop.actualFps)} ` +
         `frames ${game.loop.frame}  focus ${document.hasFocus() ? 'yes' : 'NO'} ` +

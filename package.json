@@ -20,7 +20,7 @@
     "pwacheck": "node scripts/pwacheck.mjs",
     "cap:sync": "npm run build && npx cap sync",
     "cap:android": "npm run cap:sync && npx cap open android",
-    "inputnet": "node scripts/inputnet.mjs"
+    "hittest": "node scripts/hittest.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",

@@ -79,6 +79,24 @@ export function starRow(
   return c;
 }
 
+/**
+ * Makes a container tappable across its own footprint, centred on its position.
+ *
+ * Phaser adds an object's display origin to the local point before testing the
+ * hit area, and a Container's display origin is half its size. So the hit area
+ * has to be given in top-left space - `(0, 0, w, h)` - even though a
+ * container's children are laid out around its centre. Handing it the centred
+ * rectangle instead applies the origin twice and shifts the whole hit area up
+ * and left by half a button: invisible on screen, and maddening to use.
+ *
+ * Every tappable container in the game goes through here so that reasoning has
+ * to be right in exactly one place.
+ */
+export function tappable(obj: Phaser.GameObjects.Container, w: number, h: number): void {
+  obj.setSize(w, h);
+  obj.setInteractive(new Phaser.Geom.Rectangle(0, 0, w, h), Phaser.Geom.Rectangle.Contains);
+}
+
 export interface ButtonOptions {
   width?: number;
   height?: number;
@@ -119,8 +137,7 @@ export class TextButton extends Phaser.GameObjects.Container {
       this.label.x = 22;
     }
 
-    this.setSize(w, h);
-    this.setInteractive(new Phaser.Geom.Rectangle(-w / 2, -h / 2, w, h), Phaser.Geom.Rectangle.Contains);
+    tappable(this, w, h);
     this.on('pointerdown', () => {
       if (!this.enabledState) {
         audio.play('deny');

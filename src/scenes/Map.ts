@@ -6,7 +6,7 @@ import type { LevelDef } from '../data/types';
 import { profile } from '../systems/profile';
 import { ensureBattleTextures } from '../systems/textures';
 import { audio } from '../systems/audio';
-import { COLORS, Counter, TextButton, fitText, showDialog, starRow, textStyle } from '../ui/kit';
+import { COLORS, Counter, TextButton, fitText, showDialog, starRow, tappable, textStyle } from '../ui/kit';
 
 export class MapScene extends Phaser.Scene {
   private chapterIndex = 0;
@@ -149,8 +149,7 @@ export class MapScene extends Phaser.Scene {
           .setOrigin(0.5),
       );
 
-      node.setSize(160, 190);
-      node.setInteractive(new Phaser.Geom.Rectangle(-80, -95, 160, 190), Phaser.Geom.Rectangle.Contains);
+      tappable(node, 160, 190);
       node.on('pointerdown', () => {
         audio.play('tap');
         if (!unlocked) {

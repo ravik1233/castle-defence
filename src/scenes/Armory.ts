@@ -11,7 +11,7 @@ import { profile, PREMIUM_SKINS } from '../systems/profile';
 import { ensureAllCastleSkins } from '../systems/textures';
 import { portraitFor } from '../art/portraits';
 import { audio } from '../systems/audio';
-import { COLORS, Counter, TextButton, fitText, showDialog, textStyle } from '../ui/kit';
+import { COLORS, Counter, TextButton, fitText, showDialog, tappable, textStyle } from '../ui/kit';
 
 type Tab = 'deck' | 'upgrades' | 'hero' | 'castle';
 
@@ -139,8 +139,7 @@ export class ArmoryScene extends Phaser.Scene {
           .setOrigin(0.5),
       );
 
-      c.setSize(200, 180);
-      c.setInteractive(new Phaser.Geom.Rectangle(-100, -90, 200, 180), Phaser.Geom.Rectangle.Contains);
+      tappable(c, 200, 180);
       c.on('pointerdown', () => {
         if (!unlocked) {
           audio.play('deny');

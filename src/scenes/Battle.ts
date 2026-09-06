@@ -33,7 +33,7 @@ import { generateWaves, level as levelById, levelNumber, type Wave } from '../da
 import type { LevelDef, SpellDef } from '../data/types';
 import { profile } from '../systems/profile';
 import { audio, haptic, type SfxId } from '../systems/audio';
-import { COLORS, Counter, TextButton, floatText, showDialog, textStyle } from '../ui/kit';
+import { COLORS, Counter, TextButton, floatText, showDialog, tappable, textStyle } from '../ui/kit';
 import { Defender, Enemy, Projectile, type BattleWorld, type ProjectileOptions } from '../battle/entities';
 import { portraitFor } from '../art/portraits';
 import { enemyScaling, starsForWall, tensionFor } from '../battle/combat';
@@ -351,11 +351,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         .setVisible(false);
       container.add(overlay);
 
-      container.setSize(TRAY.cardW, TRAY.cardH);
-      container.setInteractive(
-        new Phaser.Geom.Rectangle(-TRAY.cardW / 2, -TRAY.cardH / 2, TRAY.cardW, TRAY.cardH),
-        Phaser.Geom.Rectangle.Contains,
-      );
+      tappable(container, TRAY.cardW, TRAY.cardH);
       container.on('pointerdown', () => this.selectCard(id));
 
       this.cards.push({
@@ -475,8 +471,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       container.add(icon);
       const overlay = this.add.graphics();
       container.add(overlay);
-      container.setSize(112, 100);
-      container.setInteractive(new Phaser.Geom.Rectangle(-56, -50, 112, 100), Phaser.Geom.Rectangle.Contains);
+      tappable(container, 112, 100);
       container.on('pointerdown', () => this.selectSpell(spell));
       this.spells.push({ spell, container, cooldownLeft: 0, overlay, ready: ring });
     });

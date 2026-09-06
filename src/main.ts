@@ -21,7 +21,6 @@ import {
   installViewportFit,
   setTouchDebugVisible,
 } from './systems/viewport';
-import { installInputFallbackEverywhere } from './systems/inputfallback';
 import { initInstall } from './systems/install';
 import { profile } from './systems/profile';
 
@@ -94,7 +93,6 @@ function keepAwake(g: Phaser.Game): void {
 // viewport that includes the space behind their own chrome.
 installViewportFit(game);
 keepAwake(game);
-installInputFallbackEverywhere(game);
 installOrientationHint();
 initInstall();
 // Always installed; visibility follows the setting (and the URL override),

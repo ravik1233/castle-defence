@@ -123,6 +123,11 @@ for (const device of DEVICES) {
   // End to end: find the DEFEND button by its label and press where it is
   // drawn. Looking it up rather than hard-coding a position keeps this test
   // honest when the layout changes.
+  //
+  // Deliberately off centre. A button whose hit area is offset by half its own
+  // size still passes a dead-centre click, because the centre lands on the
+  // boundary - which is how a broken hit area survived nine device profiles
+  // here while being unusable on a real machine.
   const btn = await page.evaluate(() => {
     const g = globalThis.__game;
     const scene = g.scene.getScenes(true)[0];
@@ -133,9 +138,11 @@ for (const device of DEVICES) {
     );
     if (!found) return null;
     const r = g.canvas.getBoundingClientRect();
+    const gx = found.x + found.width * 0.35;
+    const gy = found.y + found.height * 0.3;
     return {
-      x: r.left + (found.x / g.scale.width) * r.width,
-      y: r.top + (found.y / g.scale.height) * r.height,
+      x: r.left + (gx / g.scale.width) * r.width,
+      y: r.top + (gy / g.scale.height) * r.height,
     };
   });
   if (!btn) {
