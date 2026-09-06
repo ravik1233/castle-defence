@@ -39,11 +39,23 @@ export function fullSpriteKey(artId: string): string {
   return `unit.${artId}.full`;
 }
 
+/**
+ * Optional second painted pose, swapped in while the unit swings or casts.
+ * Everything else - walking, being hit, dying - stays procedural, so this is
+ * the only extra drawing worth asking an artist for.
+ */
+export function attackSpriteKey(artId: string): string {
+  return `unit.${artId}.attack`;
+}
+
 export class Rig extends Phaser.GameObjects.Container {
   readonly art: CharacterArt;
   private readonly views = new Map<string, PartView>();
   /** Set when the character is a single painted sprite rather than parts. */
   private readonly sprite?: Phaser.GameObjects.Image;
+  /** Texture keys for the painted idle and (optional) attack poses. */
+  private readonly poseIdle?: string;
+  private readonly poseAttack?: string;
   private readonly artScale: number;
   private readonly facingSign: 1 | -1;
   private anim: RigAnim = 'idle';
@@ -69,6 +81,9 @@ export class Rig extends Phaser.GameObjects.Container {
     // Painted art path: one image, animated procedurally.
     const painted = fullSpriteKey(art.id);
     if (scene.textures.exists(painted)) {
+      this.poseIdle = painted;
+      const attack = attackSpriteKey(art.id);
+      if (scene.textures.exists(attack)) this.poseAttack = attack;
       const img = scene.add.image(0, 0, painted);
       img.setOrigin(0.5, 1);
       img.setDisplaySize((img.width / img.height) * this.worldHeight, this.worldHeight);
@@ -140,9 +155,14 @@ export class Rig extends Phaser.GameObjects.Container {
    * lean, squash and stretch. It reads surprisingly well at phone size and
    * costs the artist nothing beyond one image.
    */
-  private setSpritePose(bob: number, lean: number, tilt: number, squash = 0): void {
+  private setSpritePose(bob: number, lean: number, tilt: number, squash = 0, striking = false): void {
     const img = this.sprite;
     if (!img) return;
+    // Swap to the painted attack pose for the swing, if one was supplied.
+    if (this.poseAttack) {
+      const want = striking ? this.poseAttack : this.poseIdle!;
+      if (img.texture.key !== want) img.setTexture(want);
+    }
     const h = this.worldHeight;
     const w = (img.width / img.height) * h;
     img.setPosition(lean, bob);
@@ -214,7 +234,7 @@ export class Rig extends Phaser.GameObjects.Container {
         const swing = k < 0.42 ? -1.15 * (k / 0.42) : 1.5 * ((k - 0.42) / 0.58) - 1.15;
         if (this.sprite) {
           // Pull back, then lunge: the same beat as the rigged swing.
-          this.setSpritePose(-Math.sin(k * Math.PI) * unit, swing * unit * 3.2, swing * 0.16, -swing * 0.05);
+          this.setSpritePose(-Math.sin(k * Math.PI) * unit, swing * unit * 3.2, swing * 0.16, -swing * 0.05, k > 0.3);
           if (!this.attackHit && k >= 0.55) {
             this.attackHit = true;
             this.onAttackHit?.();
@@ -251,7 +271,7 @@ export class Rig extends Phaser.GameObjects.Container {
         const k = Math.min(1, this.animT / d);
         const raise = -1.9 * Math.sin(Math.min(1, k * 1.6) * Math.PI * 0.5);
         if (this.sprite) {
-          this.setSpritePose(-unit * 2.4 * Math.sin(k * Math.PI), 0, 0, -0.06 * Math.sin(k * Math.PI));
+          this.setSpritePose(-unit * 2.4 * Math.sin(k * Math.PI), 0, 0, -0.06 * Math.sin(k * Math.PI), k > 0.25);
           if (!this.attackHit && k >= 0.5) {
             this.attackHit = true;
             this.onAttackHit?.();
