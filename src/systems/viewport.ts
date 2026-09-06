@@ -12,6 +12,7 @@
  * beat or two after first paint.
  */
 import type Phaser from 'phaser';
+import { describeFallbackHit } from './inputfallback';
 
 function viewportSize(): { width: number; height: number } {
   const vv = window.visualViewport;
@@ -195,7 +196,9 @@ export function installTouchDebug(game: Phaser.Game): void {
       // while a button is plainly there, the hit test and the renderer
       // disagree, and everything else here says by how much.
       let hits = 'n/a';
+      let net = 'n/a';
       let sceneList = '';
+      let plumbing = '';
       try {
         const active = game.scene.getScenes(true);
         sceneList = active.map((sc) => sc.scene.key).join('+');
@@ -204,6 +207,7 @@ export function installTouchDebug(game: Phaser.Game): void {
             type: string;
             list?: Array<{ type: string; text?: string }>;
           }>;
+          net = describeFallbackHit(scene, p);
           hits = objects.length
             ? objects
                 .map((o) => o.list?.find((c) => c.type === 'Text')?.text ?? o.type)
@@ -211,6 +215,18 @@ export function installTouchDebug(game: Phaser.Game): void {
                 .join(',')
             : 'NOTHING';
         }
+        // If the coordinates are right and the hit test still finds nothing,
+        // the question is whether the scene's input plugin is alive at all:
+        // an empty list with pending insertions means it never ran.
+        const ip = scene?.input as unknown as {
+          enabled?: boolean;
+          _list?: unknown[];
+          _pendingInsertion?: unknown[];
+        };
+        plumbing =
+          `input ${ip?.enabled ? 'on' : 'OFF'} list ${ip?._list?.length ?? '?'} ` +
+          `pending ${ip?._pendingInsertion?.length ?? '?'} ` +
+          `status ${(scene?.sys as unknown as { settings?: { status?: number } })?.settings?.status ?? '?'}`;
       } catch (err) {
         hits = `error ${String(err).slice(0, 40)}`;
       }
@@ -238,6 +254,11 @@ export function installTouchDebug(game: Phaser.Game): void {
         `cam zoom ${cam?.zoom ?? '-'} scroll ${Math.round(cam?.scrollX ?? 0)},${Math.round(cam?.scrollY ?? 0)} ` +
         `view ${Math.round(cam?.width ?? 0)}x${Math.round(cam?.height ?? 0)}\n` +
         `HIT: ${hits}\n` +
+        `NET: ${net}\n` +
+        `${plumbing}\n` +
+        `loop ${game.loop.running ? 'run' : 'STOPPED'} fps ${Math.round(game.loop.actualFps)} ` +
+        `frames ${game.loop.frame}  focus ${document.hasFocus() ? 'yes' : 'NO'} ` +
+        `vis ${document.visibilityState}\n` +
         `scenes: ${sceneList}  ptr ${Math.round(p?.x ?? 0)},${Math.round(p?.y ?? 0)}`;
       dot.style.borderColor = Math.abs(errX) + Math.abs(errY) > 8 ? '#e8455c' : '#5fd07a';
       label.style.whiteSpace = 'pre';

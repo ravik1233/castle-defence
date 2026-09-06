@@ -19,7 +19,8 @@
     "touchtest": "node scripts/touchtest.mjs",
     "pwacheck": "node scripts/pwacheck.mjs",
     "cap:sync": "npm run build && npx cap sync",
-    "cap:android": "npm run cap:sync && npx cap open android"
+    "cap:android": "npm run cap:sync && npx cap open android",
+    "inputnet": "node scripts/inputnet.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",

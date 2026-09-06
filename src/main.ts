@@ -1,5 +1,5 @@
 /**
- * Entry point. Phaser is configured for a fixed portrait design resolution
+ * Entry point. Phaser is configured for a fixed landscape design resolution
  * that is letterboxed to fit whatever phone it lands on.
  */
 import Phaser from 'phaser';
@@ -21,6 +21,7 @@ import {
   installViewportFit,
   setTouchDebugVisible,
 } from './systems/viewport';
+import { installInputFallbackEverywhere } from './systems/inputfallback';
 import { initInstall } from './systems/install';
 import { profile } from './systems/profile';
 
@@ -44,6 +45,8 @@ const config: Phaser.Types.Core.GameConfig = {
     powerPreference: 'high-performance',
   },
   fps: { target: 60, min: 30 },
+  disableContextMenu: true,
+  autoFocus: true,
   scene: [
     PreloadScene,
     MainMenuScene,
@@ -61,9 +64,37 @@ export const game = new Phaser.Game(config);
 // Exposed for automated smoke tests and profiling.
 (globalThis as unknown as { __game?: Phaser.Game }).__game = game;
 
+/**
+ * Phaser sleeps its loop when the window loses focus. A sleeping loop still
+ * shows the last drawn frame, so the game looks perfectly normal while
+ * nothing responds to a press - scenes stop stepping, and their input plugins
+ * stop moving newly interactive objects into the list that hit testing reads.
+ *
+ * A game should not stop dead because a window blurred, so the loop is woken
+ * on every signal that the page is in front of a person, plus a slow watchdog
+ * for whatever else might have put it to sleep.
+ */
+function keepAwake(g: Phaser.Game): void {
+  const wake = (): void => {
+    if (!g.loop.running) g.loop.wake();
+  };
+  for (const event of ['focus', 'pointerdown', 'touchstart', 'keydown'] as const) {
+    window.addEventListener(event, wake, { passive: true });
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) wake();
+  });
+  g.events.on(Phaser.Core.Events.BLUR, wake);
+  setInterval(() => {
+    if (!document.hidden) wake();
+  }, 1000);
+}
+
 // Must come before anything measures the canvas: mobile browsers report a
 // viewport that includes the space behind their own chrome.
 installViewportFit(game);
+keepAwake(game);
+installInputFallbackEverywhere(game);
 installOrientationHint();
 initInstall();
 // Always installed; visibility follows the setting (and the URL override),
