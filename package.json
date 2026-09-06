@@ -20,7 +20,11 @@
     "pwacheck": "node scripts/pwacheck.mjs",
     "cap:sync": "npm run build && npx cap sync",
     "cap:android": "npm run cap:sync && npx cap open android",
-    "hittest": "node scripts/hittest.mjs"
+    "hittest": "node scripts/hittest.mjs",
+    "art:parts": "node scripts/import-parts.mjs",
+    "art:sheets": "node scripts/contact-sheet.mjs",
+    "art:fetch": "node scripts/fetch-drive-art.mjs",
+    "art:name": "node scripts/name-art.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",

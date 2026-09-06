@@ -1,0 +1,16 @@
+<!doctype html><html><head><meta charset="utf-8"><title>painted rig</title>
+<style>
+  body { margin: 0; background: #1b1526; color: #f4ecdd; font: 14px system-ui; }
+  #bar { padding: 8px 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  select, button { font: inherit; padding: 4px 8px; }
+  #game { width: 1280px; height: 620px; }
+</style></head>
+<body>
+  <div id="bar">
+    <select id="unit"></select>
+    <span id="anims"></span>
+    <label><input type="checkbox" id="bones"> show joints</label>
+  </div>
+  <div id="game"></div>
+  <script type="module" src="/src/rigtest.ts"></script>
+</body></html>

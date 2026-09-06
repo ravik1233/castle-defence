@@ -8,7 +8,7 @@
  */
 
 export const SAVE_KEY = 'lastgate.save.v1';
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 export interface LevelRecord {
   /** 1-3, based on how much wall health survived. */
@@ -67,7 +67,7 @@ export function defaultSave(): SaveData {
     crownPack: false,
     ownedSkins: ['stone'],
     activeSkin: 'stone',
-    settings: { sfx: true, music: true, haptics: true, bigUi: false, quality: 'auto', touchDebug: true },
+    settings: { sfx: true, music: true, haptics: true, bigUi: false, quality: 'auto', touchDebug: false },
     stats: { kills: 0, battles: 0, victories: 0, goldEarned: 0 },
     tutorialDone: false,
     adFreeUntil: 0,
@@ -97,6 +97,14 @@ const MIGRATIONS: Record<number, Migration> = {
     ...d,
     settings: { touchDebug: true, ...(d.settings as object) },
     version: 5,
+  }),
+  // The touch readout was a diagnostic for hit areas that sat half a button
+  // up and to the left. That is fixed, so it comes off every device that
+  // turned it on to help find it - not just new ones.
+  5: (d) => ({
+    ...d,
+    settings: { ...(d.settings as object), touchDebug: false },
+    version: 6,
   }),
 };
 

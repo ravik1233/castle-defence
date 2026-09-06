@@ -8,7 +8,7 @@
 import Phaser from 'phaser';
 import { REST_POSE, armLength, characterLayout } from '../art/compose';
 import type { CharacterArt } from '../art/humanoid';
-import { SUPERSAMPLE } from '../art/registry';
+import { SUPERSAMPLE, paintedRig } from '../art/registry';
 import { WORLD_ART_SCALE } from '../core/layout';
 
 export type RigAnim = 'idle' | 'walk' | 'attack' | 'cast' | 'hurt' | 'die' | 'spawn';
@@ -57,6 +57,8 @@ export class Rig extends Phaser.GameObjects.Container {
   private readonly poseIdle?: string;
   private readonly poseAttack?: string;
   private readonly artScale: number;
+  /** Hand distance for a painted rig, whose arms are not the vector arms. */
+  private readonly paintedArmLen?: number;
   private readonly facingSign: 1 | -1;
   private anim: RigAnim = 'idle';
   private t: number;
@@ -89,6 +91,54 @@ export class Rig extends Phaser.GameObjects.Container {
       img.setDisplaySize((img.width / img.height) * this.worldHeight, this.worldHeight);
       this.sprite = img;
       this.add(img);
+      this.setScale(this.facingSign, 1);
+      scene.add.existing(this);
+      return;
+    }
+
+    /*
+     * Painted parts path: the same cut-out puppet as the vector rig, but the
+     * pieces are painted and the assembly comes from the art pack rather than
+     * from the generated skeleton. Everything below this - every pose, every
+     * animation - reads `views` by name, so it works unchanged.
+     */
+    const rig = paintedRig(art.id);
+    if (rig && scene.textures.exists(`unit.${art.id}.torso`)) {
+      // Back to front, so an arm passes in front of the chest and behind the head.
+      const order = [
+        'cape',
+        'wings',
+        'armBack',
+        'legBack',
+        'torso',
+        'head',
+        'legFront',
+        'offhand',
+        'armFront',
+        'weapon',
+      ];
+      const k = this.worldHeight / rig.height;
+      for (const name of order) {
+        const slot = rig.parts[name];
+        const key = `unit.${art.id}.${name}`;
+        if (!slot || !scene.textures.exists(key)) continue;
+        const img = scene.add.image(slot.x * k, slot.y * k, key);
+        img.setOrigin(slot.pivot[0], slot.pivot[1]);
+        img.setDisplaySize(slot.w * k, slot.h * k);
+        this.add(img);
+        this.views.set(name, {
+          name,
+          image: img,
+          baseX: slot.x * k,
+          baseY: slot.y * k,
+          // The weapon is re-solved from the arm each frame, and the formula
+          // that does it subtracts the vector rest angle. Starting the painted
+          // weapon at that angle makes it come out following the hand exactly.
+          baseRotation: name === 'weapon' ? REST_POSE.armFront : 0,
+        });
+      }
+      const arm = rig.parts.armFront;
+      if (arm) this.paintedArmLen = arm.h * k * 0.82;
       this.setScale(this.facingSign, 1);
       scene.add.existing(this);
       return;
@@ -183,7 +233,7 @@ export class Rig extends Phaser.GameObjects.Container {
     const weapon = this.part('weapon');
     const armFront = this.part('armFront');
     if (weapon && armFront) {
-      const len = armLength(this.art.skeleton) * this.artScale;
+      const len = this.paintedArmLen ?? armLength(this.art.skeleton) * this.artScale;
       const r = armFront.image.rotation;
       weapon.image.x = armFront.image.x + Math.sin(r) * len;
       weapon.image.y = armFront.image.y + Math.cos(r) * len;

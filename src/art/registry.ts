@@ -162,12 +162,46 @@ export interface BuildOptions {
   onProgress?: (done: number, total: number) => void;
 }
 
+/**
+ * How a painted parts sheet fits together: where each piece hangs, how big it
+ * is, and what it pivots around. Produced by scripts/import-parts.mjs, which
+ * synthesises it from the pieces' own proportions - the sheet itself says
+ * nothing about assembly.
+ *
+ * Coordinates are in figure pixels measured up from the feet, so `y` is
+ * negative going up and the whole thing scales by `height`.
+ */
+export interface PaintedRig {
+  height: number;
+  parts: Record<string, { x: number; y: number; w: number; h: number; pivot: [number, number] }>;
+}
+
+/** Assemblies by unit art id, filled in as the manifest is read. */
+const paintedRigs = new Map<string, PaintedRig>();
+
+/** The painted assembly for a unit, if a painted parts pack supplied one. */
+export function paintedRig(artId: string): PaintedRig | undefined {
+  return paintedRigs.get(artId);
+}
+
 async function paintedOverrides(): Promise<Record<string, string>> {
   try {
     const res = await fetch(PAINTED_MANIFEST_URL, { cache: 'no-cache' });
     if (!res.ok) return {};
     const json: unknown = await res.json();
-    return typeof json === 'object' && json !== null ? (json as Record<string, string>) : {};
+    if (typeof json !== 'object' || json === null) return {};
+
+    // The manifest carries two kinds of entry: texture key -> filename, and
+    // `unit.<id>.rig` -> an assembly. Only the former are files to fetch.
+    const files: Record<string, string> = {};
+    for (const [key, value] of Object.entries(json as Record<string, unknown>)) {
+      if (key.endsWith('.rig') && typeof value === 'object' && value !== null) {
+        paintedRigs.set(key.replace(/^unit\./, '').replace(/\.rig$/, ''), value as PaintedRig);
+      } else if (typeof value === 'string') {
+        files[key] = value;
+      }
+    }
+    return files;
   } catch {
     // No painted pack installed - vector art is the shipping art.
     return {};
