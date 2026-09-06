@@ -74,16 +74,16 @@ const CHAPTER_META: Array<{
       'The Warlord of the Fields',
     ],
     pool: [
-      ['goblin'],
-      ['goblin'],
       ['goblin', 'goblin_runner'],
-      ['goblin', 'goblin_runner'],
+      ['goblin', 'goblin_runner', 'goblin_bomber'],
       ['goblin', 'goblin_runner', 'hobgoblin'],
-      ['goblin', 'goblin_bomber', 'goblin_runner'],
-      ['goblin', 'hobgoblin', 'goblin_bomber'],
-      ['goblin', 'goblin_runner', 'hobgoblin', 'imp'],
-      ['goblin', 'hobgoblin', 'imp', 'goblin_bomber'],
-      ['goblin', 'hobgoblin', 'imp', 'goblin_runner', 'orc'],
+      ['goblin', 'goblin_bomber', 'hobgoblin', 'imp'],
+      ['goblin', 'goblin_runner', 'imp', 'hobgoblin'],
+      ['goblin', 'goblin_bomber', 'hobgoblin', 'imp', 'shadow_fiend'],
+      ['goblin', 'goblin_runner', 'hobgoblin', 'imp', 'shaman'],
+      ['goblin', 'goblin_bomber', 'hobgoblin', 'shadow_fiend', 'orc'],
+      ['goblin', 'goblin_runner', 'hobgoblin', 'imp', 'shaman', 'orc'],
+      ['goblin', 'hobgoblin', 'imp', 'goblin_runner', 'orc', 'shaman', 'orc_berserker'],
     ],
     boss: 'orc',
   },
@@ -199,7 +199,7 @@ function buildLevel(
     biome: meta.biome,
     waves,
     budgetStart: 3 + i * 1.5 + tier * 7,
-    budgetGrowth: 1.24 + tier * 0.02,
+    budgetGrowth: 1.2 + tier * 0.025,
     pool: meta.pool[i] ?? meta.pool[meta.pool.length - 1]!,
     boss: last ? meta.boss : undefined,
     startingGold: 175 + Math.min(125, i * 10) + tier * 25,
@@ -211,12 +211,8 @@ function buildLevel(
         : last
           ? 'Their commander is here. If the gate falls, there is nothing behind it.'
           : `Hold the gate. Wave ${waves} is the last.`,
-    modifiers:
-      global === 1
-        ? { fixedDeck: ['tithe', 'militia'], goldTrickle: 6 }
-        : global === 2
-          ? { fixedDeck: ['tithe', 'militia', 'archer'] }
-          : undefined,
+    // Only the tutorial level dictates a deck.
+    modifiers: global === 1 ? { fixedDeck: ['tithe', 'militia', 'archer'], goldTrickle: 6 } : undefined,
   };
 }
 
@@ -263,20 +259,55 @@ export function generateWaves(def: LevelDef): Wave[] {
     // Later enemies in the pool only appear once the budget can carry them.
     const pool = def.pool.map(enemy).sort((a, b) => a.threat - b.threat);
     const spawnWindow = Math.min(22, 9 + w * 1.1);
-    let guard = 0;
 
-    while (budget > 0 && guard < 200) {
+    /**
+     * A wave picks two or three featured enemy types up front and then spends
+     * its budget across them. Choosing per-spawn instead produced waves of one
+     * repeated enemy, which is what made the early game feel empty.
+     */
+    const affordableNow = pool.filter((e) => e.threat <= budget + 0.6);
+    const featured: typeof pool = [];
+    if (affordableNow.length > 0) {
+      // The headline enemy is the strongest the budget allows...
+      featured.push(affordableNow[affordableNow.length - 1]!);
+      // ...backed by cheaper types so the lane reads as a mixed horde.
+      const rest = affordableNow.slice(0, -1);
+      const wanted = Math.min(rest.length, budget > 8 ? 2 : 1);
+      for (let i = 0; i < wanted; i += 1) {
+        const pick = rest.splice(Math.floor(rand() * rest.length), 1)[0];
+        if (pick) featured.push(pick);
+      }
+    }
+
+    // A wave is a crowd, not a mob: past this the lane is unreadable and the
+    // frame rate suffers, so remaining budget is simply dropped.
+    const MAX_SPAWNS_PER_WAVE = 28;
+
+    let guard = 0;
+    let previous = '';
+    while (budget > 0 && guard < 200 && entries.length < MAX_SPAWNS_PER_WAVE) {
       guard += 1;
-      const affordable = pool.filter((e) => e.threat <= budget + 0.6);
+      const affordable = featured.filter((e) => e.threat <= budget + 0.6);
       if (affordable.length === 0) break;
-      // Bias toward the strongest thing affordable, so waves escalate.
-      const pick =
-        affordable[
-          Math.min(
-            affordable.length - 1,
-            Math.floor(Math.pow(rand(), 0.65) * affordable.length),
-          )
+      // Weighted by threat, so a big budget buys tougher enemies rather than
+      // an unmanageable number of cheap ones.
+      const total = affordable.reduce((n, e) => n + e.threat, 0);
+      let roll = rand() * total;
+      let pick = affordable[affordable.length - 1]!;
+      for (const candidate of affordable) {
+        roll -= candidate.threat;
+        if (roll <= 0) {
+          pick = candidate;
+          break;
+        }
+      }
+      // Avoid long runs of the same enemy when there is a choice.
+      if (pick.id === previous && affordable.length > 1) {
+        pick = affordable.filter((e) => e.id !== previous)[
+          Math.floor(rand() * (affordable.length - 1))
         ]!;
+      }
+      previous = pick.id;
       budget -= pick.threat;
       entries.push({
         enemyId: pick.id,

@@ -30,9 +30,20 @@ export interface RigOptions {
   phase?: number;
 }
 
+/**
+ * Texture key holding a single painted image of a whole character.
+ * When one exists it replaces the generated part rig entirely - see
+ * docs/GEMINI_ART_PROMPTS.md.
+ */
+export function fullSpriteKey(artId: string): string {
+  return `unit.${artId}.full`;
+}
+
 export class Rig extends Phaser.GameObjects.Container {
   readonly art: CharacterArt;
   private readonly views = new Map<string, PartView>();
+  /** Set when the character is a single painted sprite rather than parts. */
+  private readonly sprite?: Phaser.GameObjects.Image;
   private readonly artScale: number;
   private readonly facingSign: 1 | -1;
   private anim: RigAnim = 'idle';
@@ -54,6 +65,19 @@ export class Rig extends Phaser.GameObjects.Container {
     const sk = art.skeleton;
     this.shadow = scene.add.ellipse(0, 0, sk.hipWidth * 2.4 * this.artScale, sk.hipWidth * 0.8 * this.artScale, 0x120c1c, 0.32);
     this.add(this.shadow);
+
+    // Painted art path: one image, animated procedurally.
+    const painted = fullSpriteKey(art.id);
+    if (scene.textures.exists(painted)) {
+      const img = scene.add.image(0, 0, painted);
+      img.setOrigin(0.5, 1);
+      img.setDisplaySize((img.width / img.height) * this.worldHeight, this.worldHeight);
+      this.sprite = img;
+      this.add(img);
+      this.setScale(this.facingSign, 1);
+      scene.add.existing(this);
+      return;
+    }
 
     for (const p of characterLayout(art, REST_POSE)) {
       const key = `unit.${art.id}.${p.name}`;
@@ -111,7 +135,23 @@ export class Rig extends Phaser.GameObjects.Container {
     return this.views.get(name);
   }
 
+  /**
+   * Painted sprites have no joints, so they are animated as a whole: bob,
+   * lean, squash and stretch. It reads surprisingly well at phone size and
+   * costs the artist nothing beyond one image.
+   */
+  private setSpritePose(bob: number, lean: number, tilt: number, squash = 0): void {
+    const img = this.sprite;
+    if (!img) return;
+    const h = this.worldHeight;
+    const w = (img.width / img.height) * h;
+    img.setPosition(lean, bob);
+    img.setRotation(tilt);
+    img.setDisplaySize(w * (1 + squash * 0.5), h * (1 - squash));
+  }
+
   private setPose(rot: Record<string, number>, bob: number, lean = 0): void {
+    if (this.sprite) return;
     for (const [name, view] of this.views) {
       const extra = rot[name] ?? 0;
       view.image.setRotation(view.baseRotation + extra);
@@ -147,6 +187,10 @@ export class Rig extends Phaser.GameObjects.Container {
       case 'walk': {
         const s = Math.sin(this.t * 7.5);
         const c = Math.cos(this.t * 7.5);
+        if (this.sprite) {
+          this.setSpritePose(-Math.abs(c) * unit * 2.2, 0, s * 0.055, Math.abs(s) * 0.04);
+          break;
+        }
         this.setPose(
           {
             legFront: s * 0.62,
@@ -168,6 +212,19 @@ export class Rig extends Phaser.GameObjects.Container {
         const d = 0.42;
         const k = Math.min(1, this.animT / d);
         const swing = k < 0.42 ? -1.15 * (k / 0.42) : 1.5 * ((k - 0.42) / 0.58) - 1.15;
+        if (this.sprite) {
+          // Pull back, then lunge: the same beat as the rigged swing.
+          this.setSpritePose(-Math.sin(k * Math.PI) * unit, swing * unit * 3.2, swing * 0.16, -swing * 0.05);
+          if (!this.attackHit && k >= 0.55) {
+            this.attackHit = true;
+            this.onAttackHit?.();
+          }
+          if (k >= 1) {
+            this.oneShot = false;
+            this.anim = 'idle';
+          }
+          break;
+        }
         this.setPose(
           {
             armFront: swing,
@@ -193,6 +250,18 @@ export class Rig extends Phaser.GameObjects.Container {
         const d = 0.55;
         const k = Math.min(1, this.animT / d);
         const raise = -1.9 * Math.sin(Math.min(1, k * 1.6) * Math.PI * 0.5);
+        if (this.sprite) {
+          this.setSpritePose(-unit * 2.4 * Math.sin(k * Math.PI), 0, 0, -0.06 * Math.sin(k * Math.PI));
+          if (!this.attackHit && k >= 0.5) {
+            this.attackHit = true;
+            this.onAttackHit?.();
+          }
+          if (k >= 1) {
+            this.oneShot = false;
+            this.anim = 'idle';
+          }
+          break;
+        }
         this.setPose(
           {
             armFront: raise,
@@ -215,7 +284,8 @@ export class Rig extends Phaser.GameObjects.Container {
       }
       case 'hurt': {
         const k = Math.min(1, this.animT / 0.18);
-        this.setPose({ torso: 0.12 * (1 - k), head: 0.2 * (1 - k) }, 0, -unit * 3 * (1 - k));
+        if (this.sprite) this.setSpritePose(0, -unit * 3 * (1 - k), 0.1 * (1 - k));
+        else this.setPose({ torso: 0.12 * (1 - k), head: 0.2 * (1 - k) }, 0, -unit * 3 * (1 - k));
         if (k >= 1) this.anim = 'idle';
         break;
       }
@@ -238,6 +308,10 @@ export class Rig extends Phaser.GameObjects.Container {
       }
       default: {
         const s = Math.sin(this.t * 2.4);
+        if (this.sprite) {
+          this.setSpritePose(s * unit * 0.9, 0, s * 0.012, s * 0.012);
+          break;
+        }
         this.setPose(
           {
             armFront: s * 0.07,
@@ -259,21 +333,24 @@ export class Rig extends Phaser.GameObjects.Container {
     return this.oneShot;
   }
 
+  private get tintTargets(): Phaser.GameObjects.Image[] {
+    if (this.sprite) return [this.sprite];
+    return [...this.views.values()].map((v) => v.image);
+  }
+
   flash(color = 0xffffff, duration = 110): void {
-    for (const view of this.views.values()) {
-      view.image.setTintFill(color);
-    }
+    for (const img of this.tintTargets) img.setTintFill(color);
     this.scene.time.delayedCall(duration, () => {
-      for (const view of this.views.values()) view.image.clearTint();
+      for (const img of this.tintTargets) img.clearTint();
     });
   }
 
   tintAll(color: number): void {
-    for (const view of this.views.values()) view.image.setTint(color);
+    for (const img of this.tintTargets) img.setTint(color);
   }
 
   clearTintAll(): void {
-    for (const view of this.views.values()) view.image.clearTint();
+    for (const img of this.tintTargets) img.clearTint();
   }
 
   setShadowVisible(v: boolean): void {

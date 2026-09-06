@@ -82,10 +82,52 @@ export function projectile(id: ProjectileId): Svg {
   }
 }
 
-export type FxId = 'spark' | 'smoke' | 'ember' | 'slash' | 'shockwave' | 'holy_ring' | 'frost_ring' | 'blood';
+export type FxId =
+  | 'spark'
+  | 'smoke'
+  | 'ember'
+  | 'slash'
+  | 'shockwave'
+  | 'holy_ring'
+  | 'frost_ring'
+  | 'blood'
+  | 'glow'
+  | 'vignette'
+  | 'sunwash';
 
 export function effect(id: FxId): Svg {
   switch (id) {
+    case 'glow':
+      // A soft white radial, tinted at use. Flat circles read as grey discs
+      // under additive blending; this has the falloff that sells a light.
+      return draw(128, 128, (s) => {
+        const g = s.radial([
+          [0, 'rgba(255,255,255,1)'],
+          [0.35, 'rgba(255,255,255,0.45)'],
+          [1, 'rgba(255,255,255,0)'],
+        ]);
+        s.raw(`<circle cx="64" cy="64" r="64" fill="${g}"/>`);
+      });
+    case 'vignette':
+      // Darkens the corners so the eye stays on the lanes.
+      return draw(256, 256, (s) => {
+        const g = s.radial([
+          [0.62, 'rgba(10,6,16,0)'],
+          [0.88, 'rgba(10,6,16,0.16)'],
+          [1, 'rgba(10,6,16,0.42)'],
+        ]);
+        s.raw(`<rect x="0" y="0" width="256" height="256" fill="${g}"/>`);
+      });
+    case 'sunwash':
+      // A warm wash from the top edge: the key light of the whole scene.
+      return draw(128, 128, (s) => {
+        const g = s.vGradient([
+          [0, 'rgba(255,232,180,0.34)'],
+          [0.3, 'rgba(255,214,150,0.1)'],
+          [1, 'rgba(255,200,140,0)'],
+        ]);
+        s.raw(`<rect x="0" y="0" width="128" height="128" fill="${g}"/>`);
+      });
     case 'spark':
       return draw(24, 24, (s) => {
         s.circle(12, 12, 6, '#fff3c4', { depth: 0 });

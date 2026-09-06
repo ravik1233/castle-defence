@@ -66,7 +66,19 @@ function specs(): TextureSpec[] {
   ] as props.ProjectileId[]) {
     add(`shot.${id}`, props.projectile(id));
   }
-  for (const id of ['spark', 'smoke', 'ember', 'slash', 'shockwave', 'holy_ring', 'frost_ring', 'blood'] as props.FxId[]) {
+  for (const id of [
+    'spark',
+    'smoke',
+    'ember',
+    'slash',
+    'shockwave',
+    'holy_ring',
+    'frost_ring',
+    'blood',
+    'glow',
+    'vignette',
+    'sunwash',
+  ] as props.FxId[]) {
     add(`fx.${id}`, props.effect(id));
   }
   for (const id of ['coin', 'mana', 'gem', 'heart', 'skull', 'crown', 'star', 'star_empty'] as props.PickupId[]) {
@@ -167,8 +179,17 @@ export async function buildTextures(
 ): Promise<void> {
   const all = [...specs(), ...extra];
   const overrides = await paintedOverrides();
+
+  // Painted packs may add keys the generator never produces - a whole-body
+  // sprite (`unit.orc.full`) instead of parts, say - so anything in the
+  // manifest that is not a generated key is loaded on its own.
+  const generated = new Set(all.map((s) => s.key));
+  const extraPainted = Object.keys(overrides).filter(
+    (key) => !key.startsWith('_') && !generated.has(key),
+  );
+
   let done = 0;
-  const total = all.length;
+  const total = all.length + extraPainted.length;
 
   const batch = 24;
   for (let i = 0; i < all.length; i += batch) {
@@ -199,6 +220,18 @@ export async function buildTextures(
       }),
     );
   }
+  await Promise.all(
+    extraPainted.map(async (key) => {
+      try {
+        scene.textures.addImage(key, await loadImage(`assets/painted/${overrides[key]}`));
+      } catch {
+        // A missing file in the manifest must not stop the game booting.
+      }
+      done += 1;
+      opts.onProgress?.(done, total);
+    }),
+  );
+
   opts.onProgress?.(total, total);
 }
 

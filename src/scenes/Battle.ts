@@ -22,6 +22,8 @@ import {
   rowFromY,
 } from '../core/layout';
 import { BIOMES } from '../art/scenery';
+import { Atmosphere } from '../battle/atmosphere';
+import { Tutorial, type TutorialHost } from '../battle/tutorial';
 import { WALL_SKINS } from '../art/structures';
 import { DEFENDERS, defender, upgradedStats } from '../data/defenders';
 import { enemy as enemyDef } from '../data/enemies';
@@ -32,6 +34,7 @@ import { profile } from '../systems/profile';
 import { audio, haptic, type SfxId } from '../systems/audio';
 import { COLORS, Counter, TextButton, floatText, showDialog, textStyle } from '../ui/kit';
 import { Defender, Enemy, Projectile, type BattleWorld, type ProjectileOptions } from '../battle/entities';
+import { portraitFor } from '../art/portraits';
 import { enemyScaling, starsForWall, tensionFor } from '../battle/combat';
 
 const WALL_MAX_HP = 1000;
@@ -85,6 +88,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private spells: SpellView[] = [];
   private ghost?: Phaser.GameObjects.Container;
   private cellMarker!: Phaser.GameObjects.Image;
+  private laneGlow!: Phaser.GameObjects.Rectangle;
+  private atmosphere?: Atmosphere;
 
   private goldCounter!: Counter;
   private waveText!: Phaser.GameObjects.Text;
@@ -94,6 +99,9 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
   private paused = false;
   private skipBriefing = false;
+  private tutorial?: Tutorial;
+  /** The tutorial holds the first wave until the player has built something. */
+  private wavesHeld = false;
 
   constructor() {
     super('Battle');
@@ -168,6 +176,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     this.cards = [];
     this.spells = [];
     this.paused = false;
+    this.tutorial = undefined;
+    this.wavesHeld = false;
   }
 
   create(): void {
@@ -181,7 +191,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     audio.setTension(0);
 
     if (!this.skipBriefing) this.announce(this.levelDef.name, this.levelDef.brief);
-    if (this.levelDef.id === 'c1l1' && !profile.raw.tutorialDone) this.showTutorialHints();
+    if (this.levelDef.id === 'c1l1' && !profile.raw.tutorialDone) this.startTutorial();
     this.installTestHooks();
 
     this.events.on('summon', (source: Enemy) => {
@@ -195,6 +205,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       audio.stopMusic();
       this.events.off('summon');
+      this.atmosphere?.destroy();
+      this.atmosphere = undefined;
     });
   }
 
@@ -236,6 +248,14 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       .setDisplaySize(GRID.cellW, GRID.cellH)
       .setVisible(false)
       .setDepth(2500);
+
+    // A soft band under the row being aimed at, so placement reads at a glance.
+    this.laneGlow = this.add
+      .rectangle(DESIGN.width / 2, 0, DESIGN.width - WALL.width, GRID.cellH, 0xffe9a8, 0.1)
+      .setVisible(false)
+      .setDepth(1500);
+
+    this.atmosphere = new Atmosphere(this, biome);
   }
 
   /* ----------------------------------------------------------------- hud - */
@@ -357,11 +377,15 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     const c = this.add.container(x, y);
     // A head-and-shoulders portrait reads better at card size than a full
     // body squeezed into 150px; structures show the whole building.
-    const key = def.art.kind === 'build' ? def.art.key : `unit.${def.art.id}.head`;
-    if (this.textures.exists(key)) {
-      const img = this.add.image(0, def.art.kind === 'build' ? 46 : 8, key);
-      if (def.art.kind === 'build') img.setOrigin(0.5, 1).setScale(scale * 1.55);
-      else img.setScale(scale * 1.25);
+    const portrait = portraitFor(this, def);
+    if (portrait) {
+      const img = this.add.image(0, portrait.whole ? 46 : 8, portrait.key);
+      if (portrait.whole) {
+        img.setOrigin(0.5, 1);
+        img.setScale(Math.min((scale * 150) / img.width, (scale * 150) / img.height));
+      } else {
+        img.setScale(scale * 1.25);
+      }
       c.add(img);
     }
     return c;
@@ -375,6 +399,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     }
     this.selectedSpell = undefined;
     this.selectedCard = id;
+    this.tutorial?.noteCardSelected(id);
     this.refreshCardHighlight();
     this.buildGhost();
   }
@@ -385,6 +410,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     this.ghost?.destroy();
     this.ghost = undefined;
     this.cellMarker.setVisible(false);
+    this.laneGlow.setVisible(false);
     this.refreshCardHighlight();
     this.refreshSpellHighlight();
   }
@@ -566,11 +592,13 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private onHover(x: number, y: number): void {
     if (this.selectedSpell) {
       this.cellMarker.setVisible(false);
+      this.laneGlow.setVisible(false);
       this.ghost?.setVisible(false);
       return;
     }
     if (!this.selectedCard || this.selectedCard === '__sell__') {
       this.cellMarker.setVisible(false);
+      this.laneGlow.setVisible(false);
       return;
     }
     const row = rowFromY(y);
@@ -578,11 +606,15 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     const valid = this.canPlaceAt(row, col);
     if (row < 0 || row >= GRID.rows || col < 0 || col >= GRID.cols) {
       this.cellMarker.setVisible(false);
+      this.laneGlow.setVisible(false);
       this.ghost?.setVisible(false);
       return;
     }
     const c = cellCenter(row, col);
     this.cellMarker.setPosition(c.x, c.y).setVisible(true).setTint(valid ? 0xffffff : 0xff6b6b);
+    this.laneGlow
+      .setPosition(WALL.width + (DESIGN.width - WALL.width) / 2, laneCenterY(row))
+      .setVisible(true);
     this.ghost?.setVisible(true).setPosition(c.x, laneGroundY(row));
   }
 
@@ -770,36 +802,25 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     }
   }
 
-  /**
-   * The only tutorial in the game: two hints on the first level, shown once.
-   * The Tithe Shrine hint is the one that matters - players who skip the
-   * economy lose the second wave and do not come back.
-   */
-  private showTutorialHints(): void {
-    const hint = (text: string, y: number, delay: number): void => {
-      const t = this.add
-        .text(DESIGN.width / 2, y, text, {
-          ...textStyle('small', COLORS.parchment),
-          align: 'center',
-          backgroundColor: '#1b1626dd',
-          padding: { x: 22, y: 14 },
-          wordWrap: { width: 760 },
-        })
-        .setOrigin(0.5)
-        .setDepth(6500)
-        .setAlpha(0);
-      this.tweens.add({ targets: t, alpha: 1, duration: 300, delay });
-      this.tweens.add({
-        targets: t,
-        alpha: 0,
-        duration: 400,
-        delay: delay + 7000,
-        onComplete: () => t.destroy(),
-      });
+  /** Runs the guided first level. */
+  private startTutorial(): void {
+    this.tutorial = new Tutorial(this, this.tutorialHost(), () => {
+      profile.markTutorialDone();
+      this.tutorial = undefined;
+    });
+  }
+
+  private tutorialHost(): TutorialHost {
+    return {
+      cardPosition: (id) => {
+        const card = this.cards.find((c) => c.id === id);
+        return card ? { x: card.container.x, y: card.container.y } : undefined;
+      },
+      setWavesHeld: (held) => {
+        this.wavesHeld = held;
+      },
+      countPlaced: (id) => this.defenders.filter((d) => d.alive && d.def.id === id).length,
     };
-    hint('Tap a card, then tap the field to place it.', FIELD.y + 90, 900);
-    hint('Build Tithe Shrines first - they are your only income.', FIELD.y + 220, 4200);
-    profile.markTutorialDone();
   }
 
   private banner(text: string, color: string): void {
@@ -837,9 +858,11 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     const dt = delta / 1000;
     this.elapsed += dt;
 
+    this.tutorial?.update();
+
     // Wave pacing
     if (this.waveIndex < this.waves.length - 1) {
-      this.waveTimer -= dt;
+      if (!this.wavesHeld) this.waveTimer -= dt;
       if (this.waveTimer <= 0) this.startWave();
       if (this.waveIndex < 0) this.updateHud();
     } else if (this.waveIndex === this.waves.length - 1) {

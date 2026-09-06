@@ -6,8 +6,12 @@
  */
 export const DESIGN = { width: 1080, height: 1920 } as const;
 
-/** Art is drawn slightly smaller than gameplay size; this scales it up. */
-export const WORLD_ART_SCALE = 1.13;
+/**
+ * Art is authored smaller than gameplay size; this scales it up.
+ * Tuned so a militia stands about 90% of a lane's height - big enough to read
+ * on a phone, small enough that two ranks in a lane stay legible.
+ */
+export const WORLD_ART_SCALE = 1.24;
 
 export const HUD = { y: 0, height: 150 } as const;
 export const TRAY = { y: 158, height: 214, cardW: 150, cardH: 200, gap: 12 } as const;

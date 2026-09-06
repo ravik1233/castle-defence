@@ -15,6 +15,7 @@ import { ResultScene } from './scenes/Result';
 import { audio } from './systems/audio';
 import { ads } from './systems/ads';
 import { initNativeShell } from './systems/native';
+import { installTouchDebug, installViewportFit } from './systems/viewport';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -25,6 +26,10 @@ const config: Phaser.Types.Core.GameConfig = {
     autoCenter: Phaser.Scale.CENTER_BOTH,
     width: DESIGN.width,
     height: DESIGN.height,
+    // The container is sized from the visual viewport by installViewportFit;
+    // letting Phaser listen to window resize as well would fight it.
+    parent: 'game',
+    expandParent: false,
   },
   render: {
     antialias: true,
@@ -48,6 +53,11 @@ export const game = new Phaser.Game(config);
 
 // Exposed for automated smoke tests and profiling.
 (globalThis as unknown as { __game?: Phaser.Game }).__game = game;
+
+// Must come before anything measures the canvas: mobile browsers report a
+// viewport that includes the space behind their own chrome.
+installViewportFit(game);
+if (new URLSearchParams(location.search).get('touchdebug') === '1') installTouchDebug(game);
 
 // Audio contexts need a gesture on mobile; the first touch anywhere unlocks it.
 const unlock = (): void => {

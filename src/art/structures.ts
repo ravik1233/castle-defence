@@ -122,14 +122,20 @@ export function bombard(): StructureArt {
       s.circle(w - 34, h - 20, 15, '#4d3628', { width: 4.5 });
       s.circle(34, h - 20, 5, '#8a6a44', { width: 3 });
       s.circle(w - 34, h - 20, 5, '#8a6a44', { width: 3 });
-      // barrel, angled up toward the enemy side
-      s.group(`transform="rotate(-24 ${w / 2} ${h - 56})"`, (g) => {
-        g.rect(w / 2 - 16, h - 112, 60, 34, 15, '#5c6472', { width: 4.5 });
-        g.ellipse(w / 2 + 44, h - 95, 9, 19, '#3f4652', { width: 4.5 });
-        g.rect(w / 2 - 22, h - 106, 16, 22, 7, '#787f8d', { width: 4 });
-        g.sheen(`M ${w / 2 - 8} ${h - 106} L ${w / 2 + 34} ${h - 108} L ${w / 2 + 34} ${h - 100} L ${w / 2 - 8} ${h - 98} Z`, 0.28);
+      // Barrel, angled up toward the enemy side. The pivot sits on the
+      // carriage so the two never separate.
+      const pivotX = w / 2 - 6;
+      const pivotY = h - 58;
+      s.group(`transform="rotate(-22 ${pivotX} ${pivotY})"`, (g) => {
+        g.rect(pivotX - 14, pivotY - 20, 62, 36, 16, '#5c6472', { width: 4.5 });
+        g.ellipse(pivotX + 48, pivotY - 2, 9, 19, '#3f4652', { width: 4.5 });
+        g.rect(pivotX - 22, pivotY - 14, 16, 24, 7, '#787f8d', { width: 4 });
+        g.sheen(
+          `M ${pivotX - 6} ${pivotY - 14} L ${pivotX + 36} ${pivotY - 16} ` +
+            `L ${pivotX + 36} ${pivotY - 8} L ${pivotX - 6} ${pivotY - 6} Z`,
+          0.28,
+        );
       });
-      s.glow(w / 2 + 46, h - 92, 16, '#ff9b3d', 0.4);
     }),
   );
 }

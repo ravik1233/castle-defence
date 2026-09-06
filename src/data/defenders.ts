@@ -69,7 +69,7 @@ export const DEFENDERS: DefenderDef[] = [
     recharge: 8,
     hp: 720,
     attack: { damage: 34, rate: 0.85, range: 120 },
-    unlockLevel: 5,
+    unlockLevel: 4,
     upgrade: { hp: 0.18, damage: 0.14 },
   },
   {
@@ -83,7 +83,7 @@ export const DEFENDERS: DefenderDef[] = [
     hp: 200,
     attack: { damage: 16, rate: 0.8, range: 820, projectile: 'frostbolt', targets: 'all' },
     aura: { kind: 'slow', radius: 300, value: 0.45, interval: 1 },
-    unlockLevel: 7,
+    unlockLevel: 5,
     upgrade: { hp: 0.1, damage: 0.14 },
   },
   {
@@ -96,7 +96,7 @@ export const DEFENDERS: DefenderDef[] = [
     recharge: 10,
     hp: 220,
     attack: { damage: 52, rate: 0.62, range: 900, projectile: 'bolt', pierce: 3, targets: 'all' },
-    unlockLevel: 9,
+    unlockLevel: 7,
     upgrade: { hp: 0.1, damage: 0.2 },
   },
   {
@@ -110,7 +110,7 @@ export const DEFENDERS: DefenderDef[] = [
     hp: 240,
     aura: { kind: 'heal', radius: 340, value: 34, interval: 2 },
     attack: { damage: 18, rate: 0.7, range: 640, projectile: 'holybolt', targets: 'all' },
-    unlockLevel: 11,
+    unlockLevel: 8,
     upgrade: { hp: 0.12, damage: 0.16 },
   },
   {
@@ -123,7 +123,7 @@ export const DEFENDERS: DefenderDef[] = [
     recharge: 16,
     hp: 420,
     attack: { damage: 70, rate: 0.4, range: 820, projectile: 'cannonball', splash: 150, targets: 'ground' },
-    unlockLevel: 13,
+    unlockLevel: 6,
     upgrade: { hp: 0.14, damage: 0.2 },
   },
   {
@@ -136,7 +136,7 @@ export const DEFENDERS: DefenderDef[] = [
     recharge: 12,
     hp: 560,
     attack: { damage: 42, rate: 1.0, range: 150, splash: 120 },
-    unlockLevel: 16,
+    unlockLevel: 10,
     upgrade: { hp: 0.16, damage: 0.18 },
     trait: 'knockback',
   },
@@ -150,7 +150,7 @@ export const DEFENDERS: DefenderDef[] = [
     recharge: 18,
     hp: 380,
     attack: { damage: 120, rate: 0.34, range: 1200, projectile: 'spear_throw', pierce: 2, targets: 'all' },
-    unlockLevel: 19,
+    unlockLevel: 12,
     upgrade: { hp: 0.12, damage: 0.22 },
   },
 

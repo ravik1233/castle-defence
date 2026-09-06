@@ -9,6 +9,7 @@ import { HEROES } from '../data/heroes';
 import { WALL_SKINS } from '../art/structures';
 import { profile, PREMIUM_SKINS } from '../systems/profile';
 import { ensureAllCastleSkins } from '../systems/textures';
+import { portraitFor } from '../art/portraits';
 import { audio } from '../systems/audio';
 import { COLORS, Counter, TextButton, fitText, showDialog, textStyle } from '../ui/kit';
 
@@ -122,11 +123,11 @@ export class ArmoryScene extends Phaser.Scene {
       frame.setTint(inDeck ? 0x9ff0b4 : unlocked ? 0xffffff : 0x6a6478);
       c.add(frame);
 
-      const head = def.art.kind === 'unit' ? `unit.${def.art.id}.head` : def.art.key;
-      if (this.textures.exists(head)) {
-        const img = this.add.image(0, -22, head);
+      const portrait = portraitFor(this, def);
+      if (portrait) {
+        const img = this.add.image(0, -22, portrait.key);
         // Fit the art into a fixed box so units and buildings line up.
-        const box = def.art.kind === 'unit' ? 92 : 104;
+        const box = portrait.whole ? 104 : 92;
         img.setScale(Math.min(box / img.width, box / img.height));
         c.add(img);
       }
@@ -196,9 +197,11 @@ export class ArmoryScene extends Phaser.Scene {
       const cost = upgradeCost(def, lvl);
 
       this.track(this.add.rectangle(w / 2, y, w - 120, 116, 0x2a2338, 0.85).setStrokeStyle(3, 0x4a4060));
-      const head = def.art.kind === 'unit' ? `unit.${def.art.id}.head` : def.art.key;
-      if (this.textures.exists(head)) {
-        this.track(this.add.image(120, y, head).setScale(def.art.kind === 'unit' ? 0.34 : 0.26));
+      const portrait = portraitFor(this, def);
+      if (portrait) {
+        const img = this.add.image(120, y, portrait.key);
+        img.setScale(Math.min(80 / img.width, 80 / img.height));
+        this.track(img);
       }
       this.track(this.add.text(200, y - 26, `${def.name}  ${'|'.repeat(lvl)}`, textStyle('small', COLORS.parchment)).setOrigin(0, 0.5));
       this.track(

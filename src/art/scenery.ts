@@ -147,12 +147,17 @@ export function battlefield(biome: Biome, w: number, h: number, rows: number, ho
     for (let r = 0; r < rows; r += 1) {
       if (r % 2 === 1) {
         s.raw(
-          `<rect x="0" y="${groundTop + r * laneH}" width="${w}" height="${laneH}" fill="${withAlpha(biome.groundAlt, 0.55)}"/>`,
+          `<rect x="0" y="${groundTop + r * laneH}" width="${w}" height="${laneH}" fill="${withAlpha(biome.groundAlt, 0.8)}"/>`,
         );
       }
+      // A shaded seam plus a light lip: reads as a furrow between lanes.
       s.flat(`M 0 ${groundTop + r * laneH} L ${w} ${groundTop + r * laneH}`, 'none', {
-        width: 2,
-        color: withAlpha(darken(biome.ground, 0.4), 0.28),
+        width: 5,
+        color: withAlpha(darken(biome.ground, 0.5), 0.42),
+      });
+      s.flat(`M 0 ${groundTop + r * laneH + 4} L ${w} ${groundTop + r * laneH + 4}`, 'none', {
+        width: 2.5,
+        color: withAlpha(lighten(biome.ground, 0.3), 0.3),
       });
     }
 

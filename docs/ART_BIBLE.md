@@ -84,6 +84,13 @@ per-part breakdown of any character.
 Pose geometry is in `src/art/compose.ts` (`characterLayout`), which both the rig
 and the static character sheets read, so a tweak applies everywhere.
 
+## Painted art
+
+For the practical route - generating a painted set with an image model and
+dropping it in - see **[GEMINI_ART_PROMPTS.md](GEMINI_ART_PROMPTS.md)**, which
+has a prompt per unit and a one-command importer. The rest of this section
+documents the underlying mechanism.
+
 ## Replacing the vector art with painted art
 
 Any texture key can be overridden by a PNG with no code change.
@@ -108,6 +115,7 @@ the pack can be delivered a unit at a time.
 
 | Key | What | Notes |
 | --- | --- | --- |
+| `unit.<id>.full` | A whole painted character | replaces the part rig entirely; feet at the bottom edge, facing right |
 | `unit.<id>.<part>` | One body part | parts: `head`, `torso`, `armFront`, `armBack`, `legFront`, `legBack`, `weapon`, `offhand`, `cape`, `wings` |
 | `build.<id>` | A structure | origin is bottom-centre |
 | `bg.<biome>` | Battlefield backdrop | `fields`, `woods`, `abyss`, `throne` |
