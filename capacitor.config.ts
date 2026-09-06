@@ -3,9 +3,9 @@ import type { CapacitorConfig } from '@capacitor/cli';
 /**
  * Native shell configuration.
  *
- * The game is a static web build, so Capacitor simply hosts `dist/` inside a
- * WebView. Portrait is locked in the platform manifests (see docs/STORE.md);
- * everything else the game needs is set here.
+ * The game is a static web build, so Capacitor simply hosts `dist/` inside an
+ * Android WebView. Android only - see docs/PLAY_STORE.md. Portrait is locked
+ * in AndroidManifest.xml; everything else the game needs is set here.
  */
 const config: CapacitorConfig = {
   appId: 'com.lastgate.game',
@@ -18,11 +18,6 @@ const config: CapacitorConfig = {
     allowMixedContent: false,
     captureInput: true,
     webContentsDebuggingEnabled: false,
-  },
-  ios: {
-    backgroundColor: '#140f1e',
-    contentInset: 'never',
-    scrollEnabled: false,
   },
   plugins: {
     SplashScreen: {
@@ -38,6 +33,10 @@ const config: CapacitorConfig = {
       backgroundColor: '#140f1e',
       overlaysWebView: true,
     },
+  },
+  // Android 13+ predictive back is handled by the app itself.
+  server: {
+    androidScheme: 'https',
   },
 };
 

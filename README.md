@@ -34,6 +34,9 @@ npm run build        # production bundle into dist/
 npm run preview      # serve the production bundle
 npm test             # unit tests
 npm run smoke        # boots a real battle in Chromium and asserts it plays
+npm run touchtest    # asserts taps land where fingers are, on three phone sizes
+npm run pwacheck     # asserts Chrome on Android will offer to install it
+npm run art:import   # pull painted art from art-in/ into the game
 ```
 
 Useful development URLs (dev builds and `npm run build:qa` only):
@@ -43,6 +46,7 @@ Useful development URLs (dev builds and `npm run build:qa` only):
 | `/?scene=Battle&level=c3l10` | Drop straight into a level |
 | `/?unlock=1` | Grant the Crown Pack, all levels and 250k gold |
 | `/?nomodal=1` | Skip the pre-battle briefing |
+| `/?touchdebug=1` | Draw where the game thinks your finger is |
 | `/preview.html` | Art sheet: every character, part by part |
 | `/iconsheet.html` | Store artwork (icon, adaptive layers, splash) |
 
@@ -89,23 +93,23 @@ Adding a unit is one entry in `src/art/cast.ts` plus a stat block in
 **Painted art can replace any of it** without touching code — see
 [docs/ART_BIBLE.md](docs/ART_BIBLE.md).
 
-## Shipping to phones
+## Playing it on a phone
 
-The web build is wrapped with Capacitor:
+**Android only** — there is no iOS target in this project.
+
+The game is a full PWA. Open the site in Chrome on Android and install it
+(menu → Install app, or the prompt on the main menu). It gets a home-screen
+icon and launches fullscreen with no URL bar, and works offline. That is the
+right way to test: it behaves like the packaged app in everything except real
+purchases and ads.
+
+For Google Play, the web build is wrapped with Capacitor:
 
 ```bash
 npm run build
 npx cap add android            # once
-npx cap add ios                # once, on a Mac
 npm run cap:android            # build + sync + open Android Studio
 ```
 
-Store setup, ad units, IAP product configuration and the release checklist are
-in [docs/STORE.md](docs/STORE.md).
-
-## Testing on a phone right now
-
-`npm run build` and push to the branch; Netlify rebuilds and serves it. Open the
-site on the phone and add it to the home screen — it runs full-screen, saves
-progress locally, and behaves like the packaged app apart from real purchases
-and ads.
+Signing, the IAP product, ad units, the listing and the release checklist are
+in [docs/PLAY_STORE.md](docs/PLAY_STORE.md).

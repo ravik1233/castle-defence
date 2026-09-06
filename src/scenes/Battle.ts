@@ -24,6 +24,7 @@ import {
 import { BIOMES } from '../art/scenery';
 import { Atmosphere } from '../battle/atmosphere';
 import { Tutorial, type TutorialHost } from '../battle/tutorial';
+import { quality } from '../systems/quality';
 import { WALL_SKINS } from '../art/structures';
 import { DEFENDERS, defender, upgradedStats } from '../data/defenders';
 import { enemy as enemyDef } from '../data/enemies';
@@ -255,7 +256,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       .setVisible(false)
       .setDepth(1500);
 
-    this.atmosphere = new Atmosphere(this, biome);
+    this.atmosphere = new Atmosphere(this, biome, { intensity: quality.effects });
   }
 
   /* ----------------------------------------------------------------- hud - */
@@ -747,7 +748,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       heal: { key: 'fx.spark', count: 6, speed: 120, scale: 0.5, tint: 0x8fe2a8 },
     };
     const c = config[kind]!;
-    for (let i = 0; i < c.count; i += 1) {
+    const count = Math.max(2, Math.round(c.count * quality.particleScale));
+    for (let i = 0; i < count; i += 1) {
       const p = this.add.image(x, y, c.key).setDepth(6000).setScale(c.scale);
       if (c.tint) p.setTint(c.tint);
       const a = Math.random() * Math.PI * 2;
@@ -942,6 +944,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
     const nearWall = this.enemies.filter((e) => e.alive && e.x < WALL.width + 260).length;
     audio.setTension(tensionFor({ hp: this.wallHp, max: WALL_MAX_HP }, nearWall));
+
+    quality.sample(this.game);
   }
 
   /* ---------------------------------------------------------------- flow - */

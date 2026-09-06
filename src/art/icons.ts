@@ -83,6 +83,42 @@ export function appIcon(size = 1024): Svg {
   });
 }
 
+/**
+ * Maskable icon for Android home screens and the web app manifest.
+ * Launchers crop icons to arbitrary shapes, so the subject sits well inside
+ * the safe zone (the middle 80%) and the background bleeds to the edge.
+ */
+export function appIconMaskable(size = 512): Svg {
+  return draw(size, size, (s) => {
+    const bg = s.vGradient([
+      [0, '#2a1b3d'],
+      [0.55, '#3d1b35'],
+      [1, '#7a2a24'],
+    ]);
+    s.raw(`<rect x="0" y="0" width="${size}" height="${size}" fill="${bg}"/>`);
+    s.glow(size * 0.5, size * 0.72, size * 0.42, '#ff8a3d', 0.5);
+
+    gate(s, size * 0.5, size * 0.58, size * 0.34, size * 0.32);
+
+    const cw = size * 0.22;
+    const cx = size * 0.5;
+    const cy = size * 0.32;
+    s.glow(cx, cy, cw * 0.9, GOLD, 0.55);
+    s.path(
+      `M ${cx - cw / 2} ${cy + cw * 0.26} L ${cx - cw / 2} ${cy - cw * 0.2} ` +
+        `L ${cx - cw * 0.19} ${cy + cw * 0.03} L ${cx} ${cy - cw * 0.34} ` +
+        `L ${cx + cw * 0.19} ${cy + cw * 0.03} L ${cx + cw / 2} ${cy - cw * 0.2} ` +
+        `L ${cx + cw / 2} ${cy + cw * 0.26} Z`,
+      GOLD,
+      { width: size * 0.016 },
+    );
+    s.rect(cx - cw * 0.54, cy + cw * 0.22, cw * 1.08, cw * 0.16, cw * 0.06, darken(GOLD, 0.18), {
+      width: size * 0.014,
+    });
+    s.circle(cx, cy - cw * 0.06, cw * 0.07, '#e8455c', { width: size * 0.01 });
+  });
+}
+
 /** Android adaptive icon: the subject only, on a transparent field. */
 export function appIconForeground(size = 1024): Svg {
   return draw(size, size, (s) => {

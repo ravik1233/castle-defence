@@ -4,6 +4,8 @@ import { DESIGN } from '../core/layout';
 import { profile } from '../systems/profile';
 import { audio } from '../systems/audio';
 import { COLORS, TextButton, showDialog, textStyle } from '../ui/kit';
+import { fullscreenSupported, isFullscreen, isInstalled, toggleFullscreen } from '../systems/install';
+import { quality } from '../systems/quality';
 
 export class SettingsScene extends Phaser.Scene {
   private rows: Phaser.GameObjects.GameObject[] = [];
@@ -53,7 +55,38 @@ export class SettingsScene extends Phaser.Scene {
       );
     });
 
-    const y0 = 780;
+    const cycle: Array<'auto' | 'high' | 'low'> = ['auto', 'high', 'low'];
+    this.rows.push(this.add.text(120, 730, 'Graphics', textStyle('body')).setOrigin(0, 0.5));
+    this.rows.push(
+      new TextButton(this, w - 220, 730, quality.describe(), {
+        width: 300,
+        height: 92,
+        size: 'small',
+        tone: 'blue',
+        onClick: () => {
+          const next = cycle[(cycle.indexOf(profile.settings.quality ?? 'auto') + 1) % cycle.length]!;
+          profile.updateSettings({ quality: next });
+          quality.reset();
+          this.draw();
+        },
+      }),
+    );
+
+    if (!isInstalled() && fullscreenSupported()) {
+      this.rows.push(this.add.text(120, 880, 'Fullscreen', textStyle('body')).setOrigin(0, 0.5));
+      this.rows.push(
+        new TextButton(this, w - 220, 880, isFullscreen() ? 'ON' : 'OFF', {
+          width: 220,
+          height: 92,
+          tone: isFullscreen() ? 'green' : 'stone',
+          onClick: () => {
+            void toggleFullscreen().then(() => this.draw());
+          },
+        }),
+      );
+    }
+
+    const y0 = 1010;
     this.rows.push(
       this.add
         .text(w / 2, y0, `${profile.raw.stats.kills} slain  ·  ${profile.raw.stats.victories} gates held`, textStyle('small', COLORS.muted))

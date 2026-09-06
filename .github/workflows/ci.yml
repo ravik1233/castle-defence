@@ -32,7 +32,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - name: Build a QA bundle and play a real battle in it
+      - name: Build a QA bundle, play a real battle, check taps and installability
         run: |
           QA=1 npx vite build
           npx vite preview --port 4173 --strictPort &
@@ -41,6 +41,8 @@ jobs:
             sleep 1
           done
           node scripts/smoke.mjs http://localhost:4173
+          node scripts/touchtest.mjs http://localhost:4173
+          node scripts/pwacheck.mjs http://localhost:4173
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -8,7 +8,7 @@
  */
 
 export const SAVE_KEY = 'lastgate.save.v1';
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 export interface LevelRecord {
   /** 1-3, based on how much wall health survived. */
@@ -22,6 +22,8 @@ export interface Settings {
   haptics: boolean;
   /** Larger cards and buttons for small screens. */
   bigUi: boolean;
+  /** 'auto' picks a tier from the device and the measured frame rate. */
+  quality: 'auto' | 'high' | 'low';
 }
 
 export interface SaveData {
@@ -59,7 +61,7 @@ export function defaultSave(): SaveData {
     crownPack: false,
     ownedSkins: ['stone'],
     activeSkin: 'stone',
-    settings: { sfx: true, music: true, haptics: true, bigUi: false },
+    settings: { sfx: true, music: true, haptics: true, bigUi: false, quality: 'auto' },
     stats: { kills: 0, battles: 0, victories: 0, goldEarned: 0 },
     tutorialDone: false,
     adFreeUntil: 0,
@@ -79,6 +81,11 @@ const MIGRATIONS: Record<number, Migration> = {
     ...d,
     stats: { kills: 0, battles: 0, victories: 0, goldEarned: 0, ...(d.stats as object) },
     version: 3,
+  }),
+  3: (d) => ({
+    ...d,
+    settings: { quality: 'auto', ...(d.settings as object) },
+    version: 4,
   }),
 };
 
