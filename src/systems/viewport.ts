@@ -21,6 +21,27 @@ function viewportSize(): { width: number; height: number } {
   };
 }
 
+/**
+ * Phaser caches the canvas rect and only re-reads it on refresh. Any layout
+ * change it does not hear about leaves input mapping to a stale rectangle,
+ * which shows up as taps landing a fixed distance from their targets. This
+ * compares the cached rect against the live one and heals it.
+ *
+ * Returns the discrepancy it found, for the debug overlay.
+ */
+export function reconcileBounds(game: Phaser.Game): number {
+  const rect = game.canvas.getBoundingClientRect();
+  const bounds = game.scale.canvasBounds;
+  const drift = Math.max(
+    Math.abs(rect.left + window.scrollX - bounds.x),
+    Math.abs(rect.top + window.scrollY - bounds.y),
+    Math.abs(rect.width - bounds.width),
+    Math.abs(rect.height - bounds.height),
+  );
+  if (drift > 0.5) game.scale.refresh();
+  return drift;
+}
+
 export function installViewportFit(game: Phaser.Game, parentId = 'game'): void {
   const parent = document.getElementById(parentId);
   let last = '';
@@ -58,9 +79,50 @@ export function installViewportFit(game: Phaser.Game, parentId = 'game'): void {
     setTimeout(apply, delay);
   }
 
+  // Last line of defence: re-measure before Phaser handles a press. The
+  // listener is on capture, so the correction lands before the game sees the
+  // event, and a getBoundingClientRect per press costs nothing.
+  for (const event of ['pointerdown', 'touchstart', 'mousedown'] as const) {
+    window.addEventListener(event, () => reconcileBounds(game), { capture: true, passive: true });
+  }
+
   if (typeof ResizeObserver !== 'undefined' && parent) {
     new ResizeObserver(() => game.scale.refresh()).observe(parent);
   }
+}
+
+/**
+ * The game is designed portrait. On a phone or tablet held sideways it would
+ * otherwise be a narrow strip in the middle of a black screen, which reads as
+ * broken rather than as a choice - so it asks to be turned. Desktop is left
+ * alone: a laptop cannot be rotated, and a letterboxed portrait game in a
+ * browser window is normal.
+ */
+export function installOrientationHint(): void {
+  const touch = matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+  if (!touch) return;
+
+  const hint = document.createElement('div');
+  hint.style.cssText =
+    'position:fixed;inset:0;z-index:9998;display:none;place-content:center;justify-items:center;gap:18px;' +
+    'background:#120c1a;color:#f4ecdd;text-align:center;font:600 18px/1.5 Fredoka,system-ui,sans-serif;padding:32px';
+  hint.innerHTML =
+    '<div style="font-size:64px;line-height:1">⟳</div>' +
+    '<div style="font-size:22px;color:#f5c542;letter-spacing:.12em">TURN YOUR DEVICE</div>' +
+    '<div style="opacity:.75;max-width:22em">The Last Gate is played in portrait.</div>';
+  document.body.append(hint);
+
+  const update = (): void => {
+    const w = window.visualViewport?.width ?? innerWidth;
+    const h = window.visualViewport?.height ?? innerHeight;
+    // Only when clearly sideways, so a nearly-square tablet is left playable.
+    hint.style.display = w > h * 1.2 ? 'grid' : 'none';
+  };
+  update();
+  for (const event of ['resize', 'orientationchange'] as const) {
+    window.addEventListener(event, update, { passive: true });
+  }
+  window.visualViewport?.addEventListener('resize', update, { passive: true });
 }
 
 /**
@@ -90,11 +152,20 @@ export function installTouchDebug(game: Phaser.Game): void {
       const scene = game.scene.getScenes(true)[0];
       const p = scene?.input.activePointer;
       const b = game.scale.canvasBounds;
+      const r = game.canvas.getBoundingClientRect();
+      // Where the game *should* land for this press, if the mapping is right.
+      const expectX = ((e.clientX - r.left) / r.width) * game.scale.width;
+      const expectY = ((e.clientY - r.top) / r.height) * game.scale.height;
+      const errX = Math.round((p?.worldX ?? 0) - expectX);
+      const errY = Math.round((p?.worldY ?? 0) - expectY);
       label.textContent =
         `screen ${Math.round(e.clientX)},${Math.round(e.clientY)}  ` +
         `game ${Math.round(p?.worldX ?? 0)},${Math.round(p?.worldY ?? 0)}\n` +
-        `canvas ${Math.round(b.x)},${Math.round(b.y)} ${Math.round(b.width)}x${Math.round(b.height)}  ` +
-        `dpr ${window.devicePixelRatio}`;
+        `expected ${Math.round(expectX)},${Math.round(expectY)}   ERROR ${errX},${errY}\n` +
+        `rect ${Math.round(r.x)},${Math.round(r.y)} ${Math.round(r.width)}x${Math.round(r.height)}\n` +
+        `phaser ${Math.round(b.x)},${Math.round(b.y)} ${Math.round(b.width)}x${Math.round(b.height)}\n` +
+        `viewport ${innerWidth}x${innerHeight} dpr ${window.devicePixelRatio}`;
+      dot.style.borderColor = Math.abs(errX) + Math.abs(errY) > 8 ? '#e8455c' : '#5fd07a';
       label.style.whiteSpace = 'pre';
     },
     { passive: true },

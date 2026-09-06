@@ -15,7 +15,7 @@ import { ResultScene } from './scenes/Result';
 import { audio } from './systems/audio';
 import { ads } from './systems/ads';
 import { initNativeShell } from './systems/native';
-import { installTouchDebug, installViewportFit } from './systems/viewport';
+import { installOrientationHint, installTouchDebug, installViewportFit } from './systems/viewport';
 import { initInstall } from './systems/install';
 
 const config: Phaser.Types.Core.GameConfig = {
@@ -58,6 +58,7 @@ export const game = new Phaser.Game(config);
 // Must come before anything measures the canvas: mobile browsers report a
 // viewport that includes the space behind their own chrome.
 installViewportFit(game);
+installOrientationHint();
 initInstall();
 if (new URLSearchParams(location.search).get('touchdebug') === '1') installTouchDebug(game);
 
