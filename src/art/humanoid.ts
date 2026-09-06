@@ -112,7 +112,7 @@ const BUILDS: Record<Build, { limb: number; chest: number; headScale: number; hi
   small: { limb: 0.104, chest: 0.34, headScale: 0.215, hip: 0.26 },
   lean: { limb: 0.096, chest: 0.34, headScale: 0.185, hip: 0.25 },
   broad: { limb: 0.13, chest: 0.46, headScale: 0.18, hip: 0.35 },
-  huge: { limb: 0.163, chest: 0.55, headScale: 0.17, hip: 0.42 },
+  huge: { limb: 0.15, chest: 0.48, headScale: 0.205, hip: 0.36 },
 };
 
 export function skeletonFor(spec: CharacterSpec): Skeleton {

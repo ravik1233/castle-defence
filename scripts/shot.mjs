@@ -4,7 +4,7 @@
  *   node scripts/shot.mjs /preview.html art.png [width] [height] [waitMs] [--viewport]
  */
 import { mkdirSync } from 'node:fs';
-import { chromium } from 'playwright';
+import { launchBrowser } from './browser.mjs';
 
 const args = process.argv.slice(2);
 const flags = new Set(args.filter((a) => a.startsWith('--')));
@@ -13,7 +13,7 @@ const [route = '/', out = 'shot.png', w = '900', h = '1400', wait = '1200'] = ar
 );
 mkdirSync('screenshots', { recursive: true });
 
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+const browser = await launchBrowser();
 const page = await browser.newPage({
   viewport: { width: Number(w), height: Number(h) },
   deviceScaleFactor: Number(process.env.DSF ?? 1),

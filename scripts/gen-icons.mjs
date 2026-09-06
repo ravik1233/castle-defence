@@ -4,10 +4,10 @@
  *   node scripts/gen-icons.mjs
  */
 import { mkdirSync } from 'node:fs';
-import { chromium } from 'playwright';
+import { launchBrowser } from './browser.mjs';
 
 mkdirSync('resources', { recursive: true });
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+const browser = await launchBrowser();
 const page = await browser.newPage({ viewport: { width: 1400, height: 1400 } });
 await page.goto('http://localhost:5199/iconsheet.html', { waitUntil: 'load' });
 await page.waitForTimeout(1500);

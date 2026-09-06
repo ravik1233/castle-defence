@@ -233,7 +233,7 @@ export const ENEMY_ART: Record<string, CharacterSpec> = {
   },
   troll: {
     id: 'troll',
-    height: 224,
+    height: 196,
     build: 'huge',
     skin: '#6b7f52',
     cloth: '#4a3a2a',
@@ -283,7 +283,7 @@ export const ENEMY_ART: Record<string, CharacterSpec> = {
   },
   demon_king: {
     id: 'demon_king',
-    height: 300,
+    height: 260,
     build: 'huge',
     skin: '#8f2436',
     cloth: '#1d1220',

@@ -1,0 +1,3 @@
+{
+  "_comment": "Map a texture key to a PNG in this folder to override the generated vector art. See docs/ART_BIBLE.md. An empty map means the game ships its vector art."
+}

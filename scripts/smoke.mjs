@@ -7,10 +7,10 @@
  * Waits are condition-based, not fixed: CI containers have no GPU, so the
  * game clock there runs a fraction of real time.
  */
-import { chromium } from 'playwright';
+import { launchBrowser } from './browser.mjs';
 
 const base = process.argv[2] ?? 'http://localhost:5199';
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+const browser = await launchBrowser();
 const page = await browser.newPage({ viewport: { width: 720, height: 1280 } });
 
 const errors = [];
@@ -91,6 +91,44 @@ console.log('after victory, scenes:', scenes.join(','));
 
 await page.waitForTimeout(2500);
 await page.screenshot({ path: 'screenshots/smoke-result.png' });
+
+
+/* ---------------------------------------------------------------------------
+ * The fail state is the whole premise of the game, so it gets tested too:
+ * an undefended gate must take damage and end the run.
+ * ------------------------------------------------------------------------- */
+// One game at a time: two Phaser instances share the GPU (or, in CI, the
+// software renderer) and both crawl.
+await page.close();
+const lose = await browser.newPage({ viewport: { width: 720, height: 1280 } });
+lose.on('pageerror', (e) => errors.push(String(e)));
+await lose.goto(`${base}/?scene=Battle&level=c1l4&unlock=1&nomodal=1`, { waitUntil: 'load' });
+await lose.waitForFunction(() => globalThis.__battle !== undefined, { timeout: 180000 });
+await lose.evaluate(() => {
+  globalThis.__battle.endWaves();
+  for (let r = 0; r < 5; r += 1) globalThis.__battle.spawn('orc_berserker', r);
+});
+
+const untilOn = async (target, fn, what, timeoutMs = 300000) => {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (await target.evaluate(fn)) return true;
+    await target.waitForTimeout(2000);
+  }
+  fail(`timed out waiting for ${what}`);
+  return false;
+};
+
+await untilOn(lose, () => globalThis.__battle.state().wallHp < 1000, 'the gate to take damage');
+console.log('gate under attack:', JSON.stringify(await lose.evaluate(() => globalThis.__battle.state().wallHp)));
+await untilOn(
+  lose,
+  () => globalThis.__game.scene.getScenes(true).some((s) => s.scene.key === 'Result'),
+  'the defeat screen',
+);
+await lose.waitForTimeout(2000);
+await lose.screenshot({ path: 'screenshots/smoke-defeat.png' });
+console.log('defeat path reached the results screen');
 
 if (errors.length) fail(`page errors:\n${errors.join('\n')}`);
 await browser.close();

@@ -355,25 +355,14 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private cardArt(id: string, x: number, y: number, scale: number): Phaser.GameObjects.Container {
     const def = defender(id);
     const c = this.add.container(x, y);
-    if (def.art.kind === 'build') {
-      const img = this.add.image(0, 46, def.art.key).setOrigin(0.5, 1).setScale(scale * 1.55);
+    // A head-and-shoulders portrait reads better at card size than a full
+    // body squeezed into 150px; structures show the whole building.
+    const key = def.art.kind === 'build' ? def.art.key : `unit.${def.art.id}.head`;
+    if (this.textures.exists(key)) {
+      const img = this.add.image(0, def.art.kind === 'build' ? 46 : 8, key);
+      if (def.art.kind === 'build') img.setOrigin(0.5, 1).setScale(scale * 1.55);
+      else img.setScale(scale * 1.25);
       c.add(img);
-    } else {
-      // Compose the character from its parts at rest.
-      const parts = ['legBack', 'legFront', 'torso', 'head', 'armBack', 'armFront', 'weapon', 'offhand'];
-      for (const p of parts) {
-        const key = `unit.${def.art.id}.${p}`;
-        if (!this.textures.exists(key)) continue;
-        const img = this.add.image(0, 0, key);
-        img.setScale(scale * 0.5);
-        c.add(img);
-      }
-      c.removeAll(true);
-      // Simpler and sharper: use the head as the card portrait.
-      const head = `unit.${def.art.id}.head`;
-      if (this.textures.exists(head)) {
-        c.add(this.add.image(0, 8, head).setScale(scale * 1.25));
-      }
     }
     return c;
   }

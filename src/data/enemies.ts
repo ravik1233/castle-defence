@@ -158,7 +158,6 @@ export const ENEMIES: EnemyDef[] = [
     armor: 14,
     bounty: 45,
     threat: 10,
-    scale: 1.15,
   },
   {
     id: 'orc_warlord',

@@ -1,9 +1,8 @@
-import { chromium } from 'playwright';
+import { launchBrowser } from './browser.mjs';
 const url = process.argv[2];
 // Outbound traffic in this environment goes through the agent proxy.
 const proxy = process.env.HTTPS_PROXY ?? process.env.HTTP_PROXY;
-const browser = await chromium.launch({
-  executablePath: '/opt/pw-browsers/chromium',
+const browser = await launchBrowser({
   ...(proxy ? { proxy: { server: proxy } } : {}),
   args: ['--ignore-certificate-errors'],
 });

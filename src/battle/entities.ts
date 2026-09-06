@@ -556,11 +556,11 @@ export class Enemy {
 
   private findBlocker(): Defender | undefined {
     let best: Defender | undefined;
+    // Flyers pass over the whole line: only units that can shoot stop them.
+    if (this.flying) return undefined;
     for (const d of this.world.defenders) {
       if (!d.alive || d.row !== this.row) continue;
       if (d.x > this.x) continue;
-      // Flyers ignore ground defenders until they reach the wall.
-      if (this.flying && d.def.role !== 'wall') continue;
       if (!best || d.x > best.x) best = d;
     }
     return best;
