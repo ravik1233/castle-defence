@@ -79,6 +79,11 @@ const PREP_SECONDS = 10;
  * aiming at whichever lane is thinnest, so a siege is a demand to repair
  * and to spread out rather than to stack one killing lane.
  */
+/*
+ * Kills beyond this line pay a salvage bonus. It sits well out in the field,
+ * so the bonus is only collectable by units that went out for it.
+ */
+const FIELD_BOUNTY_LINE = 1150;
 const BOMBARD_DAMAGE = 34;
 const BOMBARD_EVERY = 5.5;
 
@@ -187,12 +192,33 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         this.updateHud();
       },
       repair: (row: number): void => this.repairSection(row),
+      // Sends a placed unit out of the gate, or calls it back.
+      sortie: (row: number, col: number): string => {
+        const d = this.occupancy.get(`${row},${col}`);
+        if (!d) return 'none';
+        if (d.sortie === 'held') return d.goOut() ? 'out' : 'refused';
+        return d.recall() ? 'returning' : d.sortie;
+      },
       addGold: (n: number): void => {
         this.gold += n;
         this.updateHud();
       },
       // Calls the assault on early, the same as the button does.
       call: (): number => this.callAssault(),
+      /*
+       * Kills what is on the field. A test cannot reach into the entities
+       * themselves - a production build renames their methods - so anything
+       * a test needs to do to the battle has to be offered from in here.
+       */
+      clearField: (keepBeyond = 0): number => {
+        let killed = 0;
+        for (const e of this.enemies) {
+          if (!e.alive || e.x > keepBeyond) continue;
+          e.takeDamage(e.hp + 1, true);
+          killed += 1;
+        }
+        return killed;
+      },
       state: () => ({
         gold: Math.round(this.gold),
         phase: this.phase,
@@ -205,6 +231,9 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         waves: this.waves.length,
         enemies: this.enemies.filter((e) => e.alive).length,
         defenders: this.defenders.filter((d) => d.alive).length,
+        defenderDump: this.defenders
+          .filter((d) => d.alive)
+          .map((d) => ({ id: d.def.id, row: d.row, x: Math.round(d.x), home: Math.round(d.homeX), sortie: d.sortie })),
         kills: this.killCount,
         finished: this.finished,
         enemyDump: this.enemies
@@ -687,7 +716,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private buildGhost(): void {
     this.ghost?.destroy();
     this.ghost = undefined;
-    if (!this.selectedCard || this.selectedCard === '__sell__') return;
+    if (!this.selectedCard || this.selectedCard === '__sell__' || this.selectedCard === '__sortie__') return;
     this.ghost = this.cardArt(this.selectedCard, -500, -500, 1);
     this.ghost.setAlpha(0.65).setDepth(2600);
   }
@@ -708,13 +737,20 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     const hero = heroDef(this.commanderId());
     const y = HERO_BAR.y + HERO_BAR.height / 2;
 
-    // The sell tool sits between the cards and the hero.
-    new TextButton(this, HERO_BAR.x - 90, y, 'SELL', {
+    // The sell and sortie tools sit between the cards and the hero.
+    new TextButton(this, HERO_BAR.x - 170, y, 'SELL', {
       width: 130,
       height: 84,
       tone: 'red',
       size: 'small',
       onClick: () => this.selectCard('__sell__'),
+    }).setDepth(3001);
+    new TextButton(this, HERO_BAR.x - 20, y, 'SORTIE', {
+      width: 150,
+      height: 84,
+      tone: 'blue',
+      size: 'small',
+      onClick: () => this.selectCard('__sortie__'),
     }).setDepth(3001);
 
     // Commanders may wear a unit's drawn frames, which have no head crop, so
@@ -874,7 +910,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       this.ghost?.setVisible(false);
       return;
     }
-    if (!this.selectedCard || this.selectedCard === '__sell__') {
+    if (!this.selectedCard || this.selectedCard === '__sell__' || this.selectedCard === '__sortie__') {
       this.cellMarker.setVisible(false);
       this.laneGlow.setVisible(false);
       return;
@@ -925,6 +961,11 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       } else {
         audio.play('deny');
       }
+      return;
+    }
+
+    if (this.selectedCard === '__sortie__') {
+      this.toggleSortie(row, col, x, y);
       return;
     }
 
@@ -1023,9 +1064,16 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
   onEnemyKilled(e: Enemy): void {
     this.killCount += 1;
-    const bounty = Math.round(e.def.bounty * (1 + (this.chapter - 1) * 0.15));
+    /*
+     * Killing them out in the field pays half again. A body that dies at the
+     * spawn line never reached the wall, never swung at a gate and left its
+     * gear where someone could pick it up - which is the whole argument for
+     * opening the gate and going out to meet them.
+     */
+    const far = e.x > FIELD_BOUNTY_LINE;
+    const bounty = Math.round(e.def.bounty * (1 + (this.chapter - 1) * 0.15) * (far ? 1.5 : 1));
     this.gold += bounty;
-    floatText(this, e.x, e.y - 100, `+${bounty}`, COLORS.gold, 'tiny');
+    floatText(this, e.x, e.y - 100, far ? `+${bounty} salvage` : `+${bounty}`, COLORS.gold, 'tiny');
     this.updateHud();
   }
 
@@ -1064,6 +1112,40 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
   sfx(id: SfxId): void {
     audio.play(id);
+  }
+
+  /**
+   * Send a unit out of the gate, or call it back.
+   *
+   * A unit on sortie keeps its cell - the price of going out is that nothing
+   * holds its lane while it is gone, not that it loses its place - so its own
+   * square stays the handle for calling it home.
+   */
+  private toggleSortie(row: number, col: number, x: number, y: number): void {
+    const target =
+      this.occupancy.get(`${row},${col}`) ??
+      this.defenders.find(
+        (d) => d.alive && d.row === row && d.sortie === 'out' && Math.abs(d.x - x) < GRID.cellW * 0.8,
+      );
+    if (!target) {
+      audio.play('deny');
+      return;
+    }
+    if (target.sortie !== 'held') {
+      if (target.recall()) {
+        floatText(this, target.x, target.topY, 'FALL BACK', COLORS.parchment, 'tiny');
+        audio.play('tap');
+      }
+      return;
+    }
+    if (!target.goOut()) {
+      audio.play('deny');
+      floatText(this, x, y - 40, 'cannot sortie', COLORS.muted, 'tiny');
+      return;
+    }
+    audio.play('gate');
+    haptic(18);
+    floatText(this, target.x, target.topY, 'SORTIE!', COLORS.gold, 'tiny');
   }
 
   /**

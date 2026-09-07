@@ -76,25 +76,43 @@ Do these in order. Each one is a thing that recently changed.
 21. Finishing with any section breached caps you at **one star**, even on a
     clean-looking win.
 
+### Sorties
+
+The gate opens both ways now.
+
+22. Tap **SORTIE** (next to SELL in the tray), then tap one of your placed
+    units. It shouts SORTIE! and marches out of the wall, up its own lane.
+23. Out there it stops to fight whatever it meets, exactly as it does on the
+    wall — it is not invulnerable and nothing is supporting it.
+24. Its cell stays reserved. Tap SORTIE and then that same empty square to
+    call it back: it walks home and holds the line again.
+25. Buildings refuse — a barricade or a ballista cannot walk.
+26. Kills made far out in the field pay **half again**, and the float reads
+    `+N salvage`. That is the whole argument for opening the gate: a body that
+    dies out there never reaches the wall, and it pays better.
+27. The risk is real — a lane with its defender out is a lane with nothing in
+    it. Send someone out during a siege and see what the engines do to that
+    lane.
+
 ### The cutthroat
 
-22. The **Cutthroat** does not walk to the heart. Once it is through, it
+28. The **Cutthroat** does not walk to the heart. Once it is through, it
     turns into a *neighbouring lane* and attacks your defenders from
     behind, where they cannot answer. Kill it or lose the lane.
 
 ### Damage types
 
-23. Tap and **hold** any card in the tray (about half a second) for its
+29. Tap and **hold** any card in the tray (about half a second) for its
     entry. Damage is typed: physical, fire, frost, holy.
-24. Holy vs undead is 1.7×; frost vs demons 1.4×; fire vs demons 0.6×. The
+30. Holy vs undead is 1.7×; frost vs demons 1.4×; fire vs demons 0.6×. The
     hit flash tells you which way it went — gold for strong, grey for weak.
-25. Only a few units crit, and they do it on a **counted** swing, not a
+31. Only a few units crit, and they do it on a **counted** swing, not a
     dice roll: the Paladin's smite lands on every third swing, always. Watch
     it three times and it should be exactly regular.
 
 ### The War Ledger
 
-26. Menu → **WAR LEDGER**. Three tabs: OUR FORCES, THE HORDE, WHAT BEATS
+32. Menu → **WAR LEDGER**. Three tabs: OUR FORCES, THE HORDE, WHAT BEATS
     WHAT. Every unit and enemy with real numbers, and the type table in
     full. Nothing in there should say "???" or be blank.
 
@@ -133,13 +151,13 @@ npm run hittest   # every button responds across its own footprint, and the
 npm run breachtest# drives a real battle: breach, repair, keep garrison, stars
 npm run damagetest# damage-type table and the counted crit, in the live game
 npm run siegetest # muster pay, calling the assault on early, siege bombardment
+npm run sortietest# a unit marches out, fights, comes home, and salvage pays more
 npm run smoke     # boots a battle in Chromium and asserts it plays
 npm run touchtest # taps land where fingers are, on three phone sizes
 npm run pwacheck  # Chrome on Android will offer to install it
 ```
 
-`hittest`, `breachtest`, `damagetest`, `siegetest`, `smoke` and `touchtest`
-need a server up:
+The browser-driven checks need a server up:
 
 ```bash
 npm run dev -- --port 5199

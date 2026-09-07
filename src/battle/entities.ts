@@ -81,8 +81,17 @@ export class Defender {
   readonly def: DefenderDef;
   readonly row: number;
   readonly col: number;
-  readonly x: number;
+  x: number;
   readonly y: number;
+  /** Where this unit stands when it is holding the wall. */
+  readonly homeX: number;
+  /*
+   * A sortie is the one thing a defender does that a lane defender usually
+   * cannot: leave the line. Out there it meets the horde in the open, where
+   * nothing supports it and nothing behind it is held - and where the killing
+   * is worth more, because a body that never reaches the wall never breaks it.
+   */
+  sortie: 'held' | 'out' | 'returning' = 'held';
   hp: number;
   readonly maxHp: number;
   readonly damage: number;
@@ -113,6 +122,7 @@ export class Defender {
     this.damage = stats.damage;
     const c = cellCenter(row, col);
     this.x = c.x;
+    this.homeX = c.x;
     this.y = laneGroundY(row);
     this.economyTimer = def.economy ? def.economy.interval : 0;
 
@@ -199,6 +209,7 @@ export class Defender {
     const dt = delta / 1000;
     this.rig?.update(time, delta);
     this.bar.update(this.x, this.topY - 16, this.hp / this.maxHp, this.y);
+    if (this.sortie !== 'held') this.march(dt);
 
     if (this.def.economy) {
       this.economyTimer -= dt;
@@ -323,6 +334,61 @@ export class Defender {
     }
   }
 
+  /**
+   * Send this unit out through the gate. It gives up its cell - nothing is
+   * held behind it while it is gone - and marches up its own lane.
+   */
+  goOut(): boolean {
+    if (!this.alive || this.def.art.kind !== 'unit' || !this.def.attack) return false;
+    if (this.sortie === 'out') return false;
+    this.sortie = 'out';
+    this.rig?.setFacing(1);
+    return true;
+  }
+
+  /** Call it home. It walks back to its own cell and holds the line again. */
+  recall(): boolean {
+    if (!this.alive || this.sortie !== 'out') return false;
+    this.sortie = 'returning';
+    return true;
+  }
+
+  /** True once a recalled unit is standing where it started. */
+  get home(): boolean {
+    return this.sortie === 'held';
+  }
+
+  /**
+   * Marching. A unit out in the field stops to fight whatever it can reach,
+   * so this only moves it when nothing is in front of it - the attack code
+   * does the rest, exactly as it does on the wall.
+   */
+  private march(dt: number): void {
+    const speed = SORTIE_SPEED;
+    if (this.sortie === 'returning') {
+      this.x = Math.max(this.homeX, this.x - speed * 1.4 * dt);
+      this.rig?.setFacing(-1);
+      this.moveArt();
+      if (this.x <= this.homeX + 1) {
+        this.x = this.homeX;
+        this.sortie = 'held';
+        this.rig?.setFacing(1);
+        this.moveArt();
+      }
+      return;
+    }
+    // Out: hold position while something is in reach, otherwise press on.
+    const reach = this.def.attack?.range ?? 0;
+    if (this.findTarget(reach, true)) return;
+    this.x = Math.min(SORTIE_LIMIT, this.x + speed * dt);
+    this.moveArt();
+  }
+
+  private moveArt(): void {
+    this.rig?.setPosition(this.x, this.y);
+    this.sprite?.setPosition(this.x, this.y + 6);
+  }
+
   private findTarget(range: number, canHitAir: boolean): Enemy | undefined {
     let best: Enemy | undefined;
     for (const e of this.world.enemies) {
@@ -342,6 +408,14 @@ export class Defender {
     return best;
   }
 }
+
+/**
+ * How fast a unit marches out of the gate, and how far it will go. The limit
+ * is short of the spawn line on purpose: a sortie is a raid into the field,
+ * not a way to camp the enemy's own ground.
+ */
+const SORTIE_SPEED = 62;
+const SORTIE_LIMIT = 1500;
 
 /** Swings between smites, and what a crit multiplies by. Counted, not rolled. */
 const SMITE_EVERY = 3;

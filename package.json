@@ -28,7 +28,8 @@
     "art:frames": "node scripts/import-frames.mjs",
     "breachtest": "node scripts/breachtest.mjs",
     "damagetest": "node scripts/damagetest.mjs",
-    "siegetest": "node scripts/siegetest.mjs"
+    "siegetest": "node scripts/siegetest.mjs",
+    "sortietest": "node scripts/sortietest.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",

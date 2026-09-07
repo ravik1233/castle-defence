@@ -73,10 +73,17 @@ if (twice !== 0) fail(`calling on during an assault paid ${twice}`);
 
 // Clear the field and the lull returns, with its lump of pay.
 const mid = await state();
-await page.evaluate(() => {
-  for (const e of globalThis.__game.scene.getScene('Battle').enemies) if (e.alive) e.kill();
-});
-if (await until((s) => s.phase === 'muster', 120000, 'the muster to return once the field is clear')) {
+// A wave keeps spawning for its whole duration, so clearing the field means
+// killing what is there again and again until the queue is finally empty.
+let mustered = false;
+for (let i = 0; i < 200 && !mustered; i += 1) {
+  await page.evaluate(() => globalThis.__battle.clearField(Infinity));
+  await page.waitForTimeout(250);
+  mustered = (await state()).phase === 'muster';
+}
+if (!mustered) {
+  fail('the muster never returned once the field was clear');
+} else {
   const rested = await state();
   if (rested.gold <= mid.gold) fail('a muster arrived without paying anything');
   else console.log(`the muster paid ${rested.gold - mid.gold} for clearing the wave`);
@@ -105,10 +112,11 @@ if (!sieged) {
    */
   let fell = false;
   for (let i = 0; i < 240 && !fell; i += 1) {
+    // Kill anything that gets near the wall, and keep a body far out so the
+    // wave never counts as cleared.
     await page.evaluate(() => {
-      const b = globalThis.__game.scene.getScene('Battle');
-      for (const e of b.enemies) if (e.alive && e.x < 500) e.kill();
-      if (!b.enemies.some((e) => e.alive)) globalThis.__battle.spawn('goblin', 0);
+      globalThis.__battle.clearField(500);
+      if (globalThis.__battle.state().enemies === 0) globalThis.__battle.spawn('goblin', 0);
     });
     await page.waitForTimeout(250);
     const now = await state();
