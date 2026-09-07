@@ -77,7 +77,7 @@ const audit = () =>
       .filter((r) => r.dead.length || r.leaking.length);
   });
 
-const SCREENS = ['MainMenu', 'Armory', 'Continent', 'Map'];
+const SCREENS = ['MainMenu', 'Armory', 'Continent', 'Map', 'Loadout'];
 
 /** Clicks a button by label, well off centre - where a thumb actually lands. */
 const clickOffCentre = async (label) => {
@@ -143,6 +143,19 @@ for (const screen of SCREENS) {
     if (!(await clickOffCentre('<'))) fail('no back button in the armoury');
     if (!(await clickOffCentre('DEFEND'))) fail('no DEFEND button');
     if ((await sceneKey()) !== 'Continent') fail('an off-centre press on DEFEND did nothing');
+  } else if (screen === 'Map') {
+    // Into the loadout, which is now what choosing a fort opens.
+    const opened = await page.evaluate(() => {
+      const scene = globalThis.__game.scene.getScenes(true)[0];
+      const node = scene.children.list.find((o) => o.type === 'Container' && o.input && o.list?.length > 2);
+      if (!node) return false;
+      node.emit('pointerdown');
+      return true;
+    });
+    if (!opened) fail('no fort to open on the region map');
+    await page.waitForTimeout(700);
+    if (!(await clickOffCentre('FIGHT'))) fail('no FIGHT button in the fort briefing');
+    if ((await sceneKey()) !== 'Loadout') fail('opening a fort did not reach the loadout');
   } else if (screen === 'Continent') {
     // The first region, then the briefing's RIDE OUT: both are containers a
     // thumb has to hit off centre.
