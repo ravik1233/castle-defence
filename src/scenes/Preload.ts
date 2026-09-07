@@ -11,7 +11,7 @@ import { profile } from '../systems/profile';
 import { ensureBattleTextures, ensureCastleSkin } from '../systems/textures';
 import { FONT } from '../ui/kit';
 import { audio } from '../systems/audio';
-import { unlockEverythingForTesting } from '../systems/devtools';
+import { reachRegionForTesting, unlockEverythingForTesting } from '../systems/devtools';
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {
@@ -79,6 +79,10 @@ export class PreloadScene extends Phaser.Scene {
     if (params.get('unlock') === '1' && (import.meta.env.DEV || __QA_BUILD__)) {
       unlockEverythingForTesting();
     }
+    // ?reach=3 stops the campaign at that region, which is how the region
+    // commanders and musters get tested one at a time.
+    const reach = Number(params.get('reach'));
+    if (reach >= 1 && (import.meta.env.DEV || __QA_BUILD__)) reachRegionForTesting(reach);
     const target = params.get('scene');
     if (target) {
       const levelId = params.get('level') ?? 'c1l1';
