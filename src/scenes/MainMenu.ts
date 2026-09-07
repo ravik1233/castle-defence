@@ -50,6 +50,7 @@ export class MainMenuScene extends Phaser.Scene {
     const buttons: Array<[string, 'green' | 'blue' | 'gold' | 'stone', () => void]> = [
       ['DEFEND', 'green', () => this.scene.start('Map')],
       ['ARMOURY', 'blue', () => this.scene.start('Armory')],
+      ['WAR LEDGER', 'stone', () => this.scene.start('Ledger')],
     ];
     if (!profile.hasCrownPack) buttons.push(['THE CROWN PACK', 'gold', () => this.scene.start('Store')]);
     buttons.push(['SETTINGS', 'stone', () => this.scene.start('Settings')]);

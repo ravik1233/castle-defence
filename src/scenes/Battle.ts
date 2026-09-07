@@ -36,6 +36,7 @@ import type { LevelDef, SpellDef } from '../data/types';
 import { profile } from '../systems/profile';
 import { audio, haptic, type SfxId } from '../systems/audio';
 import { COLORS, Counter, TextButton, floatText, showDialog, tappable, textStyle } from '../ui/kit';
+import { showDefenderEntry } from '../ui/ledger';
 import { Defender, Enemy, Projectile, type BattleWorld, type ProjectileOptions } from '../battle/entities';
 import { portraitFor } from '../art/portraits';
 import { enemyScaling, starsForKeep, tensionFor } from '../battle/combat';
@@ -544,7 +545,32 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       container.add(overlay);
 
       tappable(container, TRAY.cardW, TRAY.cardH);
-      container.on('pointerdown', () => this.selectCard(id));
+      /*
+       * Tap selects; hold reads. Damage types are only a decision the player
+       * can make if they can look up what this card actually does, and
+       * mid-battle is exactly when they want to.
+       */
+      let held: Phaser.Time.TimerEvent | undefined;
+      container.on('pointerdown', () => {
+        held = this.time.delayedCall(420, () => {
+          held = undefined;
+          this.paused = true;
+          showDefenderEntry(this, defender(id), () => {
+            this.paused = false;
+          });
+        });
+      });
+      const release = (): void => {
+        if (!held) return;
+        held.remove();
+        held = undefined;
+        this.selectCard(id);
+      };
+      container.on('pointerup', release);
+      container.on('pointerout', () => {
+        held?.remove();
+        held = undefined;
+      });
 
       this.cards.push({
         id,

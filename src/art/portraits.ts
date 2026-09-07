@@ -2,9 +2,10 @@
  * Picks the best available image to represent a defender on a card.
  *
  * Order of preference:
- *   1. a painted whole-body sprite, if a painted pack supplied one
- *   2. the generated head, which reads better than a shrunken whole body
- *   3. the structure texture, for buildings
+ *   1. the idle frame, when an artist drew an animation strip for the unit
+ *   2. a painted whole-body sprite, if a painted pack supplied one
+ *   3. the generated head, which reads better than a shrunken whole body
+ *   4. the structure texture, for buildings
  */
 import type Phaser from 'phaser';
 import type { DefenderDef } from '../data/types';
@@ -20,6 +21,10 @@ export function portraitFor(scene: Phaser.Scene, def: DefenderDef): Portrait | u
   if (def.art.kind === 'build') {
     return scene.textures.exists(def.art.key) ? { key: def.art.key, whole: true } : undefined;
   }
+  // Frames first. A unit with drawn frames has no whole-body sprite and no
+  // parts to crop a head from, so without this its card comes out blank.
+  const idle = `unit.${def.art.id}.frame0`;
+  if (scene.textures.exists(idle)) return { key: idle, whole: true };
   const painted = fullSpriteKey(def.art.id);
   if (scene.textures.exists(painted)) return { key: painted, whole: true };
   const head = `unit.${def.art.id}.head`;
