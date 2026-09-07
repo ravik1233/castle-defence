@@ -25,7 +25,9 @@ await page.waitForFunction(() => globalThis.__game?.scene.getScenes(true)[0]?.sc
 });
 await page.evaluate(() => {
   const g = globalThis.__game;
-  g.scene.getScenes(true)[0].scene.start('Battle', { levelId: 'c2l3' });
+  // A goblin fort on purpose: the undead get back up, so a region that
+  // rises would be measuring the wrong thing when clearing the field.
+  g.scene.getScenes(true)[0].scene.start('Battle', { levelId: 'c1l6' });
 });
 await page.waitForFunction(() => Boolean(globalThis.__battle), { timeout: 180000 });
 await page.waitForTimeout(1500);
@@ -76,7 +78,7 @@ const mid = await state();
 // A wave keeps spawning for its whole duration, so clearing the field means
 // killing what is there again and again until the queue is finally empty.
 let mustered = false;
-for (let i = 0; i < 200 && !mustered; i += 1) {
+for (let i = 0; i < 400 && !mustered; i += 1) {
   await page.evaluate(() => globalThis.__battle.clearField(Infinity));
   await page.waitForTimeout(250);
   mustered = (await state()).phase === 'muster';
@@ -100,7 +102,7 @@ for (let i = 0; i < 12 && !sieged; i += 1) {
   sieged = (await state()).phase === 'siege';
 }
 if (!sieged) {
-  fail('no siege wave in twelve waves of a chapter 2 level');
+  fail('no siege wave in twelve waves of a goblin fort');
 } else {
   const wallBefore = (await state()).wallHp;
   /*
