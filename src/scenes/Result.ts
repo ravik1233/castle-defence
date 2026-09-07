@@ -7,6 +7,7 @@ import { DESIGN } from '../core/layout';
 import { ALL_LEVELS, level as levelById } from '../data/levels';
 import { defender } from '../data/defenders';
 import { profile } from '../systems/profile';
+import { salvageFor } from '../data/workshop';
 import { ensureBattleTextures } from '../systems/textures';
 import { ads } from '../systems/ads';
 import { audio } from '../systems/audio';
@@ -28,6 +29,7 @@ interface ResultData {
 export class ResultScene extends Phaser.Scene {
   private result!: ResultData;
   private payout = 0;
+  private salvaged = 0;
   private doubled = false;
 
   constructor() {
@@ -69,7 +71,12 @@ export class ResultScene extends Phaser.Scene {
           ease: 'Back.easeOut',
         });
       });
+      const firstClear = !profile.levelRecord(lvl.id);
       this.payout = profile.recordVictory(lvl.id, this.result.stars, this.result.wave, lvl.reward);
+      // Salvage is what the field gives up: bodies stripped, gear dragged
+      // home. It buys nothing in a battle and everything in the workshop.
+      this.salvaged = salvageFor({ kills: this.result.kills, stars: this.result.stars, firstClear });
+      profile.addSalvage(this.salvaged);
     } else {
       profile.recordDefeat(lvl.id, this.result.wave);
       this.add
@@ -80,7 +87,7 @@ export class ResultScene extends Phaser.Scene {
     const stats = [
       `${this.result.kills} slain`,
       victory ? `gate at ${Math.round((this.result.wallHp / this.result.wallMax) * 100)}%` : 'gate destroyed',
-      victory ? `+${this.payout} gold` : 'no reward',
+      victory ? `+${this.payout} gold, +${this.salvaged} salvage` : 'no reward',
     ];
     // The three stats read as a row across, not a stack down.
     stats.forEach((line, i) => {

@@ -4,6 +4,7 @@ import { defaultSave } from '../src/systems/save';
 import { DEFENDERS, MAX_UPGRADE_LEVEL, defender, upgradeCost, upgradedStats } from '../src/data/defenders';
 import { ALL_LEVELS, level } from '../src/data/levels';
 import { HEROES } from '../src/data/heroes';
+import { EQUIPMENT_SLOTS, consumable, equipment, salvageFor } from '../src/data/workshop';
 
 let p: Profile;
 beforeEach(() => {
@@ -154,5 +155,66 @@ describe('gold', () => {
     expect(p.gold).toBe(100);
     expect(p.spendGold(100)).toBe(true);
     expect(p.gold).toBe(0);
+  });
+});
+
+describe('workshop', () => {
+  it('pays salvage for what the field gives up', () => {
+    const first = salvageFor({ kills: 40, stars: 3, firstClear: true });
+    const again = salvageFor({ kills: 40, stars: 3, firstClear: false });
+    expect(first).toBeGreaterThan(again);
+    expect(again).toBeGreaterThan(0);
+    expect(salvageFor({ kills: 80, stars: 3, firstClear: false })).toBeGreaterThan(again);
+    expect(Number.isInteger(first)).toBe(true);
+  });
+
+  it('refuses equipment it cannot pay for, and charges once', () => {
+    expect(p.buyEquipment('reinforced')).toBe(false);
+    p.addSalvage(100);
+    const before = p.salvage;
+    expect(p.buyEquipment('reinforced')).toBe(true);
+    expect(p.salvage).toBe(before - equipment('reinforced').cost);
+    expect(p.buyEquipment('reinforced')).toBe(false);
+    expect(p.ownsEquipment('reinforced')).toBe(true);
+  });
+
+  it('keeps premium equipment behind the pack even when it is paid for', () => {
+    p.addSalvage(500);
+    expect(p.buyEquipment('garrison')).toBe(false);
+    p.grantCrownPack();
+    expect(p.buyEquipment('garrison')).toBe(true);
+    expect(p.ownsEquipment('garrison')).toBe(true);
+    p.revokeCrownPack();
+    expect(p.ownsEquipment('garrison')).toBe(false);
+  });
+
+  it('takes three pieces to war and no more', () => {
+    p.addSalvage(1000);
+    for (const id of ['reinforced', 'cellars', 'oil', 'horn']) p.buyEquipment(id);
+    for (const id of ['reinforced', 'cellars', 'oil']) expect(p.toggleEquipped(id)).toBe(true);
+    expect(p.equipped).toHaveLength(EQUIPMENT_SLOTS);
+    expect(p.toggleEquipped('horn')).toBe(false);
+    // Taking one off makes room for another.
+    expect(p.toggleEquipped('oil')).toBe(true);
+    expect(p.toggleEquipped('horn')).toBe(true);
+    expect(p.equipped).toContain('horn');
+    expect(p.equipped).not.toContain('oil');
+  });
+
+  it('crafts up to what a person can carry, and spends what it makes', () => {
+    p.addSalvage(1000);
+    const def = consumable('oilbarrel');
+    for (let i = 0; i < def.max; i += 1) expect(p.craft('oilbarrel')).toBe(true);
+    expect(p.stockOf('oilbarrel')).toBe(def.max);
+    expect(p.craft('oilbarrel')).toBe(false);
+    expect(p.useStock('oilbarrel')).toBe(true);
+    expect(p.stockOf('oilbarrel')).toBe(def.max - 1);
+    // Craft again now there is room.
+    expect(p.craft('oilbarrel')).toBe(true);
+  });
+
+  it('never spends stock it does not have', () => {
+    expect(p.useStock('repairkit')).toBe(false);
+    expect(p.stockOf('repairkit')).toBe(0);
   });
 });

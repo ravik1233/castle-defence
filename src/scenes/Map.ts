@@ -4,7 +4,6 @@ import { DESIGN } from '../core/layout';
 import { CHAPTERS, levelNumber, levelThreat } from '../data/levels';
 import type { LevelDef } from '../data/types';
 import { profile } from '../systems/profile';
-import { ensureBattleTextures } from '../systems/textures';
 import { audio } from '../systems/audio';
 import { COLORS, Counter, TextButton, fitText, showDialog, starRow, tappable, textStyle } from '../ui/kit';
 
@@ -167,15 +166,12 @@ export class MapScene extends Phaser.Scene {
     });
   }
 
-  /** Streams in the biome and castle art this level needs, then fights. */
-  private async startBattle(lvl: LevelDef): Promise<void> {
-    const wait = this.add
-      .text(DESIGN.width / 2, DESIGN.height - 120, 'mustering...', textStyle('small', '#43301a'))
-      .setOrigin(0.5)
-      .setDepth(9500);
-    await ensureBattleTextures(this, lvl.biome, profile.activeSkin);
-    wait.destroy();
-    this.scene.start('Battle', { levelId: lvl.id });
+  /**
+   * A fort is chosen, then packed for. The loadout screen streams the art in
+   * while the player picks their hand, so nothing waits on a loading line.
+   */
+  private startBattle(lvl: LevelDef): void {
+    this.scene.start('Loadout', { levelId: lvl.id });
   }
 
   private openLevel(lvl: LevelDef): void {

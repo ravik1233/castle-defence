@@ -182,7 +182,18 @@ export function effect(id: FxId): Svg {
   }
 }
 
-export type PickupId = 'coin' | 'gem' | 'heart' | 'skull' | 'crown' | 'mana' | 'star' | 'star_empty';
+export type PickupId =
+  | 'coin'
+  | 'gem'
+  | 'heart'
+  | 'skull'
+  | 'crown'
+  | 'mana'
+  | 'star'
+  | 'star_empty'
+  | 'hammer'
+  | 'shield'
+  | 'sword';
 
 export function pickup(id: PickupId): Svg {
   switch (id) {
@@ -237,6 +248,30 @@ export function pickup(id: PickupId): Svg {
         if (filled) s.sheen('M 17 15 L 24 8 L 28 16 L 23 20 Z', 0.45);
       });
     }
+    case 'hammer':
+      // Salvage: what comes back from a field, and what the workshop works.
+      return draw(46, 46, (s) => {
+        s.glow(23, 23, 20, '#c9a227', 0.35);
+        s.rect(20, 16, 6, 26, 2, '#8a5a2a', { width: 2.5, color: '#4a2f16' });
+        s.path('M 8 8 L 38 8 L 38 20 L 30 20 L 30 14 L 16 14 L 16 20 L 8 20 Z', '#b9c0cc', {
+          width: 3,
+          color: '#5a6270',
+        });
+        s.sheen('M 11 10 L 22 10 L 20 13 L 11 13 Z', 0.5);
+      });
+    case 'shield':
+      return draw(44, 46, (s) => {
+        s.path('M 22 4 L 39 11 Q 39 32 22 42 Q 5 32 5 11 Z', '#7f93b8', { width: 3.5, color: '#2f3b56' });
+        s.path('M 22 11 L 32 15 Q 32 29 22 35 Q 12 29 12 15 Z', '#c7d6ef', { width: 2.5, color: '#4a5a7a' });
+        s.sheen('M 14 12 L 21 9 L 20 16 L 14 18 Z', 0.45);
+      });
+    case 'sword':
+      return draw(44, 46, (s) => {
+        s.path('M 22 3 L 27 12 L 27 30 L 17 30 L 17 12 Z', '#dfe6f2', { width: 3, color: '#5a6270' });
+        s.rect(11, 30, 22, 6, 2, '#8a5a2a', { width: 2.5, color: '#4a2f16' });
+        s.rect(19, 36, 6, 8, 2, '#6b4726', { width: 2.5, color: '#3a2412' });
+        s.sheen('M 20 6 L 24 12 L 22 26 L 20 26 Z', 0.5);
+      });
     case 'crown':
       return draw(60, 46, (s) => {
         s.glow(30, 26, 26, '#ffd257', 0.55);

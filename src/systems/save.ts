@@ -8,7 +8,7 @@
  */
 
 export const SAVE_KEY = 'lastgate.save.v1';
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 
 export interface LevelRecord {
   /** 1-3, based on how much wall health survived. */
@@ -40,6 +40,13 @@ export interface SaveData {
   upgrades: Record<string, number>;
   heroId: string;
   deck: string[];
+  /** Salvage: what comes back out of a battle, spent in the workshop. */
+  salvage: number;
+  /** Fort equipment bought, and the three pieces taken to war. */
+  ownedEquipment: string[];
+  equipped: string[];
+  /** One-use workshop stock, by id. */
+  stock: Record<string, number>;
   crownPack: boolean;
   ownedSkins: string[];
   activeSkin: string;
@@ -64,6 +71,10 @@ export function defaultSave(): SaveData {
     upgrades: {},
     heroId: 'aldric',
     deck: ['tithe', 'militia', 'archer', 'barricade'],
+    salvage: 0,
+    ownedEquipment: [],
+    equipped: [],
+    stock: {},
     crownPack: false,
     ownedSkins: ['stone'],
     activeSkin: 'stone',
@@ -105,6 +116,16 @@ const MIGRATIONS: Record<number, Migration> = {
     ...d,
     settings: { ...(d.settings as object), touchDebug: false },
     version: 6,
+  }),
+  // Salvage, fort equipment and workshop stock. An existing save keeps its
+  // gold and its campaign; it simply starts the workshop empty.
+  6: (d) => ({
+    ...d,
+    salvage: typeof d.salvage === 'number' ? d.salvage : 0,
+    ownedEquipment: Array.isArray(d.ownedEquipment) ? d.ownedEquipment : [],
+    equipped: Array.isArray(d.equipped) ? d.equipped : [],
+    stock: typeof d.stock === 'object' && d.stock !== null ? d.stock : {},
+    version: 7,
   }),
 };
 

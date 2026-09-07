@@ -41,6 +41,7 @@ import { Defender, Enemy, Projectile, type BattleWorld, type ProjectileOptions }
 import { portraitFor, portraitForArt } from '../art/portraits';
 import { enemyScaling, starsForKeep, tensionFor } from '../battle/combat';
 import { callBounty, musterPay } from '../battle/economy';
+import { CONSUMABLES, EQUIPMENT_EFFECT, consumable } from '../data/workshop';
 import type { KeepState } from '../battle/combat';
 
 /**
@@ -115,6 +116,9 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private waveTimer = PREP_SECONDS;
   private phase: Phase = 'muster';
   private bombardTimer = 0;
+  /** Fort equipment fitted for this battle, and the section HP it buys. */
+  private fitted = new Set<string>();
+  private sectionMax = SECTION_MAX_HP;
   private spawnQueue: Array<{ at: number; enemyId: string; row: number }> = [];
   private elapsed = 0;
   private finished = false;
@@ -152,6 +156,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private waveText!: Phaser.GameObjects.Text;
   private phaseText!: Phaser.GameObjects.Text;
   private callButton?: TextButton;
+  private itemButton?: TextButton;
 
 
   private paused = false;
@@ -192,6 +197,12 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         this.updateHud();
       },
       repair: (row: number): void => this.repairSection(row),
+      // Burns a piece of workshop stock, the same as the item button does.
+      useItem: (id: string): boolean => {
+        const held = profile.stockOf(id);
+        this.useItem(id);
+        return profile.stockOf(id) < held;
+      },
       // Sends a placed unit out of the gate, or calls it back.
       sortie: (row: number, col: number): string => {
         const d = this.occupancy.get(`${row},${col}`);
@@ -206,9 +217,9 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       // Calls the assault on early, the same as the button does.
       call: (): number => this.callAssault(),
       /*
-       * Kills what is on the field. A test cannot reach into the entities
-       * themselves - a production build renames their methods - so anything
-       * a test needs to do to the battle has to be offered from in here.
+       * Kills what is on the field. An enemy has no public way to be killed
+       * outright - it dies by taking damage - so a test that wants a quiet
+       * field asks the battle for one rather than reaching into entities.
        */
       clearField: (keepBeyond = 0): number => {
         let killed = 0;
@@ -259,8 +270,19 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     this.spawnQueue = [];
     this.elapsed = 0;
     this.finished = false;
-    this.gold = this.levelDef.startingGold;
-    this.sections = new Array(GRID.rows).fill(SECTION_MAX_HP);
+    /*
+     * Fort equipment is chosen in the workshop and fitted here, before a
+     * single enemy exists: what the player brought decides how much wall
+     * they have and how much gold they start with, not anything they do
+     * once the fighting starts.
+     */
+    this.fitted = new Set(profile.equipped);
+    this.sectionMax = Math.round(
+      SECTION_MAX_HP * (this.fitted.has('reinforced') ? EQUIPMENT_EFFECT.reinforced.sectionHp : 1),
+    );
+    this.gold =
+      this.levelDef.startingGold + (this.fitted.has('cellars') ? EQUIPMENT_EFFECT.cellars.startingGold : 0);
+    this.sections = new Array(GRID.rows).fill(this.sectionMax);
     this.heartHp = HEART_MAX_HP;
     this.killCount = 0;
     this.goldSpent = 0;
@@ -378,6 +400,22 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       .text(300, HUD.height / 2 + 20, '', textStyle('tiny', COLORS.muted))
       .setOrigin(0, 0.5)
       .setDepth(3001);
+
+    /*
+     * What the player made in the workshop. It is one button rather than a
+     * row of them because the tray is already full, and because a one-use
+     * item is worth a second's thought before it is burned.
+     */
+    this.itemButton = new TextButton(this, 1222, HUD.height / 2, '', {
+      width: 108,
+      height: 66,
+      size: 'tiny',
+      tone: 'blue',
+      icon: 'icon.hammer',
+      onClick: () => this.openItems(),
+    });
+    this.itemButton.setDepth(3002);
+    this.refreshItems();
 
     // Right of the keep bar and clear of it: the HUD centre belongs to the
     // heart, and a button over it would hide the one number that matters.
@@ -504,7 +542,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private updateSections(): void {
     for (let row = 0; row < this.sectionBars.length; row += 1) {
       const hp = this.sections[row] ?? 0;
-      const f = Math.max(0, hp / SECTION_MAX_HP);
+      const f = Math.max(0, hp / this.sectionMax);
       const bar = this.sectionBars[row]!;
       const full = GRID.cellH * 0.5 - 4;
       bar.height = Math.max(0, full * f);
@@ -519,7 +557,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private keepState(): KeepState {
     return {
       sections: [...this.sections],
-      sectionMax: SECTION_MAX_HP,
+      sectionMax: this.sectionMax,
       heartHp: this.heartHp,
       heartMax: HEART_MAX_HP,
     };
@@ -529,7 +567,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private garrisonFire(dt: number): void {
     for (const e of this.enemies) {
       if (!e.alive || !e.inside) continue;
-      e.takeDamage(GARRISON_DPS * dt, true);
+      const dps = GARRISON_DPS * (this.fitted.has('garrison') ? EQUIPMENT_EFFECT.garrison.garrisonDps : 1);
+      e.takeDamage(dps * dt, true);
     }
   }
 
@@ -546,7 +585,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       return;
     }
     this.gold -= REPAIR_COST;
-    this.sections[row] = SECTION_MAX_HP * REPAIR_SHARE;
+    this.sections[row] = this.sectionMax * REPAIR_SHARE;
     audio.play('place');
     haptic(20);
     floatText(this, WALL.width + 40, laneCenterY(row), 'REBUILT', COLORS.good, 'small');
@@ -1026,6 +1065,19 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     const before = this.sections[row] ?? 0;
     if (before <= 0) return;
     this.sections[row] = Math.max(0, before - amount);
+    /*
+     * Boiling oil answers whoever is swinging at the gate. It is poured on
+     * the swing rather than on a timer, so it only ever hits what is
+     * actually at the wall.
+     */
+    if (this.fitted.has('oil')) {
+      const y = laneCenterY(row);
+      for (const e of this.enemies) {
+        if (!e.alive || e.row !== row || !e.atWall) continue;
+        e.takeDamage(EQUIPMENT_EFFECT.oil.gateBurn, true, 'fire');
+      }
+      this.burst(WALL.width + 20, y - 40, 'explosion');
+    }
     floatText(this, WALL.width + 20, atY - 80, `-${Math.round(amount)}`, COLORS.danger, 'small');
     this.cameras.main.flash(90, 120, 20, 30);
     // A breach is loud. It is the moment the battle changes shape, and the
@@ -1114,6 +1166,92 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     audio.play(id);
   }
 
+  /** How much stock the player is carrying, all kinds together. */
+  private itemsHeld(): number {
+    return CONSUMABLES.reduce((n, c) => n + profile.stockOf(c.id), 0);
+  }
+
+  private refreshItems(): void {
+    const held = this.itemsHeld();
+    this.itemButton?.setText(String(held)).setEnabled(held > 0 && !this.finished);
+  }
+
+  /**
+   * Choose something to burn. Everything here is one-use and was paid for
+   * with salvage from an earlier battle, so the dialog names what it does
+   * before it is spent rather than after.
+   */
+  private openItems(): void {
+    const held = CONSUMABLES.filter((c) => profile.stockOf(c.id) > 0);
+    if (!held.length) {
+      audio.play('deny');
+      return;
+    }
+    this.paused = true;
+    showDialog(this, {
+      title: 'What you carry',
+      body: held.map((c) => `${c.name} x${profile.stockOf(c.id)} - ${c.blurb}`).join('\n\n'),
+      width: 980,
+      height: 560,
+      buttons: [
+        ...held.slice(0, 3).map((c) => ({
+          text: c.name.toUpperCase(),
+          tone: 'green' as const,
+          onClick: (): void => {
+            this.paused = false;
+            this.useItem(c.id);
+          },
+        })),
+        { text: 'KEEP THEM', tone: 'stone' as const, onClick: (): void => void (this.paused = false) },
+      ],
+    });
+  }
+
+  /** Spends one piece of stock and does what it does. */
+  private useItem(id: string): void {
+    if (this.finished) return;
+    // A repair kit with nothing to mend is not spent: refuse it before it is
+    // taken out of the pack rather than handing it back afterwards.
+    if (id === 'repairkit' && !this.sections.some((hp) => hp <= 0)) {
+      audio.play('deny');
+      floatText(this, DESIGN.width / 2, HUD.height + 90, 'nothing to rebuild', COLORS.muted, 'small');
+      return;
+    }
+    if (!profile.useStock(id)) {
+      audio.play('deny');
+      return;
+    }
+    const def = consumable(id);
+    if (id === 'oilbarrel') {
+      // The fullest lane is the one worth burning, and it is the one the
+      // player would have picked anyway.
+      const counts = this.sections.map((_, row) => this.enemies.filter((e) => e.alive && e.row === row).length);
+      const row = counts.indexOf(Math.max(...counts));
+      const y = laneCenterY(row);
+      for (const e of this.enemies) {
+        if (!e.alive || e.row !== row) continue;
+        e.takeDamage(260, false, 'fire');
+        e.applySlow(0.3, 3);
+      }
+      this.burst(DESIGN.width * 0.5, y, 'explosion');
+      audio.play('explode');
+      this.shake(14);
+      floatText(this, DESIGN.width * 0.5, y - 60, 'OIL!', COLORS.danger, 'title');
+    } else if (id === 'repairkit') {
+      const row = this.sections.findIndex((hp) => hp <= 0);
+      this.sections[row] = this.sectionMax * REPAIR_SHARE;
+      audio.play('place');
+      floatText(this, WALL.width + 40, laneCenterY(row), 'REBUILT', COLORS.good, 'small');
+    } else {
+      this.rallyFactor = 1.6;
+      this.rallyTimer = 10;
+      audio.play('upgrade');
+      floatText(this, DESIGN.width / 2, HUD.height + 90, def.name.toUpperCase(), COLORS.gold, 'small');
+    }
+    this.refreshItems();
+    this.updateHud();
+  }
+
   /**
    * Send a unit out of the gate, or call it back.
    *
@@ -1169,7 +1307,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
   /** What calling the assault on right now would pay. */
   private callBounty(): number {
-    return callBounty(this.waveTimer);
+    const base = callBounty(this.waveTimer);
+    return Math.round(base * (1 + (this.fitted.has('horn') ? EQUIPMENT_EFFECT.horn.callBonus : 0)));
   }
 
   /**
@@ -1251,6 +1390,9 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     const def = enemyDef(id);
     const scale = enemyScaling(this.chapter, Math.max(0, this.waveIndex)) * (this.levelDef.modifiers?.hpScale ?? 1);
     const e = new Enemy(this, def, row, x, { hpScale: scale, damageScale: Math.sqrt(scale) });
+    // Watchfires burn all night: everything that walks into their light is
+    // already slower than it wanted to be.
+    if (this.fitted.has('watchfires')) e.applySlow(EQUIPMENT_EFFECT.watchfires.enemySlow, Number.MAX_SAFE_INTEGER);
     this.enemies.push(e);
     if (def.special === 'boss') {
       this.banner('THE DEMON KING', COLORS.danger);

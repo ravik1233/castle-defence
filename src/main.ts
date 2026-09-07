@@ -14,6 +14,8 @@ import { SettingsScene } from './scenes/Settings';
 import { ResultScene } from './scenes/Result';
 import { LedgerScene } from './scenes/Ledger';
 import { ContinentScene } from './scenes/Continent';
+import { WorkshopScene } from './scenes/Workshop';
+import { LoadoutScene } from './scenes/Loadout';
 import { audio } from './systems/audio';
 import { ads } from './systems/ads';
 import { initNativeShell } from './systems/native';
@@ -59,6 +61,8 @@ const config: Phaser.Types.Core.GameConfig = {
     ResultScene,
     LedgerScene,
     ContinentScene,
+    WorkshopScene,
+    LoadoutScene,
   ],
 };
 
@@ -66,6 +70,13 @@ export const game = new Phaser.Game(config);
 
 // Exposed for automated smoke tests and profiling.
 (globalThis as unknown as { __game?: Phaser.Game }).__game = game;
+
+// The profile, for the tests that drive the meta layer - salvage, equipment
+// and workshop stock all live outside a battle, so a battle hook cannot reach
+// them. Never present in a shipping build.
+if (import.meta.env.DEV || __QA_BUILD__) {
+  (globalThis as unknown as { __profile?: unknown }).__profile = profile;
+}
 
 /**
  * Phaser sleeps its loop when the window loses focus. A sleeping loop still

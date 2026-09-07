@@ -7,6 +7,7 @@
 import { CHAPTERS, ALL_LEVELS, levelNumber } from '../data/levels';
 import { DEFENDERS, MAX_UPGRADE_LEVEL, defender, upgradeCost } from '../data/defenders';
 import { HEROES } from '../data/heroes';
+import { CONSUMABLE_BY_ID, EQUIPMENT_BY_ID, EQUIPMENT_SLOTS } from '../data/workshop';
 import { WALL_SKINS } from '../art/structures';
 import { defaultSave, loadSave, writeSave, type SaveData, type Settings } from './save';
 
@@ -247,6 +248,78 @@ export class Profile {
     if (!this.availableHeroes().includes(id)) return;
     this.data.heroId = id;
     this.commit();
+  }
+
+  /* ------------------------------------------------------------ workshop - */
+
+  get salvage(): number {
+    return this.data.salvage;
+  }
+
+  addSalvage(n: number): void {
+    this.data.salvage = Math.max(0, this.data.salvage + Math.round(n));
+    this.commit();
+  }
+
+  ownsEquipment(id: string): boolean {
+    const def = EQUIPMENT_BY_ID.get(id);
+    if (!def) return false;
+    if (def.premium && !this.hasCrownPack) return false;
+    return this.data.ownedEquipment.includes(id);
+  }
+
+  buyEquipment(id: string): boolean {
+    const def = EQUIPMENT_BY_ID.get(id);
+    if (!def || this.data.ownedEquipment.includes(id)) return false;
+    if (def.premium && !this.hasCrownPack) return false;
+    if (this.data.salvage < def.cost) return false;
+    this.data.salvage -= def.cost;
+    this.data.ownedEquipment.push(id);
+    this.commit();
+    return true;
+  }
+
+  /** The three pieces that go to war, dropping anything no longer owned. */
+  get equipped(): string[] {
+    return this.data.equipped.filter((id) => this.ownsEquipment(id)).slice(0, EQUIPMENT_SLOTS);
+  }
+
+  /** Equips a piece, or takes it off if it is already in a slot. */
+  toggleEquipped(id: string): boolean {
+    if (!this.ownsEquipment(id)) return false;
+    const current = this.equipped;
+    if (current.includes(id)) {
+      this.data.equipped = current.filter((e) => e !== id);
+    } else {
+      if (current.length >= EQUIPMENT_SLOTS) return false;
+      this.data.equipped = [...current, id];
+    }
+    this.commit();
+    return true;
+  }
+
+  stockOf(id: string): number {
+    return this.data.stock[id] ?? 0;
+  }
+
+  /** Makes one of something, if there is salvage for it and room to carry it. */
+  craft(id: string): boolean {
+    const def = CONSUMABLE_BY_ID.get(id);
+    if (!def) return false;
+    if (this.stockOf(id) >= def.max) return false;
+    if (this.data.salvage < def.cost) return false;
+    this.data.salvage -= def.cost;
+    this.data.stock[id] = this.stockOf(id) + 1;
+    this.commit();
+    return true;
+  }
+
+  /** Spends one, in battle. */
+  useStock(id: string): boolean {
+    if (this.stockOf(id) <= 0) return false;
+    this.data.stock[id] = this.stockOf(id) - 1;
+    this.commit();
+    return true;
   }
 
   /* --------------------------------------------------------------- skins - */

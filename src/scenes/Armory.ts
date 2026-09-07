@@ -44,14 +44,19 @@ export class ArmoryScene extends Phaser.Scene {
     });
     this.add.text(w / 2, 48, 'ARMOURY', textStyle('title', COLORS.gold)).setOrigin(0.5);
 
-    const tabs: Array<[Tab, string]> = [
+    // Salvage rides beside gold: the two currencies are spent in different
+    // places and the player should always know how much of each they hold.
+    new Counter(this, 260, 48, 'icon.hammer', profile.salvage, 'body');
+
+    const tabs: Array<[Tab | 'workshop', string]> = [
       ['deck', 'DECK'],
       ['upgrades', 'FORGE'],
       ['hero', 'HERO'],
       ['castle', 'CASTLE'],
+      ['workshop', 'WORKSHOP'],
     ];
     tabs.forEach(([id, label], i) => {
-      const bw = 260;
+      const bw = 240;
       const total = tabs.length * bw + (tabs.length - 1) * 16;
       new TextButton(this, (w - total) / 2 + bw / 2 + i * (bw + 16), 132, label, {
         width: bw,
@@ -59,6 +64,11 @@ export class ArmoryScene extends Phaser.Scene {
         size: 'small',
         tone: 'stone',
         onClick: () => {
+          if (id === 'workshop') {
+            profile.setDeck(this.deck);
+            this.scene.start('Workshop');
+            return;
+          }
           this.tab = id;
           this.draw();
         },
