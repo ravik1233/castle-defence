@@ -11,6 +11,7 @@ import {
   starsForWall,
   tensionFor,
 } from '../src/battle/combat';
+import { CALL_BOUNTY, MUSTER_PAY, callBounty, musterPay } from '../src/battle/economy';
 import { defender } from '../src/data/defenders';
 import { enemy } from '../src/data/enemies';
 
@@ -158,5 +159,29 @@ describe('damage types', () => {
     expect(damageDealt(100, 'holy', 'undead', 20)).toBe(150);
     // Resisted and heavily armoured still scratches rather than doing nothing.
     expect(damageDealt(10, 'physical', 'armoured', 999)).toBeGreaterThan(0);
+  });
+});
+
+describe('battle income', () => {
+  it('pays a muster wage that rises with the region', () => {
+    expect(musterPay(1)).toBe(MUSTER_PAY);
+    expect(musterPay(2)).toBeGreaterThan(musterPay(1));
+    expect(musterPay(4)).toBeGreaterThan(musterPay(3));
+  });
+
+  it('folds a level trickle into the wage rather than dripping it', () => {
+    expect(musterPay(1, 6)).toBeGreaterThan(musterPay(1));
+  });
+
+  it('pays for the muster given up, and nothing for a muster already over', () => {
+    expect(callBounty(10)).toBe(10 * CALL_BOUNTY);
+    expect(callBounty(2.4)).toBe(2 * CALL_BOUNTY);
+    expect(callBounty(0)).toBe(0);
+    expect(callBounty(-3)).toBe(0);
+  });
+
+  it('always pays whole coins', () => {
+    for (let s = 0; s < 12; s += 0.37) expect(Number.isInteger(callBounty(s))).toBe(true);
+    for (let c = 1; c <= 4; c += 1) expect(Number.isInteger(musterPay(c, 6))).toBe(true);
   });
 });

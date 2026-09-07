@@ -44,38 +44,57 @@ Do these in order. Each one is a thing that recently changed.
    **Bombard** and **Arbalest** in the armoury, without a level unlock.
 10. The Abyss adds Cleric, Monk and Ballista. The Throne adds the Paladin.
 
+### The fight has phases now
+
+11. Between waves the HUD reads **MUSTER — Ns to the assault** and a gold
+    **CALL THEM ON +N** button appears at the top right. That is the lull:
+    build in it.
+12. Every muster pays a lump of gold — a `MUSTER +55` floats up — instead of
+    the old invisible trickle. Gold arrives in amounts you can count and plan
+    around.
+13. Tap **CALL THEM ON** and the wave starts immediately, paying **4 gold per
+    second of lull you gave up**. The number on the button counts down as the
+    lull runs out, so calling early is worth more than calling late.
+14. Clearing a wave ends the assault straight away — you do not wait out the
+    clock for the lull to start.
+15. Waves marked as big are now **SIEGE** waves: the banner says SIEGE
+    ENGINES and the phase line says the engines are ranging on the wall. The
+    wall takes damage **with nothing touching it**, roughly every 5 seconds.
+16. The engines aim at the lane holding the **fewest defenders**. Stack one
+    killing lane and a siege will open one of the others.
+
 ### The wall can break
 
-11. In a battle, let one lane's gate section fall. That lane's bar empties,
+17. In a battle, let one lane's gate section fall. That lane's bar empties,
     the section is gone, and enemies walk **into the keep**.
-12. Defenders inside the keep still shoot them, and the keep's own garrison
+18. Defenders inside the keep still shoot them, and the keep's own garrison
     fires as well — a breach is survivable, not instant death.
-13. The **Keep Heart** bar (top centre) only drops once something is inside
+19. The **Keep Heart** bar (top centre) only drops once something is inside
     hitting it. Lose the heart and the run ends.
-14. **REPAIR** rebuilds a fallen section for 75 gold at 60% health. Costly
+20. **REPAIR** rebuilds a fallen section for 75 gold at 60% health. Costly
     on purpose: it should hurt to rebuild mid-fight.
-15. Finishing with any section breached caps you at **one star**, even on a
+21. Finishing with any section breached caps you at **one star**, even on a
     clean-looking win.
 
 ### The cutthroat
 
-16. The **Cutthroat** does not walk to the heart. Once it is through, it
+22. The **Cutthroat** does not walk to the heart. Once it is through, it
     turns into a *neighbouring lane* and attacks your defenders from
     behind, where they cannot answer. Kill it or lose the lane.
 
 ### Damage types
 
-17. Tap and **hold** any card in the tray (about half a second) for its
+23. Tap and **hold** any card in the tray (about half a second) for its
     entry. Damage is typed: physical, fire, frost, holy.
-18. Holy vs undead is 1.7×; frost vs demons 1.4×; fire vs demons 0.6×. The
+24. Holy vs undead is 1.7×; frost vs demons 1.4×; fire vs demons 0.6×. The
     hit flash tells you which way it went — gold for strong, grey for weak.
-19. Only a few units crit, and they do it on a **counted** swing, not a
+25. Only a few units crit, and they do it on a **counted** swing, not a
     dice roll: the Paladin's smite lands on every third swing, always. Watch
     it three times and it should be exactly regular.
 
 ### The War Ledger
 
-20. Menu → **WAR LEDGER**. Three tabs: OUR FORCES, THE HORDE, WHAT BEATS
+26. Menu → **WAR LEDGER**. Three tabs: OUR FORCES, THE HORDE, WHAT BEATS
     WHAT. Every unit and enemy with real numbers, and the type table in
     full. Nothing in there should say "???" or be blank.
 
@@ -113,13 +132,14 @@ npm run hittest   # every button responds across its own footprint, and the
                   # menu -> continent -> region -> forts route works
 npm run breachtest# drives a real battle: breach, repair, keep garrison, stars
 npm run damagetest# damage-type table and the counted crit, in the live game
+npm run siegetest # muster pay, calling the assault on early, siege bombardment
 npm run smoke     # boots a battle in Chromium and asserts it plays
 npm run touchtest # taps land where fingers are, on three phone sizes
 npm run pwacheck  # Chrome on Android will offer to install it
 ```
 
-`hittest`, `breachtest`, `damagetest`, `smoke` and `touchtest` need a dev
-server up:
+`hittest`, `breachtest`, `damagetest`, `siegetest`, `smoke` and `touchtest`
+need a server up:
 
 ```bash
 npm run dev -- --port 5199

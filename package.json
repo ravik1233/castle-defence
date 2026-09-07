@@ -27,7 +27,8 @@
     "art:name": "node scripts/name-art.mjs",
     "art:frames": "node scripts/import-frames.mjs",
     "breachtest": "node scripts/breachtest.mjs",
-    "damagetest": "node scripts/damagetest.mjs"
+    "damagetest": "node scripts/damagetest.mjs",
+    "siegetest": "node scripts/siegetest.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",

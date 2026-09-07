@@ -35,11 +35,12 @@ import { CHAPTERS, generateWaves, level as levelById, levelNumber, type Wave } f
 import type { LevelDef, SpellDef } from '../data/types';
 import { profile } from '../systems/profile';
 import { audio, haptic, type SfxId } from '../systems/audio';
-import { COLORS, Counter, TextButton, floatText, showDialog, tappable, textStyle } from '../ui/kit';
+import { COLORS, Counter, TextButton, fitText, floatText, showDialog, tappable, textStyle } from '../ui/kit';
 import { showDefenderEntry } from '../ui/ledger';
 import { Defender, Enemy, Projectile, type BattleWorld, type ProjectileOptions } from '../battle/entities';
-import { portraitFor } from '../art/portraits';
+import { portraitFor, portraitForArt } from '../art/portraits';
 import { enemyScaling, starsForKeep, tensionFor } from '../battle/combat';
+import { callBounty, musterPay } from '../battle/economy';
 import type { KeepState } from '../battle/combat';
 
 /**
@@ -65,6 +66,24 @@ const REPAIR_SHARE = 0.6;
 const GARRISON_DPS = 50;
 const PREP_SECONDS = 10;
 
+/*
+ * The fight runs in phases rather than as one long stream of enemies.
+ *
+ * A muster is the lull: no one on the field, a lump of gold in hand, and a
+ * choice - spend the whole lull building, or call the assault on early and
+ * be paid for the seconds you gave up. That choice is the thing this game
+ * has that a lane defender usually does not: the player sets the pace and
+ * is paid for taking the risk.
+ *
+ * A siege wave brings engines. They batter a section from out of reach,
+ * aiming at whichever lane is thinnest, so a siege is a demand to repair
+ * and to spread out rather than to stack one killing lane.
+ */
+const BOMBARD_DAMAGE = 34;
+const BOMBARD_EVERY = 5.5;
+
+type Phase = 'muster' | 'assault' | 'siege';
+
 interface CardView {
   id: string;
   container: Phaser.GameObjects.Container;
@@ -89,6 +108,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private waves: Wave[] = [];
   private waveIndex = -1;
   private waveTimer = PREP_SECONDS;
+  private phase: Phase = 'muster';
+  private bombardTimer = 0;
   private spawnQueue: Array<{ at: number; enemyId: string; row: number }> = [];
   private elapsed = 0;
   private finished = false;
@@ -124,6 +145,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
   private goldCounter!: Counter;
   private waveText!: Phaser.GameObjects.Text;
+  private phaseText!: Phaser.GameObjects.Text;
+  private callButton?: TextButton;
 
 
   private paused = false;
@@ -168,8 +191,12 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         this.gold += n;
         this.updateHud();
       },
+      // Calls the assault on early, the same as the button does.
+      call: (): number => this.callAssault(),
       state: () => ({
         gold: Math.round(this.gold),
+        phase: this.phase,
+        musterLeft: Math.max(0, Math.round(this.waveTimer)),
         wallHp: Math.round(this.sections.reduce((a, b) => a + b, 0)),
         heartHp: Math.round(this.heartHp),
         breached: this.sections.filter((hp) => hp <= 0).length,
@@ -198,6 +225,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     this.waves = generateWaves(this.levelDef);
     this.waveIndex = -1;
     this.waveTimer = PREP_SECONDS;
+    this.phase = 'muster';
+    this.bombardTimer = 0;
     this.spawnQueue = [];
     this.elapsed = 0;
     this.finished = false;
@@ -219,6 +248,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     this.paused = false;
     this.tutorial = undefined;
     this.wavesHeld = false;
+    this.callButton = undefined;
   }
 
   create(): void {
@@ -312,9 +342,24 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     this.goldCounter.setDepth(3001);
 
     this.waveText = this.add
-      .text(300, HUD.height / 2, '', textStyle('small', COLORS.parchment))
+      .text(300, HUD.height / 2 - 14, '', textStyle('small', COLORS.parchment))
       .setOrigin(0, 0.5)
       .setDepth(3001);
+    this.phaseText = this.add
+      .text(300, HUD.height / 2 + 20, '', textStyle('tiny', COLORS.muted))
+      .setOrigin(0, 0.5)
+      .setDepth(3001);
+
+    // Right of the keep bar and clear of it: the HUD centre belongs to the
+    // heart, and a button over it would hide the one number that matters.
+    this.callButton = new TextButton(this, DESIGN.width - 480, HUD.height / 2, 'CALL THEM ON', {
+      width: 320,
+      height: 66,
+      size: 'tiny',
+      tone: 'gold',
+      onClick: () => this.callAssault(),
+    });
+    this.callButton.setDepth(3002).setVisible(false);
 
     /*
      * The heart of the keep sits centre-top, because it is now the one number
@@ -497,6 +542,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         ? `First wave in ${Math.ceil(this.waveTimer)}s`
         : `Wave ${Math.min(shown, total)} / ${total}`,
     );
+    this.updatePhaseHud();
     const f = Math.max(0, this.heartHp / HEART_MAX_HP);
     if (this.heartBar) {
       this.heartBar.width = 396 * f;
@@ -671,19 +717,26 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       onClick: () => this.selectCard('__sell__'),
     }).setDepth(3001);
 
-    const portraitKey = `unit.${hero.art}.head`;
-    if (this.textures.exists(portraitKey)) {
-      this.add.image(HERO_BAR.x + 40, y, portraitKey).setScale(0.38).setDepth(3001);
+    // Commanders may wear a unit's drawn frames, which have no head crop, so
+    // this takes whatever image the art actually provides.
+    const face = portraitForArt(this, hero.art);
+    if (face) {
+      const img = this.add.image(HERO_BAR.x + 40, y, face.key).setDepth(3001);
+      img.setScale(Math.min(64 / img.width, 64 / img.height));
     }
     this.add
       .text(HERO_BAR.x + 100, y - 20, hero.name, textStyle('small', COLORS.gold))
       .setOrigin(0, 0.5)
       .setDepth(3001);
-    this.add
-      .text(HERO_BAR.x + 100, y + 18, hero.title, textStyle('tiny', COLORS.muted))
-      .setOrigin(0, 0.5)
-      .setDepth(3001)
-      .setFixedSize(300, 0);
+    // The spell buttons start at the right edge, so the title is squeezed
+    // down to fit rather than sliding under them.
+    fitText(
+      this.add
+        .text(HERO_BAR.x + 100, y + 18, hero.title, textStyle('tiny', COLORS.muted))
+        .setOrigin(0, 0.5)
+        .setDepth(3001),
+      DESIGN.width - 330 - (HERO_BAR.x + 100),
+    );
 
     hero.spells.forEach((spell, i) => {
       const x = DESIGN.width - 250 + i * 150;
@@ -1013,6 +1066,85 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     audio.play(id);
   }
 
+  /**
+   * The phase line and the muster button. Both are read every frame because
+   * the bounty falls as the muster runs down, and a bounty that does not
+   * visibly shrink is not a decision.
+   */
+  private updatePhaseHud(): void {
+    const last = this.waveIndex >= this.waves.length - 1;
+    if (this.phase === 'muster' && !last) {
+      const bounty = this.callBounty();
+      this.phaseText.setText(`MUSTER  -  ${Math.ceil(Math.max(0, this.waveTimer))}s to the assault`);
+      this.phaseText.setColor(COLORS.gold);
+      this.callButton?.setVisible(!this.wavesHeld && !this.finished).setText(`CALL THEM ON  +${bounty}`);
+    } else {
+      this.phaseText.setText(this.phase === 'siege' ? 'SIEGE  -  the engines are ranging on the wall' : 'ASSAULT');
+      this.phaseText.setColor(this.phase === 'siege' ? COLORS.danger : COLORS.parchment);
+      this.callButton?.setVisible(false);
+    }
+  }
+
+  /** What calling the assault on right now would pay. */
+  private callBounty(): number {
+    return callBounty(this.waveTimer);
+  }
+
+  /**
+   * The lull between waves: everyone is paid, and the player decides how long
+   * it lasts.
+   */
+  private beginMuster(): void {
+    if (this.waveIndex >= this.waves.length - 1) return;
+    this.phase = 'muster';
+    // The old drip-fed trickle is paid here instead, in one readable lump:
+    // gold you can count is gold you can plan with.
+    const pay = musterPay(this.chapter, this.levelDef.modifiers?.goldTrickle ?? 0);
+    this.gold += pay;
+    audio.play('coin');
+    floatText(this, DESIGN.width / 2, HUD.height + 90, `MUSTER  +${pay}`, COLORS.gold, 'small');
+    this.updateHud();
+  }
+
+  /**
+   * Bring the next wave on now and take the bounty for the seconds given up.
+   * Returns what it paid, so a test can check the trade rather than the text.
+   */
+  private callAssault(): number {
+    if (this.phase !== 'muster' || this.finished || this.wavesHeld) return 0;
+    if (this.waveIndex >= this.waves.length - 1) return 0;
+    const bounty = this.callBounty();
+    this.gold += bounty;
+    if (bounty > 0) floatText(this, DESIGN.width / 2, HUD.height + 140, `+${bounty}`, COLORS.gold, 'small');
+    audio.play('coin');
+    this.waveTimer = 0;
+    this.startWave();
+    return bounty;
+  }
+
+  /**
+   * Siege engines batter the wall from beyond the field. They aim at the
+   * lane holding the fewest defenders, so a siege punishes a player who has
+   * stacked one lane and left the rest thin.
+   */
+  private bombard(): void {
+    const standing = this.sections
+      .map((hp, row) => ({ hp, row }))
+      .filter((s) => s.hp > 0);
+    if (!standing.length) return;
+    const held = (row: number) => this.defenders.filter((d) => d.alive && d.row === row).length;
+    standing.sort((a, b) => held(a.row) - held(b.row) || a.hp - b.hp);
+    const target = standing[0]!;
+    this.sections[target.row] = Math.max(0, target.hp - BOMBARD_DAMAGE);
+    const y = laneCenterY(target.row);
+    this.burst(WALL.width + 30, y, 'explosion');
+    audio.play('explode');
+    this.shake(10);
+    floatText(this, WALL.width + 90, y, `-${BOMBARD_DAMAGE}`, COLORS.danger, 'tiny');
+    if (this.sections[target.row]! <= 0) this.onBreach(target.row);
+    this.updateHud();
+  }
+
   /* --------------------------------------------------------------- waves - */
 
   private startWave(): void {
@@ -1023,9 +1155,11 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     for (const e of wave.entries) {
       this.spawnQueue.push({ at: this.elapsed + e.delay, enemyId: e.enemyId, row: e.row });
     }
+    this.phase = wave.big ? 'siege' : 'assault';
+    this.bombardTimer = BOMBARD_EVERY;
     audio.play('wave');
     this.banner(
-      wave.big ? 'A HUGE WAVE APPROACHES' : `WAVE ${this.waveIndex + 1}`,
+      wave.big ? 'SIEGE ENGINES' : `WAVE ${this.waveIndex + 1}`,
       wave.big ? COLORS.danger : COLORS.gold,
     );
     this.updateHud();
@@ -1104,7 +1238,12 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     // Wave pacing
     if (this.waveIndex < this.waves.length - 1) {
       if (!this.wavesHeld) this.waveTimer -= dt;
+      // The field going quiet ends the assault and starts the next muster,
+      // whatever the clock says: the lull is earned by clearing the wave.
+      const clear = this.spawnQueue.length === 0 && this.enemies.every((e) => !e.alive);
+      if (this.phase !== 'muster' && clear) this.beginMuster();
       if (this.waveTimer <= 0) this.startWave();
+      this.updatePhaseHud();
       if (this.waveIndex < 0) this.updateHud();
     } else if (this.waveIndex === this.waves.length - 1) {
       const noneLeft = this.spawnQueue.length === 0 && this.enemies.every((e) => !e.alive);
@@ -1118,9 +1257,13 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     }
     this.spawnQueue.sort((a, b) => a.at - b.at);
 
-    if (this.levelDef.modifiers?.goldTrickle) {
-      this.gold += this.levelDef.modifiers.goldTrickle * dt;
-      this.goldCounter.set(Math.floor(this.gold), false);
+    // Siege waves keep hitting the wall whether or not anything reaches it.
+    if (this.phase === 'siege') {
+      this.bombardTimer -= dt;
+      if (this.bombardTimer <= 0) {
+        this.bombardTimer = BOMBARD_EVERY;
+        this.bombard();
+      }
     }
 
     if (this.rallyTimer > 0) {
