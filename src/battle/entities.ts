@@ -26,6 +26,8 @@ export interface BattleWorld {
   defenderAt(row: number, col: number): Defender | undefined;
   spawnProjectile(opts: ProjectileOptions): void;
   damageWall(amount: number, atY: number): void;
+  /** Mend a standing gate section. Rebuilding a fallen one costs gold. */
+  mendWall(row: number, amount: number): void;
   /** True once this lane's gate section has fallen and the way is open. */
   isBreached(row: number): boolean;
   /** Damage the heart of the keep, which only breached enemies can reach. */
@@ -103,6 +105,7 @@ export class Defender {
   private cooldown = 0;
   private economyTimer: number;
   private auraTimer = 0;
+  private masonTimer = MASON_EVERY;
   /** Swings taken, for traits that land on a count rather than a chance. */
   private swings = 0;
   private pendingShot?: () => void;
@@ -216,6 +219,19 @@ export class Defender {
       if (this.economyTimer <= 0) {
         this.economyTimer = this.def.economy.interval;
         this.world.awardGold(this.def.economy.amount, this.x, this.topY);
+      }
+    }
+
+    /*
+     * A mason works on the gate behind them rather than on the enemy in
+     * front. It is the only way a wall gains health while the battle is
+     * still running, which is what makes the dwarf worth a card slot.
+     */
+    if (this.def.trait === 'mason' && this.sortie === 'held') {
+      this.masonTimer -= dt;
+      if (this.masonTimer <= 0) {
+        this.masonTimer = MASON_EVERY;
+        this.world.mendWall(this.row, MASON_MEND);
       }
     }
 
@@ -416,6 +432,10 @@ export class Defender {
  */
 const SORTIE_SPEED = 62;
 const SORTIE_LIMIT = 1500;
+
+/** How often a mason patches their own lane's section, and by how much. */
+const MASON_EVERY = 3;
+const MASON_MEND = 26;
 
 /** Swings between smites, and what a crit multiplies by. Counted, not rolled. */
 const SMITE_EVERY = 3;

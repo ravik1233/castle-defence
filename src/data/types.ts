@@ -69,7 +69,17 @@ export interface DefenderDef {
    * counted rather than rolled: every blow in this game is a number the
    * player could have worked out beforehand.
    */
-  trait?: 'thorns' | 'deathblast' | 'chain' | 'knockback' | 'smite' | 'executioner';
+  /**
+   * A named behaviour that is not expressible as numbers. `mason` mends the
+   * gate section in its own lane; the rest are combat quirks.
+   */
+  trait?: 'thorns' | 'deathblast' | 'chain' | 'knockback' | 'smite' | 'executioner' | 'mason';
+  /**
+   * Set on cards whose art must be drawn frames rather than assembled parts.
+   * Until the frames are installed the card is simply not offered - a unit
+   * built out of loose limbs is not something to sell anyone.
+   */
+  requiresFrames?: boolean;
 }
 
 export type EnemySpecial =

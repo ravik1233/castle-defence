@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ALL_CHARACTER_ART, DEFENDER_ART, ENEMY_ART } from '../src/art/cast';
+import { ALL_CHARACTER_ART, ENEMY_ART } from '../src/art/cast';
 import { buildCharacter, skeletonFor } from '../src/art/humanoid';
 import { characterLayout, composeCharacter } from '../src/art/compose';
 import { DEFENDERS } from '../src/data/defenders';
@@ -12,7 +12,11 @@ import { cellCenter, colFromX, GRID, isInsideField, laneGroundY, rowFromY } from
 describe('data and art agree', () => {
   it('every defender points at art that exists', () => {
     for (const d of DEFENDERS) {
-      if (d.art.kind === 'unit') expect(DEFENDER_ART[d.art.id]).toBeDefined();
+      // Crown Pack races live in their own block of the cast, so this asks
+      // the whole cast rather than the campaign's own roster.
+      if (d.art.kind === 'unit') {
+        expect(ALL_CHARACTER_ART[d.art.id], `${d.id} points at missing art ${d.art.id}`).toBeDefined();
+      }
       else expect(d.art.key.startsWith('build.')).toBe(true);
     }
   });

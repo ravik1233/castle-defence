@@ -776,17 +776,21 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     const hero = heroDef(this.commanderId());
     const y = HERO_BAR.y + HERO_BAR.height / 2;
 
-    // The sell and sortie tools sit between the cards and the hero.
-    new TextButton(this, HERO_BAR.x - 170, y, 'SELL', {
-      width: 130,
-      height: 84,
+    /*
+     * The two tools stack in the narrow gap between the last card and the
+     * commander. Side by side they ran over both.
+     */
+    const toolX = HERO_BAR.x - 110;
+    new TextButton(this, toolX, y - 36, 'SELL', {
+      width: 160,
+      height: 64,
       tone: 'red',
       size: 'small',
       onClick: () => this.selectCard('__sell__'),
     }).setDepth(3001);
-    new TextButton(this, HERO_BAR.x - 20, y, 'SORTIE', {
-      width: 150,
-      height: 84,
+    new TextButton(this, toolX, y + 36, 'SORTIE', {
+      width: 160,
+      height: 64,
       tone: 'blue',
       size: 'small',
       onClick: () => this.selectCard('__sortie__'),
@@ -1083,6 +1087,19 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     // A breach is loud. It is the moment the battle changes shape, and the
     // player has to notice it happening in a lane they may not be watching.
     if (this.sections[row] === 0) this.onBreach(row);
+    this.updateHud();
+  }
+
+  /**
+   * Patch a section that is still standing. A fallen one is not mended - it
+   * is rebuilt, and rebuilding costs gold or a repair kit.
+   */
+  mendWall(row: number, amount: number): void {
+    if (this.finished) return;
+    const hp = this.sections[row] ?? 0;
+    if (hp <= 0 || hp >= this.sectionMax) return;
+    this.sections[row] = Math.min(this.sectionMax, hp + amount);
+    floatText(this, WALL.width + 20, laneCenterY(row) - 40, `+${Math.round(amount)}`, COLORS.good, 'tiny');
     this.updateHud();
   }
 

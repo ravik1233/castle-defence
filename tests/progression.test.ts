@@ -1,10 +1,11 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { Profile } from '../src/systems/profile';
 import { defaultSave } from '../src/systems/save';
 import { DEFENDERS, MAX_UPGRADE_LEVEL, defender, upgradeCost, upgradedStats } from '../src/data/defenders';
 import { ALL_LEVELS, level } from '../src/data/levels';
 import { HEROES } from '../src/data/heroes';
 import { EQUIPMENT_SLOTS, consumable, equipment, salvageFor } from '../src/data/workshop';
+import { setFramedArt } from '../src/systems/artstate';
 
 let p: Profile;
 beforeEach(() => {
@@ -39,7 +40,9 @@ describe('campaign gating', () => {
 });
 
 describe('crown pack entitlements', () => {
-  const premiumCards = DEFENDERS.filter((d) => d.premium).map((d) => d.id);
+  // Cards still waiting on their drawn frames are covered on their own,
+  // below: the pack pays for them but the game does not offer them yet.
+  const premiumCards = DEFENDERS.filter((d) => d.premium && !d.requiresFrames).map((d) => d.id);
 
   it('locks premium cards, hero, skins and chapter 4 without the pack', () => {
     for (const id of premiumCards) expect(p.isCardUnlocked(id)).toBe(false);
@@ -216,5 +219,34 @@ describe('workshop', () => {
   it('never spends stock it does not have', () => {
     expect(p.useStock('repairkit')).toBe(false);
     expect(p.stockOf('repairkit')).toBe(0);
+  });
+});
+
+describe('cards waiting on art', () => {
+  const pending = DEFENDERS.filter((d) => d.requiresFrames);
+
+  afterEach(() => setFramedArt([]));
+
+  it('has some, and none of them are offered while their frames are missing', () => {
+    expect(pending.length).toBeGreaterThan(0);
+    p.grantCrownPack();
+    for (const d of pending) expect(p.isCardUnlocked(d.id)).toBe(false);
+  });
+
+  it('offers them the moment the frames are installed', () => {
+    p.grantCrownPack();
+    setFramedArt(pending.map((d) => (d.art.kind === 'unit' ? d.art.id : '')));
+    for (const d of pending) expect(p.isCardUnlocked(d.id)).toBe(true);
+  });
+
+  it('still keeps them behind the pack once the art exists', () => {
+    setFramedArt(pending.map((d) => (d.art.kind === 'unit' ? d.art.id : '')));
+    for (const d of pending) expect(p.isCardUnlocked(d.id)).toBe(false);
+  });
+
+  it('never deals one into a deck', () => {
+    p.grantCrownPack();
+    p.setDeck(pending.map((d) => d.id));
+    for (const id of p.effectiveDeck()) expect(pending.some((d) => d.id === id)).toBe(false);
   });
 });

@@ -202,6 +202,79 @@ export const DEFENDERS: DefenderDef[] = [
     // played around rather than merely hoped for.
     trait: 'smite',
   },
+
+  /*
+   * The Crown Pack races. They are not stronger than what the campaign
+   * gives - they are shaped differently: the elves reach further than
+   * anything human, the dwarves hold ground nothing human can.
+   */
+  {
+    id: 'elf_ranger',
+    name: 'Elf Ranger',
+    blurb: 'Puts an arrow through a lane before anything human has drawn. Crown Pack.',
+    role: 'ranged',
+    art: { kind: 'unit', id: 'elf_ranger' },
+    requiresFrames: true,
+    cost: 225,
+    recharge: 12,
+    hp: 320,
+    // The longest reach in the game, and it fires straight through a rank.
+    attack: { damage: 46, rate: 1.15, range: 1400, projectile: 'arrow', pierce: 2 },
+    unlockLevel: 1,
+    premium: true,
+    upgrade: { hp: 0.14, damage: 0.2 },
+  },
+  {
+    id: 'elf_spellweaver',
+    name: 'Elf Spellweaver',
+    blurb: 'Frost that does not thaw. Slows a lane to a walk. Crown Pack.',
+    role: 'ranged',
+    art: { kind: 'unit', id: 'elf_spellweaver' },
+    requiresFrames: true,
+    cost: 275,
+    recharge: 16,
+    hp: 300,
+    attack: { damage: 52, rate: 0.8, range: 760, projectile: 'frostbolt', damageType: 'frost', splash: 90 },
+    aura: { kind: 'slow', value: 0.3, radius: 320, interval: 1.2 },
+    unlockLevel: 1,
+    premium: true,
+    upgrade: { hp: 0.14, damage: 0.18 },
+  },
+  {
+    id: 'dwarf_warrior',
+    name: 'Dwarf Warrior',
+    blurb: 'Short, armoured, and entirely unwilling to move. Crown Pack.',
+    role: 'melee',
+    art: { kind: 'unit', id: 'dwarf_warrior' },
+    requiresFrames: true,
+    cost: 250,
+    recharge: 14,
+    hp: 1500,
+    attack: { damage: 44, rate: 1.1, range: 130 },
+    unlockLevel: 1,
+    premium: true,
+    upgrade: { hp: 0.22, damage: 0.15 },
+    // Knocks what it hits back a step, which is what makes a shield wall a
+    // wall rather than a slower death.
+    trait: 'knockback',
+  },
+  {
+    id: 'dwarf_engineer',
+    name: 'Dwarf Engineer',
+    blurb: 'Mends the gate while the gate is being hit. Crown Pack.',
+    role: 'support',
+    art: { kind: 'unit', id: 'dwarf_engineer' },
+    requiresFrames: true,
+    cost: 200,
+    recharge: 18,
+    hp: 620,
+    attack: { damage: 30, rate: 0.7, range: 420, projectile: 'cannonball', splash: 80 },
+    unlockLevel: 1,
+    premium: true,
+    upgrade: { hp: 0.18, damage: 0.16 },
+    // The only unit that repairs the wall it stands behind.
+    trait: 'mason',
+  },
 ];
 
 export const DEFENDER_BY_ID = new Map(DEFENDERS.map((d) => [d.id, d]));

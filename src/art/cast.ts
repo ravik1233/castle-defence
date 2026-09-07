@@ -299,6 +299,67 @@ export const ENEMY_ART: Record<string, CharacterSpec> = {
   },
 };
 
+/*
+ * The two races that come with the Crown Pack.
+ *
+ * Elves and dwarves fight the way their homes made them: the elves reach,
+ * the dwarves hold. The specs matter even for units with painted parts,
+ * because the head crop on a card and the fallback rig both come from here.
+ */
+export const ALLY_ART: Record<string, CharacterSpec> = {
+  elf_ranger: {
+    id: 'elf_ranger',
+    height: 168,
+    build: 'lean',
+    skin: '#f0d2b4',
+    cloth: '#2f5d43',
+    accent: '#a8e06a',
+    eye: '#7fd8b0',
+    head: { shape: 'long', ears: 'pointy', gear: 'none', brow: -0.35, hair: '#3b2f28' },
+    weapon: 'bow',
+    cape: '#274b38',
+  },
+  elf_spellweaver: {
+    id: 'elf_spellweaver',
+    height: 166,
+    build: 'lean',
+    skin: '#f4d9c0',
+    cloth: '#3a4f8c',
+    accent: '#9fd8ff',
+    eye: '#9fd8ff',
+    glowEyes: true,
+    head: { shape: 'long', ears: 'pointy', gear: 'none', brow: -0.4, hair: '#e6e2d2' },
+    weapon: 'staff',
+    offhand: 'orb',
+    aura: '#9fd8ff',
+  },
+  dwarf_warrior: {
+    id: 'dwarf_warrior',
+    height: 128,
+    build: 'broad',
+    skin: '#e0aa82',
+    cloth: '#5a3a28',
+    metal: '#b9c0cc',
+    accent: '#d9a441',
+    eye: '#4a3a2a',
+    head: { shape: 'square', jaw: 'beard', gear: 'full', brow: 0.3, hair: '#8a4a22' },
+    weapon: 'axe',
+    offhand: 'shield',
+  },
+  dwarf_engineer: {
+    id: 'dwarf_engineer',
+    height: 126,
+    build: 'broad',
+    skin: '#e6b48c',
+    cloth: '#4a4438',
+    metal: '#8f9aa8',
+    accent: '#e07a2c',
+    eye: '#3a2f22',
+    head: { shape: 'square', jaw: 'beard', gear: 'cap', brow: 0.2, hair: '#a05a28' },
+    weapon: 'hammer',
+  },
+};
+
 /* ------------------------------------------------------------------ heroes */
 
 export const HERO_ART: Record<string, CharacterSpec> = {
@@ -336,6 +397,7 @@ export const HERO_ART: Record<string, CharacterSpec> = {
 
 export const ALL_CHARACTER_ART: Record<string, CharacterSpec> = {
   ...DEFENDER_ART,
+  ...ALLY_ART,
   ...ENEMY_ART,
   ...HERO_ART,
 };
