@@ -49,10 +49,19 @@ import type { KeepState } from '../battle/combat';
  * five separate things, and losing one is a setback rather than the end.
  */
 const SECTION_MAX_HP = 420;
-const HEART_MAX_HP = 700;
+const HEART_MAX_HP = 1200;
 /** Gold to rebuild a breached section, and the share of it that comes back. */
 const REPAIR_COST = 75;
 const REPAIR_SHARE = 0.6;
+/**
+ * Damage a second that the keep's own garrison deals to anything inside it.
+ *
+ * Without this a breach is a certain loss on a timer: a lane held only by
+ * melee has nothing that can reach the courtyard, so whatever got in would
+ * hit the heart forever. The garrison makes a breach a race the player can
+ * win by killing what came through - or lose by letting more follow.
+ */
+const GARRISON_DPS = 50;
 const PREP_SECONDS = 10;
 
 interface CardView {
@@ -439,6 +448,14 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       heartHp: this.heartHp,
       heartMax: HEART_MAX_HP,
     };
+  }
+
+  /** The keep's last defenders, cutting at whatever came through a breach. */
+  private garrisonFire(dt: number): void {
+    for (const e of this.enemies) {
+      if (!e.alive || !e.inside) continue;
+      e.takeDamage(GARRISON_DPS * dt, true);
+    }
   }
 
   isBreached(row: number): boolean {
@@ -1046,6 +1063,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     this.elapsed += dt;
 
     this.tutorial?.update();
+    this.garrisonFire(dt);
 
     // Wave pacing
     if (this.waveIndex < this.waves.length - 1) {

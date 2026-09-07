@@ -72,6 +72,24 @@ if (await until((s) => s.heartHp < opened.heartHp, 240000, 'the keep to take dam
   console.log('the keep took damage from inside');
 }
 
+/*
+ * The point of a breach is that it is survivable. An enemy that gets inside
+ * has to be killable, or one breach plus one enemy is a certain loss on a
+ * timer and none of the rest of this matters.
+ */
+if (
+  await until(
+    (s) => !s.enemyDump.some((e) => e.row === 2 && e.x < WALL_FACE),
+    240000,
+    'the keep to kill what came through',
+  )
+) {
+  console.log('the garrison cleared the breach');
+}
+const survived = await state();
+if (survived.heartHp <= 0) fail('the keep died to a single enemy coming through');
+else console.log(`keep survived one breach with ${survived.heartHp} left`);
+
 // And a lane that is still standing must still stop things.
 await page.evaluate(() => globalThis.__battle.spawn('orc', 0, 330));
 await until((s) => s.enemyDump.some((e) => e.row === 0 && e.x < 260), 240000, 'an enemy to reach lane 0');

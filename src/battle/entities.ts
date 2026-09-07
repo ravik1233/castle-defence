@@ -308,8 +308,15 @@ export class Defender {
     for (const e of this.world.enemies) {
       if (!e.alive || e.row !== this.row) continue;
       if (e.flying && !canHitAir) continue;
-      if (e.x < this.x - 20) continue;
-      if (e.x - this.x > range) continue;
+      /*
+       * Normally a defender looks up its lane and ignores whatever is behind
+       * it. An enemy that came through a breach is behind everything, so with
+       * that rule it could never be shot at all - it would stand in the
+       * courtyard hitting the keep until the keep died. Units turn and fire on
+       * anything that got inside.
+       */
+      if (!e.inside && e.x < this.x - 20) continue;
+      if (Math.abs(e.x - this.x) > range) continue;
       if (!best || e.x < best.x) best = e;
     }
     return best;
