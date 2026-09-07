@@ -47,16 +47,29 @@ export type EnemyFamily =
 export type TileKind =
   /** Ordinary ground. */
   | 'plain'
-  /** Cannot be built on at all. */
+  /** Fallen stone. Nothing can be built on it. */
   | 'rubble'
-  /** Anything walking across it is slowed. */
+  /** Wet ground. Anything walking across it is slowed. */
   | 'marsh'
-  /** Whoever stands here strikes harder. */
+  /** Old holy ground. Whoever stands here strikes harder. */
   | 'shrine'
-  /** An economy building here pays more. */
+  /** A vein of ore. An economy building here pays half again. */
   | 'seam'
-  /** Nothing can stand here and only flyers cross it. */
-  | 'chasm';
+  /** Rock. Nothing stands on it, but a shooter beside it sees further. */
+  | 'highground'
+  /** Cover. Whoever stands in it takes less from what shoots back. */
+  | 'tallgrass'
+  /** Open water. Only what floats can be put here. */
+  | 'water';
+
+/** What each kind of ground is worth, in one place the player could be told. */
+export const TILE_EFFECT = {
+  marshSlow: 0.35,
+  shrineDamage: 1.25,
+  seamGold: 1.5,
+  highgroundRange: 1.3,
+  grassCover: 0.7,
+} as const;
 
 export interface AttackDef {
   damage: number;
@@ -98,6 +111,8 @@ export interface DefenderDef {
   attack?: AttackDef;
   aura?: AuraDef;
   economy?: { amount: number; interval: number };
+  /** Can be placed on open water. Sael builds on piles; nobody else does. */
+  aquatic?: boolean;
   /** Campaign level (1-based) that unlocks this card. */
   unlockLevel: number;
   premium?: boolean;
@@ -247,6 +262,8 @@ export interface RegionDef {
 export interface LevelModifiers {
   /** Rows that start blocked by rubble. */
   blockedCells?: Array<[row: number, col: number]>;
+  /** Ground this fort is fought on, row by row. Generated per fort. */
+  tiles?: TileKind[][];
   /** Multiplier on all enemy hp for this level. */
   hpScale?: number;
   /** Extra gold trickle per second (used on tutorial levels). */

@@ -10,7 +10,8 @@ import { characterArt } from '../art/compose';
 import { ALL_CHARACTER_ART } from '../art/cast';
 import type { ProjectileId } from '../art/props';
 import { GRID, KEEP, WALL_FACE_X, cellCenter, laneGroundY } from '../core/layout';
-import type { DamageType, DefenderDef, EnemyDef, EnemySpecial } from '../data/types';
+import type { DamageType, DefenderDef, EnemyDef, EnemySpecial, TileKind } from '../data/types';
+import { TILE_EFFECT } from '../data/types';
 import { Rig } from '../objects/Rig';
 import {
   FAMILY,
@@ -44,6 +45,10 @@ export interface BattleWorld {
   isConsecrated(row: number): boolean;
   /** True while a ward is shut over this lane, so nothing can step through. */
   isWarded(row: number): boolean;
+  /** What kind of ground a cell is: rock, marsh, shrine, water, or plain. */
+  tileAt(row: number, col: number): TileKind;
+  /** The ground under a point on the field, for anything that is walking. */
+  tileUnder(row: number, x: number): TileKind;
   /** Damage the heart of the keep, which only breached enemies can reach. */
   damageHeart(amount: number): void;
   /** A goblin thief lifts gold straight out of the purse. */
@@ -122,6 +127,8 @@ export class Defender {
   private economyTimer: number;
   private auraTimer = 0;
   private masonTimer = MASON_EVERY;
+  /** The ground under this unit. Fixed: a defender does not move house. */
+  private readonly ground: TileKind;
   /** Swings taken, for traits that land on a count rather than a chance. */
   private swings = 0;
   private pendingShot?: () => void;
@@ -144,6 +151,12 @@ export class Defender {
     this.homeX = c.x;
     this.y = laneGroundY(row);
     this.economyTimer = def.economy ? def.economy.interval : 0;
+    /*
+     * The ground a unit is put on is part of the decision to put it there:
+     * an old shrine sharpens a blade, an ore seam pays a tithe more, and
+     * tall grass keeps an archer alive long enough to matter.
+     */
+    this.ground = world.tileAt(row, col);
 
     const scene = world.stage;
     if (def.art.kind === 'unit') {
@@ -179,8 +192,10 @@ export class Defender {
 
   takeDamage(amount: number): void {
     if (!this.alive) return;
+    // Tall grass is cover: what shoots at it mostly hits the grass.
+    const cover = this.ground === 'tallgrass' ? TILE_EFFECT.grassCover : 1;
     const state = { hp: this.hp, maxHp: this.maxHp };
-    applyDamage(state, amount, 0);
+    applyDamage(state, amount * cover, 0);
     this.hp = state.hp;
     this.rig?.flash(0xff8888, 90);
     this.sprite?.setTintFill(0xffaaaa);
@@ -234,7 +249,9 @@ export class Defender {
       this.economyTimer -= dt;
       if (this.economyTimer <= 0) {
         this.economyTimer = this.def.economy.interval;
-        this.world.awardGold(this.def.economy.amount, this.x, this.topY);
+        // A tithe raised over an ore seam is worth half as much again.
+        const seam = this.ground === 'seam' ? TILE_EFFECT.seamGold : 1;
+        this.world.awardGold(Math.round(this.def.economy.amount * seam), this.x, this.topY);
       }
     }
 
@@ -264,7 +281,9 @@ export class Defender {
     this.cooldown -= dt * this.world.rallyFactor;
     if (this.cooldown > 0) return;
 
-    const target = this.findTarget(attack.range, attack.targets !== 'ground');
+    // Standing beside rock lets a shooter see further down the lane.
+    const reach = this.ground === 'highground' ? attack.range * TILE_EFFECT.highgroundRange : attack.range;
+    const target = this.findTarget(reach, attack.targets !== 'ground');
     if (!target) return;
     this.cooldown = 1 / attack.rate;
     this.swings += 1;
@@ -282,7 +301,9 @@ export class Defender {
     // A skyward weapon is built for one target and useless against the rest.
     const skyward = this.def.trait === 'skyward' && target.flying;
     const crit = smiting || executing || skyward;
-    const blow = crit ? this.damage * CRIT_MULTIPLIER : this.damage;
+    // An old shrine is worth standing on: it sharpens whatever is held there.
+    const ground = this.ground === 'shrine' ? TILE_EFFECT.shrineDamage : 1;
+    const blow = (crit ? this.damage * CRIT_MULTIPLIER : this.damage) * ground;
     const blowType: DamageType = smiting ? 'holy' : (attack.damageType ?? 'physical');
 
     const fire = (): void => {
@@ -802,8 +823,11 @@ export class Enemy {
       return;
     }
 
-    // Otherwise: march.
+    // Otherwise: march. Wet ground is wet ground for both sides.
     let speed = this.currentSpeed();
+    if (!this.flying && this.world.tileUnder(this.row, this.x) === 'marsh') {
+      speed *= 1 - TILE_EFFECT.marshSlow;
+    }
     if (this.def.special === 'charger' && !this.charged && this.x < 700) {
       this.charged = true;
       speed *= 1.6;

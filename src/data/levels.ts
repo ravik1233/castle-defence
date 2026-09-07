@@ -7,6 +7,7 @@
  */
 import { GRID } from '../core/layout';
 import { enemy, familyOf } from './enemies';
+import { tilesFor } from './tiles';
 import type { ChapterDef, EnemyFamily, LevelDef } from './types';
 
 /** Deterministic PRNG so generated waves are stable across devices. */
@@ -261,8 +262,15 @@ function buildLevel(
         : last
           ? 'Their commander is here. If the gate falls, there is nothing behind it.'
           : `Hold the gate. Wave ${waves} is the last.`,
-    // Only the tutorial level dictates a deck.
-    modifiers: global === 1 ? { fixedDeck: ['tithe', 'militia', 'archer'], goldTrickle: 6 } : undefined,
+    /*
+     * Every fort is fought on its own ground. The tutorial is the exception:
+     * it is flat, because the first thing a player learns should not be an
+     * exception to a rule they have not been told yet.
+     */
+    modifiers:
+      global === 1
+        ? { fixedDeck: ['tithe', 'militia', 'archer'], goldTrickle: 6 }
+        : { tiles: tilesFor(`c${meta.id}l${i + 1}`, meta.biome, i) },
   };
 }
 

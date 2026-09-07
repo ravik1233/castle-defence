@@ -3,6 +3,7 @@ import { ALL_LEVELS, CHAPTERS, generateWaves, hashString, level, levelNumber, mu
 import { ENEMY_BY_ID, enemy } from '../src/data/enemies';
 import { DEFENDERS, DEFENDER_BY_ID } from '../src/data/defenders';
 import { HERO_BY_ID } from '../src/data/heroes';
+import { canStandOn, tilesFor } from '../src/data/tiles';
 import { GRID } from '../src/core/layout';
 
 describe('rng', () => {
@@ -208,5 +209,61 @@ describe('who holds each region', () => {
       if (mustered.has(d.id)) continue;
       expect(d.premium, `${d.id} is in no muster and is not premium`).toBe(true);
     }
+  });
+});
+
+describe('the ground a fort is fought on', () => {
+  /*
+   * Terrain is only interesting if it is still playable. Every fort has to
+   * leave somewhere to build in every lane, or the fort is not hard - it is
+   * broken - and the water region has to be answerable by the units the
+   * water region hands you.
+   */
+  it('leaves dry ground to build on in every lane of every fort', () => {
+    for (const l of ALL_LEVELS) {
+      const tiles = l.modifiers?.tiles;
+      if (!tiles) continue;
+      tiles.forEach((cells, row) => {
+        // Dry, not merely buildable: a deck that cannot float still has to
+        // have somewhere to stand, even on the Drowned Coast.
+        const dry = cells.filter((k) => canStandOn(k, false)).length;
+        expect(dry, `${l.id} lane ${row} has ${dry} dry cells`).toBeGreaterThanOrEqual(2);
+      });
+    }
+  });
+
+  it('keeps the cell nearest the gate clear in every lane', () => {
+    for (const l of ALL_LEVELS) {
+      for (const cells of l.modifiers?.tiles ?? []) expect(cells[0]).toBe('plain');
+    }
+  });
+
+  it('makes the coast mostly water and the highlands mostly rock', () => {
+    const share = (chapter: number, kind: string) => {
+      const forts = ALL_LEVELS.filter((l) => l.chapter === chapter && l.modifiers?.tiles);
+      const cells = forts.flatMap((l) => l.modifiers!.tiles!.flat());
+      return cells.filter((k) => k === kind).length / Math.max(1, cells.length);
+    };
+    expect(share(5, 'water')).toBeGreaterThan(0.2);
+    expect(share(4, 'highground')).toBeGreaterThan(0.05);
+    // And the opening region stays walkable country.
+    expect(share(1, 'water')).toBe(0);
+  });
+
+  it('gives Sael units the only way to hold water', () => {
+    expect(canStandOn('water', false)).toBe(false);
+    expect(canStandOn('water', true)).toBe(true);
+    expect(canStandOn('rubble', true)).toBe(false);
+    expect(canStandOn('highground', true)).toBe(false);
+    expect(canStandOn('marsh', false)).toBe(true);
+    const sael = CHAPTERS.find((c) => c.id === 5)!.unlocks;
+    for (const id of sael) expect(DEFENDER_BY_ID.get(id)!.aquatic, id).toBe(true);
+  });
+
+  it('is the same ground for everyone, every time', () => {
+    const a = tilesFor('c5l4', 'coast', 3);
+    const b = tilesFor('c5l4', 'coast', 3);
+    expect(a).toEqual(b);
+    expect(tilesFor('c5l5', 'coast', 4)).not.toEqual(a);
   });
 });

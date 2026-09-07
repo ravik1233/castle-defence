@@ -32,7 +32,7 @@ import { DEFENDERS, defender, upgradedStats } from '../data/defenders';
 import { enemy as enemyDef } from '../data/enemies';
 import { hero as heroDef } from '../data/heroes';
 import { CHAPTERS, generateWaves, level as levelById, levelNumber, type Wave } from '../data/levels';
-import type { LevelDef, SpellDef } from '../data/types';
+import type { LevelDef, SpellDef, TileKind } from '../data/types';
 import { profile } from '../systems/profile';
 import { audio, haptic, type SfxId } from '../systems/audio';
 import { COLORS, Counter, TextButton, fitText, floatText, showDialog, tappable, textStyle } from '../ui/kit';
@@ -42,6 +42,7 @@ import { portraitFor, portraitForArt } from '../art/portraits';
 import { enemyScaling, starsForKeep, tensionFor } from '../battle/combat';
 import { callBounty, musterPay } from '../battle/economy';
 import { CONSUMABLES, EQUIPMENT_EFFECT, consumable } from '../data/workshop';
+import { TILE_NAME, canStandOn } from '../data/tiles';
 import type { KeepState } from '../battle/combat';
 
 /**
@@ -118,6 +119,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private bombardTimer = 0;
   /** Fort equipment fitted for this battle, and the section HP it buys. */
   private fitted = new Set<string>();
+  /** The ground this fort is fought on, row by row. */
+  private tiles: TileKind[][] = [];
   private sectionMax = SECTION_MAX_HP;
   private spawnQueue: Array<{ at: number; enemyId: string; row: number }> = [];
   private elapsed = 0;
@@ -292,6 +295,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
      * once the fighting starts.
      */
     this.fitted = new Set(profile.equipped);
+    this.tiles = this.levelDef.modifiers?.tiles ?? [];
     this.sectionMax = Math.round(
       SECTION_MAX_HP * (this.fitted.has('reinforced') ? EQUIPMENT_EFFECT.reinforced.sectionHp : 1),
     );
@@ -381,6 +385,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       .setDisplaySize(WALL.gateWidth, FIELD.height * 0.42)
       .setDepth(2002);
 
+    this.drawGround();
     this.buildSections();
     this.buildHeart();
 
@@ -481,6 +486,95 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
    * averages five separate fights into one. Tapping a breached section
    * rebuilds it, so the bars are the repair control too.
    */
+  /**
+   * Paints the ground the fort is fought on.
+   *
+   * A cell has to say what it is before the player commits a card to it, so
+   * each kind is drawn as itself - rock as rock, water as water, grass as
+   * grass - rather than as a coloured square with a legend somewhere else.
+   */
+  private drawGround(): void {
+    if (!this.tiles.length) return;
+    const g = this.add.graphics().setDepth(-900);
+    const detail = this.add.graphics().setDepth(-880);
+
+    for (let row = 0; row < GRID.rows; row += 1) {
+      for (let col = 0; col < GRID.cols; col += 1) {
+        const kind = this.tileAt(row, col);
+        if (kind === 'plain') continue;
+        const c = cellCenter(row, col);
+        const w = GRID.cellW;
+        const h = GRID.cellH;
+        const x = c.x - w / 2;
+        const y = c.y - h / 2;
+
+        if (kind === 'water') {
+          g.fillStyle(0x2f6a84, 0.72);
+          g.fillRect(x, y, w, h);
+          detail.lineStyle(3, 0x7fd0e8, 0.5);
+          for (let i = 0; i < 3; i += 1) {
+            const yy = y + h * (0.3 + i * 0.22);
+            detail.beginPath();
+            detail.moveTo(x + 12, yy);
+            for (let k = 0; k <= 6; k += 1) {
+              detail.lineTo(x + 12 + (k * (w - 24)) / 6, yy + Math.sin(k * 1.3 + row + i) * 4);
+            }
+            detail.strokePath();
+          }
+        } else if (kind === 'marsh') {
+          g.fillStyle(0x3f5240, 0.6);
+          g.fillRect(x, y, w, h);
+          detail.fillStyle(0x6f8a5a, 0.5);
+          for (let i = 0; i < 5; i += 1) {
+            detail.fillCircle(x + 20 + ((i * 37) % (w - 40)), y + 30 + ((i * 53) % (h - 50)), 9);
+          }
+        } else if (kind === 'highground') {
+          g.fillStyle(0x6a6152, 0.85);
+          g.fillRect(x, y, w, h);
+          detail.fillStyle(0x8b8272, 1);
+          detail.fillTriangle(c.x - 46, y + h - 16, c.x - 8, y + 22, c.x + 30, y + h - 16);
+          detail.fillStyle(0xa39a88, 1);
+          detail.fillTriangle(c.x + 4, y + h - 16, c.x + 34, y + 40, c.x + 62, y + h - 16);
+        } else if (kind === 'rubble') {
+          g.fillStyle(0x4a4038, 0.7);
+          g.fillRect(x, y, w, h);
+          detail.fillStyle(0x6f6355, 1);
+          for (let i = 0; i < 6; i += 1) {
+            const rx = x + 18 + ((i * 41) % (w - 36));
+            const ry = y + 34 + ((i * 61) % (h - 60));
+            detail.fillRect(rx, ry, 18 + (i % 3) * 6, 12 + (i % 2) * 5);
+          }
+        } else if (kind === 'tallgrass') {
+          g.fillStyle(0x4f7a3c, 0.42);
+          g.fillRect(x, y, w, h);
+          detail.lineStyle(4, 0x76a84a, 0.75);
+          for (let i = 0; i < 7; i += 1) {
+            const bx = x + 16 + ((i * 29) % (w - 30));
+            const by = y + h - 18 - ((i * 17) % 22);
+            detail.beginPath();
+            detail.moveTo(bx, by);
+            detail.lineTo(bx + (i % 2 ? 8 : -8), by - 34);
+            detail.strokePath();
+          }
+        } else if (kind === 'shrine') {
+          g.fillStyle(0x5a5470, 0.55);
+          g.fillRect(x, y, w, h);
+          detail.lineStyle(5, 0xf5c542, 0.75);
+          detail.strokeCircle(c.x, c.y, 34);
+          detail.lineStyle(4, 0xffe9a8, 0.65);
+          detail.strokeCircle(c.x, c.y, 18);
+        } else if (kind === 'seam') {
+          g.fillStyle(0x4a4436, 0.7);
+          g.fillRect(x, y, w, h);
+          detail.fillStyle(0xd9b44a, 0.9);
+          for (let i = 0; i < 4; i += 1) {
+            detail.fillCircle(c.x - 30 + i * 20, c.y + Math.sin(i * 2) * 14, 7);
+          }
+        }
+      }
+    }
+  }
+
   private buildSections(): void {
     this.sectionBars = [];
     this.breachMarks = [];
@@ -611,6 +705,16 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     audio.play('deny');
     floatText(this, x, y - 30, `-${taken}`, COLORS.danger, 'tiny');
     this.updateHud();
+  }
+
+  /** The ground in one cell of this fort. */
+  tileAt(row: number, col: number): TileKind {
+    return this.tiles[row]?.[col] ?? 'plain';
+  }
+
+  /** The ground under a point on the field, for anything that walks it. */
+  tileUnder(row: number, x: number): TileKind {
+    return this.tileAt(row, colFromX(x));
   }
 
   isBreached(row: number): boolean {
@@ -1016,12 +1120,14 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     this.ghost?.setVisible(true).setPosition(c.x, laneGroundY(row));
   }
 
-  private canPlaceAt(row: number, col: number): boolean {
+  private canPlaceAt(row: number, col: number, cardId = this.selectedCard): boolean {
     if (row < 0 || row >= GRID.rows || col < 0 || col >= GRID.cols) return false;
     if (this.occupancy.has(`${row},${col}`)) return false;
     const blocked = this.levelDef.modifiers?.blockedCells;
     if (blocked?.some(([r, c]) => r === row && c === col)) return false;
-    return true;
+    // Rock and rubble take nothing at all; water takes only what floats.
+    const def = cardId && cardId !== '__sell__' && cardId !== '__sortie__' ? defender(cardId) : undefined;
+    return canStandOn(this.tileAt(row, col), Boolean(def?.aquatic));
   }
 
   private onFieldTap(x: number, y: number): void {
@@ -1059,6 +1165,11 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
     if (!this.canPlaceAt(row, col)) {
       audio.play('deny');
+      // Say why. A card refused with no reason reads as a broken button.
+      const kind = this.tileAt(row, col);
+      if (!canStandOn(kind, Boolean(card && defender(card.id).aquatic))) {
+        floatText(this, x, y - 40, `cannot build on ${TILE_NAME[kind]}`, COLORS.muted, 'tiny');
+      }
       return;
     }
     if (card.cooldownLeft > 0) {
