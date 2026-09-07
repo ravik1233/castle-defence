@@ -12,7 +12,7 @@ import type { ProjectileId } from '../art/props';
 import { GRID, KEEP, WALL_FACE_X, cellCenter, laneGroundY } from '../core/layout';
 import type { DamageType, DefenderDef, EnemyDef } from '../data/types';
 import { Rig } from '../objects/Rig';
-import { applyDamage, damageDealt, damageMultiplier } from './combat';
+import { applyDamage, damageDealt, damageMultiplier, pickBlocker } from './combat';
 
 export interface BattleWorld {
   /** The Phaser scene the battle runs in. Named `stage` because `Scene.scene`
@@ -617,8 +617,16 @@ export class Enemy {
 
     this.attackCooldown -= dt;
 
-    // Find something to hit: the front-most defender within reach.
-    if (!this.target || !this.target.alive) this.target = this.findBlocker();
+    /*
+     * Find something to hit, every frame.
+     *
+     * This used to keep whatever it first locked onto until that defender
+     * died, which meant anything the player put down afterwards was simply
+     * walked past: the enemy was still marching at a unit three columns
+     * back. A line only works if a body placed in front of something is a
+     * body in its way, so the front-most defender is looked up fresh.
+     */
+    this.target = this.findBlocker();
 
     if (this.flanking) {
       this.updateFlank(time, delta, dt);
@@ -802,16 +810,11 @@ export class Enemy {
   }
 
   private findBlocker(): Defender | undefined {
-    let best: Defender | undefined;
     // Flyers pass over the whole line: only units that can shoot stop them.
     if (this.flying) return undefined;
-    for (const d of this.world.defenders) {
-      if (!d.alive || d.row !== this.row) continue;
-      if (d.x > this.x) continue;
-      if (!best || d.x > best.x) best = d;
-    }
-    return best;
+    return pickBlocker(this, this.world.defenders);
   }
+
 
   private syncView(): void {
     const hover = this.flying ? Math.sin(this.hoverPhase + performance.now() / 420) * 10 : 0;

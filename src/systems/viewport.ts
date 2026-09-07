@@ -129,7 +129,7 @@ export function installOrientationHint(): void {
  * Enabled with ?touchdebug=1 - the fastest way to confirm a tap lands where
  * a finger actually is on a real device.
  */
-let debugVisible = true;
+let debugVisible = false;
 
 /** Turns the readout on or off without a reload. */
 export function setTouchDebugVisible(on: boolean): void {
@@ -157,6 +157,14 @@ export function installTouchDebug(game: Phaser.Game): void {
   window.addEventListener(
     'pointerdown',
     (e) => {
+      /*
+       * Off means off. The readout used to hide only its two HTML elements
+       * at the end of the handler, while the marker the game draws inside
+       * the canvas - a red ring and the words "game thinks here" - went up on
+       * every tap regardless. That is a diagnostic, and a player was seeing
+       * it in an ordinary game.
+       */
+      if (!debugVisible) return;
       dot.style.left = `${e.clientX}px`;
       dot.style.top = `${e.clientY}px`;
       dot.style.opacity = '1';

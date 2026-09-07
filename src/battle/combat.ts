@@ -130,6 +130,29 @@ export interface TargetLike {
  * Picks the enemy a defender should shoot: the one nearest the wall that is
  * still in range and that this defender is able to hit.
  */
+/**
+ * What an enemy marching down a lane runs into: the front-most living
+ * defender in its own lane that is still ahead of it.
+ *
+ * This is looked up fresh every frame rather than remembered. An enemy that
+ * keeps its first choice walks straight past anything the player puts down
+ * afterwards, which makes placing a body in front of something pointless -
+ * and that is the whole game.
+ */
+export function pickBlocker<T extends { x: number; row: number; alive: boolean }>(
+  from: { x: number; row: number },
+  defenders: readonly T[],
+): T | undefined {
+  let best: T | undefined;
+  for (const d of defenders) {
+    if (!d.alive || d.row !== from.row) continue;
+    // Behind it already: an enemy does not turn round for anything.
+    if (d.x > from.x) continue;
+    if (!best || d.x > best.x) best = d;
+  }
+  return best;
+}
+
 export function pickTarget<T extends TargetLike>(
   candidates: readonly T[],
   from: { x: number; row: number },

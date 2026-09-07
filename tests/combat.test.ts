@@ -10,6 +10,7 @@ import {
   starsForKeep,
   starsForWall,
   tensionFor,
+  pickBlocker,
 } from '../src/battle/combat';
 import { CALL_BOUNTY, MUSTER_PAY, callBounty, musterPay } from '../src/battle/economy';
 import { defender } from '../src/data/defenders';
@@ -183,5 +184,40 @@ describe('battle income', () => {
   it('always pays whole coins', () => {
     for (let s = 0; s < 12; s += 0.37) expect(Number.isInteger(callBounty(s))).toBe(true);
     for (let c = 1; c <= 4; c += 1) expect(Number.isInteger(musterPay(c, 6))).toBe(true);
+  });
+});
+
+describe('what an enemy walks into', () => {
+  /*
+   * The rule: an enemy stops at the front-most defender it meets in its own
+   * lane. Only a flyer passes over one, and only a leaper hops it - so this
+   * is the rule everything ordinary obeys.
+   */
+  const at = (x: number, row = 2, alive = true) => ({ x, row, alive });
+
+  it('stops at the nearest defender ahead, not the first one it saw', () => {
+    const back = at(330);
+    const front = at(930);
+    expect(pickBlocker({ x: 1080, row: 2 }, [back, front])).toBe(front);
+    // The order they were placed in must not decide it.
+    expect(pickBlocker({ x: 1080, row: 2 }, [front, back])).toBe(front);
+  });
+
+  it('ignores anything already behind it, and other lanes', () => {
+    const behind = at(1200);
+    const ahead = at(400);
+    const otherLane = at(930, 3);
+    expect(pickBlocker({ x: 1080, row: 2 }, [behind, ahead, otherLane])).toBe(ahead);
+    expect(pickBlocker({ x: 300, row: 2 }, [behind])).toBeUndefined();
+  });
+
+  it('ignores the dead', () => {
+    const dead = at(930, 2, false);
+    const live = at(330);
+    expect(pickBlocker({ x: 1080, row: 2 }, [dead, live])).toBe(live);
+  });
+
+  it('finds nothing in an empty lane', () => {
+    expect(pickBlocker({ x: 1080, row: 2 }, [])).toBeUndefined();
   });
 });
