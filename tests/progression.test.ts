@@ -50,9 +50,27 @@ describe('crown pack entitlements', () => {
   it('unlocks all of it with the pack', () => {
     p.grantCrownPack();
     for (const id of premiumCards) expect(p.isCardUnlocked(id)).toBe(true);
-    expect(p.availableHeroes()).toEqual(HEROES.map((h) => h.id));
     expect(p.ownsSkin('obsidian')).toBe(true);
     expect(p.showAds).toBe(false);
+  });
+
+  it('hands over a commander only once their region is reached', () => {
+    expect(p.availableHeroes()).toEqual(['aldric']);
+    p.grantCrownPack();
+    // The pack pays for the premium commanders; the campaign still decides
+    // when they turn up.
+    expect(p.availableHeroes()).toEqual(['aldric']);
+    for (const l of ALL_LEVELS.slice(0, 10)) p.recordVictory(l.id, 3, l.waves, 0);
+    expect(p.availableHeroes()).toEqual(['aldric', 'bran']);
+    for (const l of ALL_LEVELS.slice(0, 30)) p.recordVictory(l.id, 3, l.waves, 0);
+    expect(p.availableHeroes()).toEqual(HEROES.map((h) => h.id));
+  });
+
+  it("musters a region's own units the moment the player arrives", () => {
+    expect(p.isCardUnlocked('frostmage')).toBe(false);
+    for (const l of ALL_LEVELS.slice(0, 10)) p.recordVictory(l.id, 3, l.waves, 0);
+    expect(p.currentRegion().id).toBe(2);
+    expect(p.isCardUnlocked('frostmage')).toBe(true);
   });
 
   it('still gates premium chapter levels behind campaign progress', () => {

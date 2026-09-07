@@ -48,7 +48,7 @@ export class MainMenuScene extends Phaser.Scene {
 
     const bx = w * 0.74;
     const buttons: Array<[string, 'green' | 'blue' | 'gold' | 'stone', () => void]> = [
-      ['DEFEND', 'green', () => this.scene.start('Map')],
+      ['DEFEND', 'green', () => this.scene.start('Continent')],
       ['ARMOURY', 'blue', () => this.scene.start('Armory')],
       ['WAR LEDGER', 'stone', () => this.scene.start('Ledger')],
     ];

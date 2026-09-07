@@ -44,6 +44,14 @@ export interface Wave {
   duration: number;
 }
 
+/**
+ * The regions of the continent: what is left of the human west, in the order
+ * it falls back through.
+ *
+ * Each carries a commander and a muster. Crossing a border swaps the spells
+ * the player fights with and hands them cards raised locally, so a region is
+ * a change of hand rather than a change of wallpaper.
+ */
 const CHAPTER_META: Array<{
   id: number;
   name: string;
@@ -54,11 +62,17 @@ const CHAPTER_META: Array<{
   names: string[];
   pool: string[][];
   boss?: string;
+  commander: string;
+  unlocks: string[];
+  map: { x: number; y: number };
 }> = [
   {
     id: 1,
     name: 'The Broken Fields',
     biome: 'fields',
+    commander: 'aldric',
+    unlocks: ['militia', 'archer', 'barricade', 'guardian'],
+    map: { x: 0.16, y: 0.68 },
     blurb: 'The horde crossed the river at dawn. Everything east of here is gone.',
     levels: 10,
     names: [
@@ -91,6 +105,9 @@ const CHAPTER_META: Array<{
     id: 2,
     name: 'The Ashen Woods',
     biome: 'woods',
+    commander: 'bran',
+    unlocks: ['frostmage', 'bombard', 'arbalest'],
+    map: { x: 0.38, y: 0.4 },
     blurb: 'They burned the forest to march through it. Something worse followed.',
     levels: 10,
     names: [
@@ -123,6 +140,9 @@ const CHAPTER_META: Array<{
     id: 3,
     name: 'The Gates of the Abyss',
     biome: 'abyss',
+    commander: 'seraphina',
+    unlocks: ['cleric', 'monk', 'ballista'],
+    map: { x: 0.62, y: 0.62 },
     blurb: 'The ground opens here. This is where the host comes from.',
     levels: 10,
     names: [
@@ -155,6 +175,9 @@ const CHAPTER_META: Array<{
     id: 4,
     name: 'Throne of the Demon King',
     biome: 'throne',
+    commander: 'maerwyn',
+    unlocks: ['paladin'],
+    map: { x: 0.85, y: 0.3 },
     blurb: 'He was not destroyed. He withdrew. Follow him down. Crown Pack.',
     premium: true,
     levels: 8,
@@ -222,6 +245,9 @@ export const CHAPTERS: ChapterDef[] = CHAPTER_META.map((meta, ci) => ({
   biome: meta.biome,
   blurb: meta.blurb,
   premium: meta.premium,
+  commander: meta.commander,
+  unlocks: meta.unlocks,
+  map: meta.map,
   levels: Array.from({ length: meta.levels }, (_, i) => buildLevel(ci, meta, i)),
 }));
 

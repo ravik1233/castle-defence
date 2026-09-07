@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ALL_CHARACTER_ART, DEFENDER_ART, ENEMY_ART, HERO_ART } from '../src/art/cast';
+import { ALL_CHARACTER_ART, DEFENDER_ART, ENEMY_ART } from '../src/art/cast';
 import { buildCharacter, skeletonFor } from '../src/art/humanoid';
 import { characterLayout, composeCharacter } from '../src/art/compose';
 import { DEFENDERS } from '../src/data/defenders';
@@ -22,7 +22,11 @@ describe('data and art agree', () => {
   });
 
   it('every hero points at art that exists', () => {
-    for (const h of HEROES) expect(HERO_ART[h.art]).toBeDefined();
+    // Commanders may borrow a unit's art - Bran wears the monk, Maerwyn the
+    // cleric - so a hero counts as drawn if any part of the cast covers it.
+    for (const h of HEROES) {
+      expect(ALL_CHARACTER_ART[h.art], `${h.id} points at missing art ${h.art}`).toBeDefined();
+    }
   });
 
   it('has no duplicate ids across the cast', () => {

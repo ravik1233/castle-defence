@@ -77,21 +77,35 @@ const audit = () =>
       .filter((r) => r.dead.length || r.leaking.length);
   });
 
-const SCREENS = ['MainMenu', 'Armory', 'Map'];
+const SCREENS = ['MainMenu', 'Armory', 'Continent', 'Map'];
 
 /** Clicks a button by label, well off centre - where a thumb actually lands. */
 const clickOffCentre = async (label) => {
   const at = await page.evaluate((text) => {
     const g = globalThis.__game;
     const scene = g.scene.getScenes(true)[0];
-    const found = scene.children.list
-      .filter((o) => o.type === 'Container' && o.list?.some((c) => c.type === 'Text' && c.text === text))
-      .sort((a, b) => a.y - b.y)[0];
+    // Dialog buttons live inside the dialog's own container, so this walks
+    // the tree rather than only the scene's top level.
+    const hits = [];
+    const walk = (list, ox, oy) => {
+      for (const o of list) {
+        if (!o.visible) continue;
+        if (o.type === 'Container') {
+          if (o.input && o.list?.some((c) => c.type === 'Text' && c.text === text)) {
+            hits.push({ o, x: ox + o.x, y: oy + o.y });
+          }
+          walk(o.list ?? [], ox + o.x, oy + o.y);
+        }
+      }
+    };
+    walk(scene.children.list, 0, 0);
+    // Deepest match wins: a button inside a dialog beats the panel holding it.
+    const found = hits.sort((a, b) => a.o.width * a.o.height - b.o.width * b.o.height)[0];
     if (!found) return null;
     const r = g.canvas.getBoundingClientRect();
-    // 70% of the way to the right edge and 60% down: nowhere near the centre.
-    const gx = found.x + found.width * 0.35;
-    const gy = found.y + found.height * 0.3;
+    // Well off centre, where a thumb actually lands.
+    const gx = found.x + found.o.width * 0.35;
+    const gy = found.y + found.o.height * 0.3;
     return {
       x: r.left + (gx / g.scale.width) * r.width,
       y: r.top + (gy / g.scale.height) * r.height,
@@ -128,7 +142,13 @@ for (const screen of SCREENS) {
   } else if (screen === 'Armory') {
     if (!(await clickOffCentre('<'))) fail('no back button in the armoury');
     if (!(await clickOffCentre('DEFEND'))) fail('no DEFEND button');
-    if ((await sceneKey()) !== 'Map') fail('an off-centre press on DEFEND did nothing');
+    if ((await sceneKey()) !== 'Continent') fail('an off-centre press on DEFEND did nothing');
+  } else if (screen === 'Continent') {
+    // The first region, then the briefing's RIDE OUT: both are containers a
+    // thumb has to hit off centre.
+    if (!(await clickOffCentre('The Broken Fields'))) fail('no first region on the continent');
+    if (!(await clickOffCentre('RIDE OUT'))) fail('no RIDE OUT in the region briefing');
+    if ((await sceneKey()) !== 'Map') fail('riding out of a region did not open its forts');
   }
 }
 

@@ -41,6 +41,47 @@ export const HEROES: HeroDef[] = [
     ],
   },
   {
+    /*
+     * The Ashen Woods commander. Where Aldric holds a line, Bran breaks one
+     * up: his spells move enemies about rather than deleting them, which
+     * suits a region full of things that come at you in a rush.
+     */
+    id: 'bran',
+    name: 'Bran Ironbark',
+    title: 'Warden of the Ashen Woods',
+    art: 'monk',
+    blurb: 'Held the woods for eleven winters with a hundred men and no wall.',
+    spells: [
+      {
+        id: 'rockfall',
+        name: 'Rockfall',
+        blurb: 'Drops the hillside on a lane. Heavy damage, and everything left is slowed.',
+        icon: 'fx.shockwave',
+        target: 'lane',
+        cooldown: 16,
+        damage: 240,
+        duration: 4,
+        effect: 'freeze',
+        fx: 'fx.shockwave',
+      },
+      {
+        id: 'warhorn',
+        name: 'War Horn',
+        blurb: 'Every defender strikes faster for 8 seconds.',
+        icon: 'fx.shockwave',
+        target: 'global',
+        cooldown: 34,
+        duration: 8,
+        effect: 'rally',
+        fx: 'fx.shockwave',
+      },
+    ],
+  },
+  {
+    /*
+     * The Abyss commander, and a Crown Pack one. Her spells are the answer to
+     * a region of demons: holy where everything else has been steel.
+     */
     id: 'seraphina',
     name: 'Seraphina',
     title: 'The Stormcaller',
@@ -70,6 +111,42 @@ export const HEROES: HeroDef[] = [
         damage: 90,
         effect: 'freeze',
         fx: 'fx.frost_ring',
+      },
+    ],
+  },
+{
+    /*
+     * The last region's commander. By the throne there is no line left to
+     * hold, so her spells are about buying seconds rather than winning ground.
+     */
+    id: 'maerwyn',
+    name: 'Maerwyn the Grey',
+    title: 'Last Voice of the Order',
+    art: 'cleric',
+    blurb: 'She buried the rest of the order. She intends to bury the King.',
+    premium: true,
+    spells: [
+      {
+        id: 'sanctuary',
+        name: 'Sanctuary',
+        blurb: 'Mends every defender on the field and shields them briefly.',
+        icon: 'fx.holy_ring',
+        target: 'global',
+        cooldown: 30,
+        duration: 4,
+        effect: 'heal',
+        fx: 'fx.holy_ring',
+      },
+      {
+        id: 'wordofending',
+        name: 'Word of Ending',
+        blurb: 'Holy fire down one lane. Demons and the dead feel it worst.',
+        icon: 'fx.holy_ring',
+        target: 'lane',
+        cooldown: 22,
+        damage: 300,
+        effect: 'smite',
+        fx: 'fx.holy_ring',
       },
     ],
   },

@@ -6,10 +6,11 @@ import Phaser from 'phaser';
 import { DESIGN } from '../core/layout';
 import { DEFENDERS, MAX_UPGRADE_LEVEL, upgradeCost, upgradedStats } from '../data/defenders';
 import { HEROES } from '../data/heroes';
+import { CHAPTERS } from '../data/levels';
 import { WALL_SKINS } from '../art/structures';
 import { profile, PREMIUM_SKINS } from '../systems/profile';
 import { ensureAllCastleSkins } from '../systems/textures';
-import { portraitFor } from '../art/portraits';
+import { portraitFor, portraitForArt } from '../art/portraits';
 import { audio } from '../systems/audio';
 import { COLORS, Counter, TextButton, fitText, showDialog, tappable, textStyle } from '../ui/kit';
 
@@ -244,47 +245,73 @@ export class ArmoryScene extends Phaser.Scene {
 
   private drawHero(): void {
     const w = DESIGN.width;
-    const colW = w / 2;
+    this.track(
+      this.add
+        .text(w / 2, 196, 'Commanders ride with their own region. Their spells come with them.', textStyle('small', COLORS.muted))
+        .setOrigin(0.5),
+    );
+
+    // Four commanders now, so they get a row of narrower cards rather than
+    // two wide ones. Locked commanders still show: knowing who is out there
+    // is half the reason to keep marching.
+    const colW = w / HEROES.length;
     HEROES.forEach((h, i) => {
       const cx = colW / 2 + i * colW;
-      const y = 620;
-      const owned = !h.premium || profile.hasCrownPack;
+      const y = 630;
+      const owned = profile.availableHeroes().includes(h.id);
       const active = profile.heroId === h.id;
+      const region = CHAPTERS.find((c) => c.commander === h.id);
       this.track(
         this.add
-          .rectangle(cx, y, colW - 70, 640, active ? 0x33405e : 0x2a2338, 0.9)
+          .rectangle(cx, y, colW - 40, 660, active ? 0x33405e : 0x2a2338, 0.9)
           .setStrokeStyle(4, active ? 0xf5c542 : 0x4a4060),
       );
-      const head = `unit.${h.art}.head`;
-      if (this.textures.exists(head)) this.track(this.add.image(cx - 250, y - 200, head).setScale(0.5));
-      this.track(this.add.text(cx - 170, y - 230, h.name, textStyle('title', COLORS.gold)).setOrigin(0, 0.5));
-      this.track(this.add.text(cx - 170, y - 178, h.title, textStyle('small', COLORS.muted)).setOrigin(0, 0.5));
+
+      const face = portraitForArt(this, h.art);
+      if (face) {
+        const img = this.add.image(cx, y - 216, face.key);
+        img.setScale(Math.min(180 / img.width, 180 / img.height));
+        img.setAlpha(owned ? 1 : 0.35);
+        this.track(img);
+      }
+
+      const name = this.add.text(cx, y - 110, h.name, textStyle('body', COLORS.gold)).setOrigin(0.5);
+      this.track(fitText(name, colW - 80));
       this.track(
         this.add
-          .text(cx - 320, y - 120, h.blurb, { ...textStyle('small'), wordWrap: { width: colW - 130 } })
-          .setOrigin(0, 0),
+          .text(cx, y - 70, region ? region.name : h.title, textStyle('tiny', COLORS.muted))
+          .setOrigin(0.5),
       );
+
       h.spells.forEach((s, si) => {
-        const sy = y + 10 + si * 110;
+        const sy = y - 30 + si * 148;
         if (this.textures.exists(s.icon)) {
-          this.track(this.add.image(cx - 280, sy, s.icon).setDisplaySize(64, 64));
+          this.track(this.add.image(cx - colW / 2 + 50, sy, s.icon).setDisplaySize(56, 56));
         }
-        this.track(this.add.text(cx - 230, sy - 20, s.name, textStyle('small', COLORS.parchment)).setOrigin(0, 0.5));
+        this.track(
+          this.add.text(cx - colW / 2 + 88, sy, s.name, textStyle('tiny', COLORS.parchment)).setOrigin(0, 0.5),
+        );
+        // Blurbs run to three lines at this width, so they hang below the
+        // name rather than being centred on it.
         this.track(
           this.add
-            .text(cx - 230, sy + 18, `${s.blurb}  (${s.cooldown}s)`, {
+            .text(cx - colW / 2 + 88, sy + 22, `${s.blurb}  (${s.cooldown}s)`, {
               ...textStyle('tiny', COLORS.muted),
-              wordWrap: { width: colW - 170 },
+              wordWrap: { width: (colW - 130) / 0.85 },
             })
-            .setOrigin(0, 0.5),
+            .setOrigin(0, 0)
+            .setScale(0.85),
         );
       });
+
+      const label = active ? 'LEADING' : owned ? 'CHOOSE' : h.premium && !profile.hasCrownPack ? 'CROWN PACK' : 'NOT YET MET';
       this.track(
-        new TextButton(this, cx, y + 250, active ? 'LEADING' : owned ? 'CHOOSE' : 'CROWN PACK', {
-          width: 380,
-          height: 86,
-          tone: active ? 'stone' : owned ? 'green' : 'gold',
-          enabled: !active,
+        new TextButton(this, cx, y + 278, label, {
+          width: colW - 90,
+          height: 82,
+          size: 'small',
+          tone: active ? 'stone' : owned ? 'green' : h.premium && !profile.hasCrownPack ? 'gold' : 'stone',
+          enabled: !active && (owned || (h.premium && !profile.hasCrownPack)),
           onClick: () => {
             if (owned) {
               profile.setHero(h.id);

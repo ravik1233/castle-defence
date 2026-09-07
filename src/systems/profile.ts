@@ -169,7 +169,36 @@ export class Profile {
   isCardUnlocked(defenderId: string): boolean {
     const def = defender(defenderId);
     if (def.premium) return this.hasCrownPack;
+    // A region hands over its own muster the moment the player reaches it, so
+    // arriving somewhere new is arriving with something new to fight with.
+    if (this.musteredCards().includes(defenderId)) return true;
     return def.unlockLevel <= this.campaignProgress;
+  }
+
+  /** True once the player may ride into a region at all. */
+  isRegionReached(regionId: number): boolean {
+    const region = CHAPTERS.find((c) => c.id === regionId);
+    if (!region) return false;
+    const first = region.levels[0];
+    if (!first) return false;
+    if (region.premium && !this.hasCrownPack) return false;
+    return this.isLevelUnlocked(first.id);
+  }
+
+  /** Every region the player has reached, in campaign order. */
+  reachedRegions(): typeof CHAPTERS {
+    return CHAPTERS.filter((c) => this.isRegionReached(c.id));
+  }
+
+  /** Cards granted by every region the player has reached. */
+  musteredCards(): string[] {
+    return this.reachedRegions().flatMap((r) => r.unlocks);
+  }
+
+  /** The region the player has most recently reached. */
+  currentRegion(): (typeof CHAPTERS)[number] {
+    const reached = this.reachedRegions();
+    return reached[reached.length - 1] ?? CHAPTERS[0]!;
   }
 
   availableCards(): string[] {
@@ -201,8 +230,17 @@ export class Profile {
 
   /* -------------------------------------------------------------- heroes - */
 
+  /*
+   * A commander comes with the land they hold, so a hero is only in the
+   * roster once the player has ridden into that commander's region. Crown
+   * Pack commanders need the pack on top of that.
+   */
   availableHeroes(): string[] {
-    return HEROES.filter((h) => !h.premium || this.hasCrownPack).map((h) => h.id);
+    return HEROES.filter((h) => {
+      if (h.premium && !this.hasCrownPack) return false;
+      const region = CHAPTERS.find((c) => c.commander === h.id);
+      return !region || this.isRegionReached(region.id);
+    }).map((h) => h.id);
   }
 
   setHero(id: string): void {

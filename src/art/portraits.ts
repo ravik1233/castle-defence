@@ -17,16 +17,24 @@ export interface Portrait {
   whole: boolean;
 }
 
+/**
+ * The best image for a bare art id. Commanders borrow unit art, so this is
+ * the half of `portraitFor` that knows nothing about cards.
+ */
+export function portraitForArt(scene: Phaser.Scene, artId: string): Portrait | undefined {
+  const idle = `unit.${artId}.frame0`;
+  if (scene.textures.exists(idle)) return { key: idle, whole: true };
+  const painted = fullSpriteKey(artId);
+  if (scene.textures.exists(painted)) return { key: painted, whole: true };
+  const head = `unit.${artId}.head`;
+  return scene.textures.exists(head) ? { key: head, whole: false } : undefined;
+}
+
 export function portraitFor(scene: Phaser.Scene, def: DefenderDef): Portrait | undefined {
   if (def.art.kind === 'build') {
     return scene.textures.exists(def.art.key) ? { key: def.art.key, whole: true } : undefined;
   }
   // Frames first. A unit with drawn frames has no whole-body sprite and no
   // parts to crop a head from, so without this its card comes out blank.
-  const idle = `unit.${def.art.id}.frame0`;
-  if (scene.textures.exists(idle)) return { key: idle, whole: true };
-  const painted = fullSpriteKey(def.art.id);
-  if (scene.textures.exists(painted)) return { key: painted, whole: true };
-  const head = `unit.${def.art.id}.head`;
-  return scene.textures.exists(head) ? { key: head, whole: false } : undefined;
+  return portraitForArt(scene, def.art.id);
 }

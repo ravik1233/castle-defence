@@ -31,7 +31,7 @@ import { WALL_SKINS } from '../art/structures';
 import { DEFENDERS, defender, upgradedStats } from '../data/defenders';
 import { enemy as enemyDef } from '../data/enemies';
 import { hero as heroDef } from '../data/heroes';
-import { generateWaves, level as levelById, levelNumber, type Wave } from '../data/levels';
+import { CHAPTERS, generateWaves, level as levelById, levelNumber, type Wave } from '../data/levels';
 import type { LevelDef, SpellDef } from '../data/types';
 import { profile } from '../systems/profile';
 import { audio, haptic, type SfxId } from '../systems/audio';
@@ -646,10 +646,20 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     this.ghost.setAlpha(0.65).setDepth(2600);
   }
 
+  /** Who commands in this level's region. */
+  private commanderId(): string {
+    return CHAPTERS.find((c) => c.id === this.levelDef.chapter)?.commander ?? profile.heroId;
+  }
+
   /* ----------------------------------------------------------- hero bar - */
 
   private buildHeroBar(): void {
-    const hero = heroDef(profile.heroId);
+    /*
+     * The commander of the region being fought over, not a hero picked once in
+     * a menu. Crossing a border changes the two spells in the player's hand,
+     * which is the point of regions existing at all.
+     */
+    const hero = heroDef(this.commanderId());
     const y = HERO_BAR.y + HERO_BAR.height / 2;
 
     // The sell tool sits between the cards and the hero.

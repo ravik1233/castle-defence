@@ -13,6 +13,7 @@ import { StoreScene } from './scenes/Store';
 import { SettingsScene } from './scenes/Settings';
 import { ResultScene } from './scenes/Result';
 import { LedgerScene } from './scenes/Ledger';
+import { ContinentScene } from './scenes/Continent';
 import { audio } from './systems/audio';
 import { ads } from './systems/ads';
 import { initNativeShell } from './systems/native';
@@ -57,6 +58,7 @@ const config: Phaser.Types.Core.GameConfig = {
     SettingsScene,
     ResultScene,
     LedgerScene,
+    ContinentScene,
   ],
 };
 

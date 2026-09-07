@@ -142,6 +142,26 @@ export interface HeroDef {
   premium?: boolean;
 }
 
+/**
+ * A region of the continent: one of the places humanity still holds.
+ *
+ * A region is not just a set of levels with a different backdrop. It has a
+ * commander, whose spells are the player's hand in every fight fought there,
+ * and it opens up units raised locally. Crossing a border changes how the
+ * game is played, not only what it looks like.
+ */
+export interface RegionDef {
+  id: number;
+  name: string;
+  /** The hero who commands here. Their spells replace the last one's. */
+  commander: string;
+  /** Defenders this region musters, granted on arrival. */
+  unlocks: string[];
+  /** Where it sits on the continent, as a fraction of the map. */
+  map: { x: number; y: number };
+  premium?: boolean;
+}
+
 export interface LevelModifiers {
   /** Rows that start blocked by rubble. */
   blockedCells?: Array<[row: number, col: number]>;
@@ -182,4 +202,10 @@ export interface ChapterDef {
   blurb: string;
   premium?: boolean;
   levels: LevelDef[];
+  /** The hero who commands here, and whose spells the player fights with. */
+  commander: string;
+  /** Defenders this region musters, granted on arrival. */
+  unlocks: string[];
+  /** Where it sits on the continent, as a fraction of the map. */
+  map: { x: number; y: number };
 }
