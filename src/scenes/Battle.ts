@@ -230,6 +230,21 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         }
         return killed;
       },
+      // What the hordes are actually doing, for the family driver.
+      enemyState: (): Array<Record<string, unknown>> =>
+        this.enemies.map((e) => ({
+          id: e.def.id,
+          alive: e.alive,
+          x: Math.round(e.x),
+          row: e.row,
+          hp: Math.round(e.hp),
+          maxHp: e.maxHp,
+          shield: e.shield,
+          blow: e.blow,
+        })),
+      hurt: (index: number, amount: number, type = 'physical', breakShield = false): void => {
+        this.enemies[index]?.takeDamage(amount, false, type as never, breakShield);
+      },
       state: () => ({
         gold: Math.round(this.gold),
         phase: this.phase,
@@ -570,6 +585,32 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       const dps = GARRISON_DPS * (this.fitted.has('garrison') ? EQUIPMENT_EFFECT.garrison.garrisonDps : 1);
       e.takeDamage(dps * dt, true);
     }
+  }
+
+  /**
+   * True while a consecrating unit is alive in this lane.
+   *
+   * Holy ground is what stops the dead getting back up, so it is a property
+   * of the lane rather than of the blow that killed them - which is what
+   * makes a runesmith worth a slot next to something that only kills.
+   */
+  isConsecrated(row: number): boolean {
+    return this.defenders.some((d) => d.alive && d.row === row && d.def.trait === 'consecrate');
+  }
+
+  /** True while a ward is alive in this lane, holding portals shut. */
+  isWarded(row: number): boolean {
+    return this.defenders.some((d) => d.alive && d.row === row && d.def.trait === 'ward');
+  }
+
+  /** A thief takes gold out of the purse; it cannot take what is not there. */
+  stealGold(amount: number, x: number, y: number): void {
+    if (this.finished || this.gold <= 0) return;
+    const taken = Math.min(this.gold, amount);
+    this.gold -= taken;
+    audio.play('deny');
+    floatText(this, x, y - 30, `-${taken}`, COLORS.danger, 'tiny');
+    this.updateHud();
   }
 
   isBreached(row: number): boolean {

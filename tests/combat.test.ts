@@ -11,6 +11,10 @@ import {
   starsForWall,
   tensionFor,
   pickBlocker,
+  packSpeed,
+  rageBlow,
+  risesAgain,
+  throughShield,
 } from '../src/battle/combat';
 import { CALL_BOUNTY, MUSTER_PAY, callBounty, musterPay } from '../src/battle/economy';
 import { defender } from '../src/data/defenders';
@@ -219,5 +223,50 @@ describe('what an enemy walks into', () => {
 
   it('finds nothing in an empty lane', () => {
     expect(pickBlocker({ x: 1080, row: 2 }, [])).toBeUndefined();
+  });
+});
+
+describe('the six hordes', () => {
+  it('brings the dead back once, and not to holy or fire', () => {
+    const base = { risen: true, spent: false, by: 'physical' as const, consecrated: false };
+    expect(risesAgain(base)).toBe(true);
+    expect(risesAgain({ ...base, by: 'holy' })).toBe(false);
+    expect(risesAgain({ ...base, by: 'fire' })).toBe(false);
+    expect(risesAgain({ ...base, by: 'frost' })).toBe(true);
+    // Consecrated ground puts them down whatever killed them.
+    expect(risesAgain({ ...base, consecrated: true })).toBe(false);
+    // And a body only gets back up the once.
+    expect(risesAgain({ ...base, spent: true })).toBe(false);
+    // Everything else was never getting up anyway.
+    expect(risesAgain({ ...base, risen: false })).toBe(false);
+  });
+
+  it('makes an orc hit harder the more it has bled', () => {
+    expect(rageBlow(100, 100, 100)).toBe(100);
+    expect(rageBlow(100, 50, 100)).toBe(125);
+    expect(rageBlow(100, 0, 100)).toBe(150);
+    // Never more than the cap, whatever the arithmetic does at the edges.
+    expect(rageBlow(100, -20, 100)).toBe(150);
+  });
+
+  it('runs a beast faster in company and no faster alone', () => {
+    expect(packSpeed(100, 0)).toBe(100);
+    expect(packSpeed(100, 2)).toBeCloseTo(120);
+    // The bonus stops climbing, so a big wave cannot outrun the whole game.
+    expect(packSpeed(100, 40)).toBeCloseTo(140);
+  });
+
+  it('puts most of a blow into a shield, and none of it for a shieldbreaker', () => {
+    const onto = throughShield(100, 200, false);
+    expect(onto.toShield).toBe(75);
+    expect(onto.toBody).toBe(25);
+    // A shield with little left cannot absorb more than it has.
+    const nearly = throughShield(100, 10, false);
+    expect(nearly.toShield).toBe(10);
+    expect(nearly.toBody).toBe(90);
+    // A shieldbreaker goes straight through.
+    expect(throughShield(100, 200, true)).toEqual({ toShield: 0, toBody: 100 });
+    // No shield left: everything lands.
+    expect(throughShield(100, 0, false)).toEqual({ toShield: 0, toBody: 100 });
   });
 });

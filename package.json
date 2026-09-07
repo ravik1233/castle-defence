@@ -30,7 +30,8 @@
     "damagetest": "node scripts/damagetest.mjs",
     "siegetest": "node scripts/siegetest.mjs",
     "sortietest": "node scripts/sortietest.mjs",
-    "workshoptest": "node scripts/workshoptest.mjs"
+    "workshoptest": "node scripts/workshoptest.mjs",
+    "familytest": "node scripts/familytest.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",

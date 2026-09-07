@@ -139,6 +139,62 @@ export interface TargetLike {
  * afterwards, which makes placing a body in front of something pointless -
  * and that is the whole game.
  */
+/**
+ * The numbers behind the six hordes, in one place.
+ *
+ * These are the whole of what makes a region play differently, so they are
+ * worth being able to read at a glance - and worth testing without a battle
+ * running around them.
+ */
+export const FAMILY = {
+  /** Undead come back at half, unless holy or fire put them down. */
+  risenShare: 0.5,
+  /** A shield is this much of the body's health, and eats this much of a blow. */
+  shieldShare: 0.45,
+  shieldAbsorb: 0.75,
+  /** A beast runs this much faster per packmate, up to this much. */
+  packStep: 0.1,
+  packMax: 0.4,
+  /** A raging orc ends up hitting this much harder than it started. */
+  rageMax: 0.5,
+} as const;
+
+/** Whether a body of this kind gets back up after a blow of this type. */
+export function risesAgain(opts: {
+  risen: boolean;
+  spent: boolean;
+  by: DamageType;
+  consecrated: boolean;
+}): boolean {
+  if (!opts.risen || opts.spent || opts.consecrated) return false;
+  return opts.by !== 'holy' && opts.by !== 'fire';
+}
+
+/** How hard a rager hits at this much health left. */
+export function rageBlow(base: number, hp: number, maxHp: number): number {
+  const lost = 1 - Math.max(0, Math.min(1, hp / Math.max(1, maxHp)));
+  return Math.round(base * (1 + lost * FAMILY.rageMax));
+}
+
+/** How fast a beast moves with this many packmates beside it. */
+export function packSpeed(base: number, near: number): number {
+  return base * (1 + Math.min(FAMILY.packMax, Math.max(0, near) * FAMILY.packStep));
+}
+
+/**
+ * How a blow splits between a shield and the body behind it. A shieldbreaker
+ * ignores the shield entirely, which is the only way through it in one hit.
+ */
+export function throughShield(
+  damage: number,
+  shield: number,
+  breakShield: boolean,
+): { toShield: number; toBody: number } {
+  if (shield <= 0 || breakShield) return { toShield: 0, toBody: damage };
+  const toShield = Math.min(shield, damage * FAMILY.shieldAbsorb);
+  return { toShield, toBody: damage - toShield };
+}
+
 export function pickBlocker<T extends { x: number; row: number; alive: boolean }>(
   from: { x: number; row: number },
   defenders: readonly T[],

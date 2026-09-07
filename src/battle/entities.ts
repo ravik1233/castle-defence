@@ -10,9 +10,19 @@ import { characterArt } from '../art/compose';
 import { ALL_CHARACTER_ART } from '../art/cast';
 import type { ProjectileId } from '../art/props';
 import { GRID, KEEP, WALL_FACE_X, cellCenter, laneGroundY } from '../core/layout';
-import type { DamageType, DefenderDef, EnemyDef } from '../data/types';
+import type { DamageType, DefenderDef, EnemyDef, EnemySpecial } from '../data/types';
 import { Rig } from '../objects/Rig';
-import { applyDamage, damageDealt, damageMultiplier, pickBlocker } from './combat';
+import {
+  FAMILY,
+  applyDamage,
+  damageDealt,
+  damageMultiplier,
+  packSpeed,
+  pickBlocker,
+  rageBlow,
+  risesAgain,
+  throughShield,
+} from './combat';
 
 export interface BattleWorld {
   /** The Phaser scene the battle runs in. Named `stage` because `Scene.scene`
@@ -30,8 +40,14 @@ export interface BattleWorld {
   mendWall(row: number, amount: number): void;
   /** True once this lane's gate section has fallen and the way is open. */
   isBreached(row: number): boolean;
+  /** True while something holy is keeping the dead down in this lane. */
+  isConsecrated(row: number): boolean;
+  /** True while a ward is shut over this lane, so nothing can step through. */
+  isWarded(row: number): boolean;
   /** Damage the heart of the keep, which only breached enemies can reach. */
   damageHeart(amount: number): void;
+  /** A goblin thief lifts gold straight out of the purse. */
+  stealGold(amount: number, x: number, y: number): void;
   awardGold(amount: number, x: number, y: number): void;
   onEnemyKilled(enemy: Enemy): void;
   burst(x: number, y: number, kind: 'hit' | 'blood' | 'magic' | 'explosion' | 'coin' | 'heal'): void;
@@ -263,7 +279,9 @@ export class Defender {
      */
     const smiting = this.def.trait === 'smite' && this.swings % SMITE_EVERY === 0;
     const executing = this.def.trait === 'executioner' && target.def.kind === 'armoured';
-    const crit = smiting || executing;
+    // A skyward weapon is built for one target and useless against the rest.
+    const skyward = this.def.trait === 'skyward' && target.flying;
+    const crit = smiting || executing || skyward;
     const blow = crit ? this.damage * CRIT_MULTIPLIER : this.damage;
     const blowType: DamageType = smiting ? 'holy' : (attack.damageType ?? 'physical');
 
@@ -275,12 +293,14 @@ export class Defender {
           target,
           damage: blow,
           damageType: blowType,
+          breakShield: this.def.trait === 'shieldbreak',
           kind: attack.projectile,
           splash: attack.splash ?? 0,
           pierce: attack.pierce ?? 0,
           hitsAir: attack.targets !== 'ground',
           row: this.row,
         });
+        this.applyTraitTo(target);
         this.world.sfx(
           attack.projectile === 'cannonball'
             ? 'cannon'
@@ -292,8 +312,9 @@ export class Defender {
         // Melee: hit the target, plus anything caught in the swing.
         this.world.sfx('melee');
         this.world.burst(target.x - 20, target.y - 60, 'hit');
-        target.takeDamage(blow, false, blowType);
+        target.takeDamage(blow, false, blowType, this.def.trait === 'shieldbreak');
         if (crit) this.world.burst(target.x - 20, target.y - 80, 'hit');
+        this.applyTraitTo(target);
         if (attack.splash) {
           for (const e of this.world.enemies) {
             if (e === target || !e.alive || e.row !== this.row) continue;
@@ -322,6 +343,19 @@ export class Defender {
         });
       }
     }
+  }
+
+  /**
+   * What a blow does beyond damage.
+   *
+   * Each of these is the answer to one horde: a root stops a pack running,
+   * a bleed makes an orc's own rage cost it, and a taunt drags something
+   * out of the crowd before it reaches the wall.
+   */
+  private applyTraitTo(target: Enemy): void {
+    if (this.def.trait === 'root') target.applySlow(0.85, ROOT_SECONDS);
+    else if (this.def.trait === 'bleed') target.bleed(this.damage * BLEED_SHARE, BLEED_SECONDS);
+    else if (this.def.trait === 'taunt') target.pullTo(this.x + TAUNT_REACH);
   }
 
   private pulseAura(): void {
@@ -433,6 +467,28 @@ export class Defender {
 const SORTIE_SPEED = 62;
 const SORTIE_LIMIT = 1500;
 
+/*
+ * The numbers behind the family behaviours.
+ *
+ * Each is one line the player can learn and play around: a risen body comes
+ * back at half, a shield eats three quarters of what hits it, a pack runs a
+ * tenth faster per beast beside it, and a raging orc ends up hitting half
+ * again as hard as it started.
+ */
+const RISEN_SHARE = FAMILY.risenShare;
+const SHIELD_SHARE = FAMILY.shieldShare;
+const PACK_RADIUS = 260;
+/** How far a demon steps through its portal, and how long the step takes. */
+const STEP_DISTANCE = 260;
+/** What a thief lifts per hit. */
+const THIEF_TAKE = 12;
+/** What the answering traits are worth, in seconds and in share of a blow. */
+const ROOT_SECONDS = 1.6;
+const BLEED_SHARE = 0.5;
+const BLEED_SECONDS = 4;
+const TAUNT_REACH = 150;
+const TAUNT_PULL = 90;
+
 /** How often a mason patches their own lane's section, and by how much. */
 const MASON_EVERY = 3;
 const MASON_MEND = 26;
@@ -470,6 +526,15 @@ export class Enemy {
   private healTimer = 2;
   private summonTimer = 6;
   private charged = false;
+  /** Undead: spent once the body has got back up. */
+  private risenUsed = false;
+  /** The Fallen: a shield that blunts what comes at its front, until broken. */
+  private shieldHp = 0;
+  /** Demons: spent once it has stepped through a portal. */
+  private stepUsed = false;
+  /** How hard it is currently hitting: rage climbs this as an orc bleeds. */
+  private bleedRate = 0;
+  private bleedTimer = 0;
   /** Set once the enemy is close enough to hit the wall. */
   atWall = false;
   /** Set once this enemy has come through a breach and is inside the keep. */
@@ -492,6 +557,9 @@ export class Enemy {
     this.damage = Math.round(def.damage * opts.damageScale);
     this.flying = Boolean(def.flying);
     this.y = laneGroundY(row) - (this.flying ? 70 : 0);
+    // A shield is a second, smaller pool of health that only counts against
+    // blows landing on its front - and a shieldbreaker ignores it entirely.
+    if (this.has('shieldwall')) this.shieldHp = Math.round(this.maxHp * SHIELD_SHARE);
 
     const art = characterArt(ALL_CHARACTER_ART[def.art]!);
     this.rig = new Rig(world.stage, x, this.y, art, {
@@ -535,18 +603,63 @@ export class Enemy {
    * their fire is doing nothing to a demon has a matchup system they can only
    * learn from a wiki.
    */
-  takeDamage(amount: number, ignoreArmor = false, type: DamageType = 'physical'): void {
+  takeDamage(amount: number, ignoreArmor = false, type: DamageType = 'physical', breakShield = false): void {
     if (!this.alive) return;
     const armor = ignoreArmor ? 0 : this.def.armor;
-    const dealt = damageDealt(amount, type, this.def.kind, armor);
+    let dealt = damageDealt(amount, type, this.def.kind, armor);
+
+    /*
+     * A shield eats what lands on it before the body feels anything. A
+     * shieldbreaker goes through it; everyone else has to take it down
+     * first, which is what makes the Fallen a different fight rather than
+     * a tougher one.
+     */
+    if (this.shieldHp > 0 && !breakShield) {
+      const split = throughShield(dealt, this.shieldHp, false);
+      this.shieldHp -= split.toShield;
+      dealt = split.toBody;
+      this.rig.flash(0x9fb6d8, 60);
+      // The moment the shield finally goes is worth seeing: it is the moment
+      // the fight against the Fallen turns.
+      if (this.shieldHp <= 0) {
+        this.shieldHp = 0;
+        this.world.burst(this.x, this.y - 60, 'explosion');
+        this.world.sfx('explode');
+      }
+    }
+
     this.hp -= dealt;
     const multiplier = damageMultiplier(type, this.def.kind);
     this.rig.flash(multiplier > 1.05 ? 0xfff0a0 : multiplier < 0.95 ? 0x7080a0 : 0xffffff, 70);
-    if (this.hp <= 0) this.die();
+    if (this.hp <= 0) this.die(type);
   }
 
-  private die(): void {
+  private die(by: DamageType = 'physical'): void {
     if (!this.alive) return;
+
+    /*
+     * The dead get back up. Once, at half strength - and not at all if holy
+     * or fire put them down, or if they fell on consecrated ground. That is
+     * the whole argument for the Barrow Moors roster: ordinary steel kills
+     * everything here twice.
+     */
+    if (
+      risesAgain({
+        risen: this.has('risen'),
+        spent: this.risenUsed,
+        by,
+        consecrated: this.world.isConsecrated(this.row),
+      })
+    ) {
+      this.risenUsed = true;
+      this.hp = Math.max(1, Math.round(this.maxHp * RISEN_SHARE));
+      this.rig.play('hurt');
+      this.rig.flash(0x8f6fd0, 260);
+      this.world.burst(this.x, this.y - 40, 'magic');
+      this.world.sfx('hurt');
+      return;
+    }
+
     this.alive = false;
     this.rig.play('die');
     this.bar.destroy();
@@ -575,6 +688,13 @@ export class Enemy {
       return;
     }
     const dt = delta / 1000;
+
+    if (this.bleedTimer > 0) {
+      this.bleedTimer -= dt;
+      this.takeDamage(this.bleedRate * dt, true);
+      if (!this.alive) return;
+      if (this.bleedTimer <= 0) this.bleedRate = 0;
+    }
 
     if (this.slowTimer > 0) {
       this.slowTimer -= dt;
@@ -664,8 +784,26 @@ export class Enemy {
       return;
     }
 
+    /*
+     * A demon that cannot get past a line does not queue behind it: it opens
+     * a portal and comes out the other side, once, unless a ward is shut
+     * over the lane. That is the Throne's whole shape - a front line is not
+     * where the fight is.
+     */
+    if (this.has('stepper') && !this.stepUsed && this.target && !this.world.isWarded(this.row)) {
+      this.stepUsed = true;
+      this.world.burst(this.x, this.y - 50, 'magic');
+      this.x = Math.max(WALL_FACE_X + 40, this.target.x - STEP_DISTANCE);
+      this.world.burst(this.x, this.y - 50, 'magic');
+      this.world.sfx('magic');
+      this.target = undefined;
+      this.syncView();
+      this.rig.update(time, delta);
+      return;
+    }
+
     // Otherwise: march.
-    let speed = this.def.speed * this.slowFactor;
+    let speed = this.currentSpeed();
     if (this.def.special === 'charger' && !this.charged && this.x < 700) {
       this.charged = true;
       speed *= 1.6;
@@ -772,7 +910,7 @@ export class Enemy {
         this.world.spawnProjectile({
           from: { x: this.x - 24, y: this.topY + 40 },
           targetPoint: { x: target.x, y: target.topY + 30 },
-          damage: this.damage,
+          damage: this.blow,
           kind: this.def.projectile!,
           splash: 0,
           pierce: 0,
@@ -784,9 +922,11 @@ export class Enemy {
     } else {
       this.rig.play('attack', () => {
         if (!target.alive) return;
-        target.takeDamage(this.damage);
+        target.takeDamage(this.blow);
         this.world.burst(target.x + 24, target.y - 60, 'hit');
         this.world.sfx('melee');
+        // A thief is paid out of the purse rather than out of the defender.
+        if (this.has('thief')) this.world.stealGold(THIEF_TAKE, this.x, this.topY);
         // Powder goblins detonate on contact instead of chipping away.
         if (this.def.special === 'bomber') this.takeDamage(this.hp * 2, true);
       });
@@ -801,12 +941,68 @@ export class Enemy {
     this.attackCooldown = 1 / this.def.rate;
     const inside = this.inside;
     this.rig.play('attack', () => {
-      if (inside) this.world.damageHeart(this.damage);
-      else this.world.damageWall(this.damage, this.y);
+      if (inside) this.world.damageHeart(this.blow);
+      else this.world.damageWall(this.blow, this.y);
       this.world.sfx('gate');
       this.world.shake(this.isBoss ? 12 : 5);
       if (this.def.special === 'bomber') this.takeDamage(this.hp * 2, true);
     });
+  }
+
+  /** True when this enemy carries the named behaviour, alone or among many. */
+  has(special: EnemySpecial): boolean {
+    return this.def.special === special || Boolean(this.def.specials?.includes(special));
+  }
+
+  /**
+   * Bleeding. Damage over time, and the one thing that punishes an enemy
+   * for raging: rage is bought with lost health, and a bleed keeps buying.
+   */
+  bleed(perSecond: number, seconds: number): void {
+    this.bleedRate = Math.max(this.bleedRate, perSecond);
+    this.bleedTimer = Math.max(this.bleedTimer, seconds);
+  }
+
+  /** Dragged forward out of the crowd, so a taunt actually moves something. */
+  pullTo(x: number): void {
+    if (this.has('boss')) return;
+    this.x = Math.max(x, this.x - TAUNT_PULL);
+    this.syncView();
+  }
+
+  /** What is left of its shield, for the ledger and for tests. */
+  get shield(): number {
+    return Math.max(0, Math.round(this.shieldHp));
+  }
+
+  /**
+   * How hard it hits right now.
+   *
+   * An orc rages: every wound it takes buys it damage, so a lane that
+   * wounds without killing is a lane that made the problem worse. Bleed is
+   * the answer the highlands sell you.
+   */
+  get blow(): number {
+    return this.has('rager') ? rageBlow(this.damage, this.hp, this.maxHp) : this.damage;
+  }
+
+  /**
+   * Walking speed after everything acting on it.
+   *
+   * A beast in company runs; alone it is only an animal. The pack bonus is
+   * the reason a net or a root is worth a card slot in the highlands.
+   */
+  private currentSpeed(): number {
+    let speed = this.def.speed * this.slowFactor;
+    if (this.has('pack')) {
+      let near = 0;
+      for (const e of this.world.enemies) {
+        if (e === this || !e.alive || !e.has('pack')) continue;
+        if (Math.abs(e.x - this.x) < PACK_RADIUS && Math.abs(e.row - this.row) <= 1) near += 1;
+      }
+      speed = packSpeed(speed, near);
+    }
+    return speed;
   }
 
   private findBlocker(): Defender | undefined {
@@ -838,6 +1034,8 @@ export interface ProjectileOptions {
   row: number;
   /** Carried to the impact, so a holy bolt still lands as holy. */
   damageType?: DamageType;
+  /** Carried too, so a shieldbreaker's bolt still ignores a shield. */
+  breakShield?: boolean;
   /** Enemy projectiles damage defenders instead. */
   hostile?: boolean;
 }
@@ -903,7 +1101,7 @@ export class Projectile {
       if (Math.abs(e.x - this.sprite.x) > 44) continue;
       if (Math.abs(e.y - 50 - this.sprite.y) > 110) continue;
       this.hitIds.add(e);
-      e.takeDamage(this.opts.damage, false, this.opts.damageType);
+      e.takeDamage(this.opts.damage, false, this.opts.damageType, this.opts.breakShield);
       this.world.burst(this.sprite.x, this.sprite.y, this.opts.splash ? 'explosion' : 'hit');
       this.hitCount += 1;
       if (this.opts.splash > 0) {
@@ -926,7 +1124,9 @@ export class Projectile {
       for (const e of this.world.enemies) {
         if (!e.alive || this.hitIds.has(e)) continue;
         const d = Phaser.Math.Distance.Between(e.x, e.y - 50, this.sprite.x, this.sprite.y);
-        if (d <= this.opts.splash) e.takeDamage(this.opts.damage * 0.7, false, this.opts.damageType);
+        if (d <= this.opts.splash) {
+          e.takeDamage(this.opts.damage * 0.7, false, this.opts.damageType, this.opts.breakShield);
+        }
       }
       this.world.burst(this.sprite.x, this.sprite.y, 'explosion');
     }
