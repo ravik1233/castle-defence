@@ -356,6 +356,8 @@ export class Enemy {
   atWall = false;
   /** Set once this enemy has come through a breach and is inside the keep. */
   inside = false;
+  /** Set once a flanker has turned into a lane to hunt it from behind. */
+  private flanking = false;
 
   constructor(
     private readonly world: BattleWorld,
@@ -492,6 +494,11 @@ export class Enemy {
     // Find something to hit: the front-most defender within reach.
     if (!this.target || !this.target.alive) this.target = this.findBlocker();
 
+    if (this.flanking) {
+      this.updateFlank(time, delta, dt);
+      return;
+    }
+
     /*
      * A breached lane has nothing left to stop at. The enemy walks through
      * the gap and goes for the heart of the keep instead, which is what turns
@@ -508,6 +515,13 @@ export class Enemy {
         return;
       }
     } else if (this.x <= wallReach) {
+      // A flanker that is through the wall turns on a lane that is still
+      // held, rather than joining the queue at the heart.
+      if (through && this.def.special === 'flanker' && this.beginFlank()) {
+        this.syncView();
+        this.rig.update(time, delta);
+        return;
+      }
       this.atWall = true;
       this.inside = through;
       this.attackWall();
@@ -530,6 +544,85 @@ export class Enemy {
       this.x -= speed * dt;
     }
     if (this.rig.current !== 'walk' && !this.rig.isBusy) this.rig.play('walk');
+    this.syncView();
+    this.rig.update(time, delta);
+  }
+
+  /**
+   * Turns into a lane that is still being held.
+   *
+   * It wants a lane with something to kill in it, and prefers the nearest,
+   * so a breach on lane 0 threatens lane 1 rather than something across the
+   * field. If nothing anywhere is still defended there is nothing to flank,
+   * and it goes for the heart like everything else.
+   */
+  private beginFlank(): boolean {
+    let best = -1;
+    let bestDistance = Infinity;
+    for (let row = 0; row < GRID.rows; row += 1) {
+      if (row === this.row) continue;
+      if (this.world.isBreached(row)) continue;
+      if (!this.world.defenders.some((d) => d.alive && d.row === row)) continue;
+      const distance = Math.abs(row - this.row);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = row;
+      }
+    }
+    if (best < 0) return false;
+
+    this.row = best;
+    this.flanking = true;
+    // Still flagged as inside: that is what lets defenders turn and shoot it,
+    // and a flanker nothing can answer would just be a slower loss.
+    this.inside = true;
+    this.world.sfx('gate');
+    return true;
+  }
+
+  /**
+   * Hunting a lane from the wrong end.
+   *
+   * Walks back up the lane it turned into, hitting defenders from behind,
+   * where every one of them is facing the other way. Once that lane is
+   * cleared it turns back for the heart rather than wandering off the field.
+   */
+  private updateFlank(time: number, delta: number, dt: number): void {
+    // Slide into the lane it turned into rather than snapping across.
+    const wantY = laneGroundY(this.row);
+    if (Math.abs(this.y - wantY) > 2) {
+      this.y += Math.sign(wantY - this.y) * Math.min(220 * dt, Math.abs(wantY - this.y));
+    }
+
+    this.attackCooldown -= dt;
+
+    // The nearest defender up the lane - the one whose back is turned.
+    let prey: Defender | undefined;
+    for (const d of this.world.defenders) {
+      if (!d.alive || d.row !== this.row) continue;
+      if (d.x < this.x - 20) continue;
+      if (!prey || d.x < prey.x) prey = d;
+    }
+
+    if (prey) {
+      if (prey.x - this.x <= this.def.range) {
+        this.rig.setFacing(1);
+        this.attackTarget(prey);
+      } else {
+        this.rig.setFacing(1);
+        this.x += this.def.speed * this.slowFactor * dt;
+        if (this.rig.current !== 'walk' && !this.rig.isBusy) this.rig.play('walk');
+      }
+    } else if (this.x > KEEP.x + KEEP.radius) {
+      this.rig.setFacing(-1);
+      // Lane cleared: back down the courtyard for the heart.
+      this.x -= this.def.speed * this.slowFactor * dt;
+      if (this.rig.current !== 'walk' && !this.rig.isBusy) this.rig.play('walk');
+    } else {
+      this.atWall = true;
+      this.attackWall();
+    }
+
     this.syncView();
     this.rig.update(time, delta);
   }

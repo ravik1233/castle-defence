@@ -59,7 +59,14 @@ export type EnemySpecial =
   | 'charger'
   | 'leaper'
   | 'boss'
-  | 'shielded';
+  | 'shielded'
+  /**
+   * Goes through a breach like anything else, then turns into a neighbouring
+   * lane and comes at its defenders from behind, where none of them are
+   * facing. Punishes leaving a lane open far more sharply than a plain
+   * attack on the keep does.
+   */
+  | 'flanker';
 
 export interface EnemyDef {
   id: string;

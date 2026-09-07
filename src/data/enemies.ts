@@ -35,6 +35,26 @@ export const ENEMIES: EnemyDef[] = [
     special: 'charger',
   },
   {
+    /*
+     * Cheap and fragile in a straight fight: it dies to anything that sees it
+     * coming. Its whole value is what it does after a lane falls, so leaving
+     * a breach open is what makes it dangerous - not the unit itself.
+     */
+    id: 'cutthroat',
+    name: 'Goblin Cutthroat',
+    art: 'goblin_runner',
+    hp: 110,
+    speed: 88,
+    damage: 16,
+    rate: 1.3,
+    range: 92,
+    armor: 0,
+    bounty: 12,
+    threat: 2.2,
+    special: 'flanker',
+    tint: 0x8f6fd0,
+  },
+  {
     id: 'goblin_bomber',
     name: 'Powder Goblin',
     art: 'goblin_bomber',

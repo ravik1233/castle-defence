@@ -112,6 +112,35 @@ const repaired = await state();
 if ((repaired.sections[2] ?? 0) <= 0) fail('rebuilding lane 2 left it breached');
 else console.log(`a rebuilt section closes the breach (lane 2 back to ${repaired.sections[2]})`);
 
+/*
+ * The flanker. It should come through the breach and then turn into a lane
+ * that is still held, rather than queueing at the heart - and it has to stay
+ * killable there, or it is the unkillable-inside bug wearing a new hat.
+ */
+await page.evaluate(() => {
+  globalThis.__battle.addGold(900);
+  globalThis.__battle.breach(4);
+  // Something for it to hunt, in the lane next door.
+  globalThis.__battle.place('militia', 3, 0);
+  globalThis.__battle.place('archer', 3, 1);
+  globalThis.__battle.spawn('cutthroat', 4, 330);
+});
+const turned = await until(
+  (s) => s.enemyDump.some((e) => e.id === 'cutthroat' && e.row === 3),
+  240000,
+  'the flanker to turn into a held lane',
+);
+if (turned) console.log('the flanker turned into a defended lane');
+if (
+  await until(
+    (s) => !s.enemyDump.some((e) => e.id === 'cutthroat'),
+    240000,
+    'the defenders to kill the flanker',
+  )
+) {
+  console.log('defenders cut down the flanker from behind');
+}
+
 await page.close();
 await browser.close();
 if (failed) process.exitCode = 1;

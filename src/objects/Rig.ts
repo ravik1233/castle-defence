@@ -73,7 +73,7 @@ export class Rig extends Phaser.GameObjects.Container {
   private readonly frames?: Phaser.GameObjects.Image;
   private frameCount = 0;
   private shownFrame = -1;
-  private readonly facingSign: 1 | -1;
+  private facingSign: 1 | -1;
   private anim: RigAnim = 'idle';
   private t: number;
   private animT = 0;
@@ -207,6 +207,19 @@ export class Rig extends Phaser.GameObjects.Container {
 
     this.setScale(this.facingSign, 1);
     scene.add.existing(this);
+  }
+
+  /**
+   * Turns the character round.
+   *
+   * Almost nothing needs this - defenders face right and enemies face left
+   * for their whole lives. A flanker does: once it is through the wall and
+   * hunting back up a lane, it is walking the other way.
+   */
+  setFacing(sign: 1 | -1): void {
+    if (this.facingSign === sign) return;
+    this.facingSign = sign;
+    this.setScale(sign, 1);
   }
 
   /** Height of the character in world pixels. */
