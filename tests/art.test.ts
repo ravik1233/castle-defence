@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ALL_CHARACTER_ART, ENEMY_ART } from '../src/art/cast';
+import { ALL_CHARACTER_ART } from '../src/art/cast';
 import { buildCharacter, skeletonFor } from '../src/art/humanoid';
 import { characterLayout, composeCharacter } from '../src/art/compose';
 import { DEFENDERS } from '../src/data/defenders';
@@ -22,7 +22,11 @@ describe('data and art agree', () => {
   });
 
   it('every enemy points at art that exists', () => {
-    for (const e of ENEMIES) expect(ENEMY_ART[e.art]).toBeDefined();
+    // The newer hordes live in their own block of the cast, so this asks the
+    // whole cast rather than the roster the game shipped with.
+    for (const e of ENEMIES) {
+      expect(ALL_CHARACTER_ART[e.art], `${e.id} points at missing art ${e.art}`).toBeDefined();
+    }
   });
 
   it('every hero points at art that exists', () => {

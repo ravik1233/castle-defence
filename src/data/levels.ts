@@ -6,8 +6,8 @@
  * player fights exactly the same waves and balance changes are one number.
  */
 import { GRID } from '../core/layout';
-import { enemy } from './enemies';
-import type { ChapterDef, LevelDef } from './types';
+import { enemy, familyOf } from './enemies';
+import type { ChapterDef, EnemyFamily, LevelDef } from './types';
 
 /** Deterministic PRNG so generated waves are stable across devices. */
 export function mulberry32(seed: number): () => number {
@@ -52,16 +52,28 @@ export interface Wave {
  * the player fights with and hands them cards raised locally, so a region is
  * a change of hand rather than a change of wallpaper.
  */
+/*
+ * The continent, region by region.
+ *
+ * A region is one horde, one race holding the line against it, one
+ * commander, and fifteen forts. The pool of enemies is not written out fort
+ * by fort - it is drawn from the region's own family, widening as the region
+ * goes on, so a region can never field something that belongs to another.
+ */
 const CHAPTER_META: Array<{
   id: number;
   name: string;
   biome: ChapterDef['biome'];
+  /** Whose horde this is. Every fort here draws from it and nothing else. */
+  family: EnemyFamily;
+  /** Who holds this ground with you. Their units are the region's muster. */
+  race: string;
   blurb: string;
   premium?: boolean;
   levels: number;
   names: string[];
-  pool: string[][];
-  boss?: string;
+  /** The commander of this horde, fought at the last fort. */
+  boss: string;
   commander: string;
   unlocks: string[];
   map: { x: number; y: number };
@@ -70,140 +82,155 @@ const CHAPTER_META: Array<{
     id: 1,
     name: 'The Broken Fields',
     biome: 'fields',
+    family: 'goblin',
+    race: 'Men of the Reach',
     commander: 'aldric',
-    unlocks: ['militia', 'archer', 'barricade', 'guardian'],
-    map: { x: 0.16, y: 0.68 },
-    blurb: 'The horde crossed the river at dawn. Everything east of here is gone.',
-    levels: 10,
+    boss: 'goblin_king',
+    unlocks: ['tithe', 'militia', 'archer', 'barricade', 'guardian', 'frostmage', 'bombard', 'arbalest'],
+    map: { x: 0.06, y: 0.66 },
+    blurb: 'The goblins crossed the river at dawn. Everything east of here is gone.',
+    levels: 15,
     names: [
-      'First Light',
-      'The Mill Road',
-      'Broken Fences',
-      'Runners at Dusk',
-      'The Long Field',
-      'Powder and Smoke',
-      'The Shield Line',
-      'Night Watch',
-      'Hobgoblin Vanguard',
-      'The Warlord of the Fields',
+      'First Light', 'The Mill Road', 'Broken Fences', 'Runners at Dusk', 'The Long Field',
+      'Powder and Smoke', 'The Shield Line', 'Night Watch', 'The Thieving Hour', 'Wolfsong',
+      'The Cut Bridge', 'Hobgoblin Vanguard', 'Under the Hill', 'The Warren Gate', 'Snagrat, King of Rags',
     ],
-    pool: [
-      ['goblin', 'goblin_runner'],
-      ['goblin', 'goblin_runner', 'goblin_bomber'],
-      ['goblin', 'goblin_runner', 'hobgoblin'],
-      ['goblin', 'goblin_bomber', 'hobgoblin', 'imp'],
-      ['goblin', 'goblin_runner', 'imp', 'hobgoblin'],
-      ['goblin', 'goblin_bomber', 'hobgoblin', 'imp', 'cutthroat'],
-      ['goblin', 'goblin_runner', 'hobgoblin', 'cutthroat', 'shaman'],
-      ['goblin', 'goblin_bomber', 'hobgoblin', 'shadow_fiend', 'orc'],
-      ['goblin', 'goblin_runner', 'hobgoblin', 'cutthroat', 'shaman', 'orc'],
-      ['goblin', 'hobgoblin', 'imp', 'goblin_runner', 'orc', 'shaman', 'orc_berserker'],
-    ],
-    boss: 'orc',
   },
   {
     id: 2,
-    name: 'The Ashen Woods',
-    biome: 'woods',
+    name: 'The Barrow Moors',
+    biome: 'barrows',
+    family: 'undead',
+    race: 'Dwarves of Kar Duhrn',
     commander: 'bran',
-    unlocks: ['frostmage', 'bombard', 'arbalest'],
-    map: { x: 0.38, y: 0.4 },
-    blurb: 'They burned the forest to march through it. Something worse followed.',
-    levels: 10,
+    boss: 'necromancer',
+    unlocks: ['dwarf_warrior', 'dwarf_engineer', 'runesmith', 'gravewarden', 'dwarf_cannon'],
+    map: { x: 0.205, y: 0.28 },
+    blurb: 'The dead do not stay down here. The dwarves have held the barrows for eleven winters.',
+    levels: 15,
     names: [
-      'Under Black Branches',
-      'Emberfall',
-      'The Shaman Camp',
-      'Bruteforce',
-      'Ash and Iron',
-      'The Wraith Path',
-      'Berserker Tide',
-      'The Sundered Grove',
-      'Trollbridge',
-      'Warlord Gorzak',
+      'The Wet Ground', 'Bone Field', 'What the Rain Uncovered', 'The Second Rising', 'Ghoulmarch',
+      'Ravens Over Kar Duhrn', 'The Long Barrow', 'Cold Iron', 'The Vampire of the Moor', 'Golem Work',
+      'Where the Lich Waits', 'The Sunken Road', 'Nine Nights', 'The Barrow King', 'Malgrith the Necromancer',
     ],
-    pool: [
-      ['goblin', 'hobgoblin', 'cutthroat'],
-      ['hobgoblin', 'imp', 'goblin_bomber'],
-      ['hobgoblin', 'shaman', 'goblin'],
-      ['orc', 'hobgoblin', 'goblin_runner'],
-      ['orc', 'shaman', 'imp'],
-      ['wraith', 'hobgoblin', 'imp'],
-      ['orc_berserker', 'orc', 'goblin_runner'],
-      ['orc', 'wraith', 'shaman', 'shadow_fiend'],
-      ['troll', 'orc', 'hobgoblin'],
-      ['orc_warlord', 'orc_berserker', 'shaman', 'troll'],
-    ],
-    boss: 'orc_warlord',
   },
   {
     id: 3,
-    name: 'The Gates of the Abyss',
-    biome: 'abyss',
-    commander: 'seraphina',
-    unlocks: ['cleric', 'monk', 'ballista'],
-    map: { x: 0.62, y: 0.62 },
-    blurb: 'The ground opens here. This is where the host comes from.',
-    levels: 10,
+    name: 'The Ashen Woods',
+    biome: 'woods',
+    family: 'orc',
+    race: 'Elves of Elarion',
+    commander: 'faelith',
+    boss: 'orc_warlord',
+    unlocks: ['elf_ranger', 'elf_spellweaver', 'moonblade', 'treesinger', 'hawkkeeper'],
+    map: { x: 0.35, y: 0.66 },
+    blurb: 'They burned the forest to march through it. The elves have not forgiven it.',
+    levels: 15,
     names: [
-      'The Red Threshold',
-      'Fiends in the Dark',
-      'Hell Unbound',
-      'The Screaming Line',
-      'Wraithstorm',
-      'The Iron Knight',
-      'Where Trolls Wake',
-      'The Warlord Rally',
-      'Last Bastion',
-      'The Demon King',
+      'Under Black Branches', 'Emberfall', 'The War Drums', 'Bruteforce', 'Ash and Iron',
+      'The Broken Canopy', 'Berserker Tide', 'The Sundered Grove', 'Trollbridge', 'The Long Retreat',
+      'Elarion Gate', 'What the Fire Left', 'The Standing Stones', 'The Last Grove', 'Warlord Gorzak',
     ],
-    pool: [
-      ['imp', 'shadow_fiend', 'orc'],
-      ['shadow_fiend', 'wraith', 'orc_berserker'],
-      ['imp', 'wraith', 'orc_berserker', 'shaman'],
-      ['orc_berserker', 'troll', 'shadow_fiend'],
-      ['wraith', 'shaman', 'imp', 'shadow_fiend'],
-      ['demon_knight', 'orc', 'wraith'],
-      ['troll', 'orc_berserker', 'shadow_fiend'],
-      ['orc_warlord', 'troll', 'wraith', 'shaman'],
-      ['demon_knight', 'orc_warlord', 'troll', 'wraith'],
-      ['demon_knight', 'orc_warlord', 'troll', 'wraith', 'shadow_fiend'],
-    ],
-    boss: 'demon_king',
   },
   {
     id: 4,
+    name: 'The Iron Highlands',
+    biome: 'highland',
+    family: 'beast',
+    race: 'Wardens of the Green',
+    commander: 'seraphina',
+    boss: 'beastlord',
+    premium: true,
+    unlocks: ['warden', 'netcaster', 'houndmaster', 'ballista', 'standing_stone'],
+    map: { x: 0.495, y: 0.28 },
+    blurb: 'Something in the high country has stopped being afraid of us. Crown Pack.',
+    levels: 15,
+    names: [
+      'The High Pass', 'Wolves at the Fold', 'Tusk and Stone', 'The Screaming Crag', 'Harpy Rocks',
+      'Web and Bone', 'The Bear Road', 'Cairnwatch', 'The Long Howl', 'Where the Herds Went',
+      'Stonefall', 'The Beast Pens', 'Antler Crown', 'The Old Hunt', 'Ursk the Beastlord',
+    ],
+  },
+  {
+    id: 5,
+    name: 'The Drowned Coast',
+    biome: 'coast',
+    family: 'drowned',
+    race: 'Tidewardens of Sael',
+    commander: 'nerion',
+    boss: 'tide_witch',
+    premium: true,
+    unlocks: ['harpooner', 'tidecaller', 'coral_ward', 'raftwright', 'deepwatch'],
+    map: { x: 0.64, y: 0.66 },
+    blurb: 'There is no field here. The water comes up to the wall, and things come up with it. Crown Pack.',
+    levels: 15,
+    names: [
+      'The Tideline', 'Wrecks at Low Water', 'Crawlers on the Stone', 'Songs Under the Hull', 'The Raiding Tide',
+      'Saltmarsh Gate', 'What the Nets Brought', 'The Deep Channel', 'Serpent Water', 'The Drowned Fleet',
+      'Sael Harbour', 'Spring Tide', 'The Black Reef', 'The Last Pier', 'Nerelka, the Tide Witch',
+    ],
+  },
+  {
+    id: 6,
+    name: 'The Fallen March',
+    biome: 'abyss',
+    family: 'fallen',
+    race: 'The Order of the Last Gate',
+    commander: 'maerwyn',
+    boss: 'betrayer',
+    premium: true,
+    unlocks: ['cleric', 'monk', 'templar', 'shieldbreaker', 'reliquary'],
+    map: { x: 0.785, y: 0.28 },
+    blurb: 'These were our own knights. They knelt to him, and they kept their swords. Crown Pack.',
+    levels: 15,
+    names: [
+      'The Turned Garrison', 'Cultsong', 'Crossbows on the Ridge', 'The Kneeling Field', 'Black Guard',
+      'The Inquisitor', 'What They Swore', 'The Broken Oath', 'Chapterhouse', 'The Red Chapel',
+      'Knights of the Pit', 'The Long Betrayal', 'Vayne\'s Banner', 'The Old Company', 'Sir Vayne, the Betrayer',
+    ],
+  },
+  {
+    id: 7,
     name: 'Throne of the Demon King',
     biome: 'throne',
+    family: 'demon',
+    race: 'Whoever Is Left',
     commander: 'maerwyn',
-    unlocks: ['paladin'],
-    map: { x: 0.85, y: 0.3 },
-    blurb: 'He was not destroyed. He withdrew. Follow him down. Crown Pack.',
-    premium: true,
-    levels: 8,
-    names: [
-      'The Descent',
-      'Bone Halls',
-      'The Black Chorus',
-      'Knights of the Pit',
-      'The Long Siege',
-      'Throne Approach',
-      'The King Rises',
-      'The Last Gate',
-    ],
-    pool: [
-      ['shadow_fiend', 'wraith', 'demon_knight'],
-      ['demon_knight', 'troll', 'shaman'],
-      ['wraith', 'shadow_fiend', 'orc_warlord'],
-      ['demon_knight', 'orc_warlord', 'troll'],
-      ['demon_knight', 'wraith', 'troll', 'orc_berserker'],
-      ['demon_knight', 'orc_warlord', 'wraith', 'shadow_fiend'],
-      ['demon_knight', 'orc_warlord', 'troll', 'wraith'],
-      ['demon_knight', 'orc_warlord', 'troll', 'wraith', 'shadow_fiend'],
-    ],
     boss: 'demon_king',
+    premium: true,
+    unlocks: ['warleader', 'sunspire', 'lastward', 'kingsguard', 'gatebreaker'],
+    map: { x: 0.93, y: 0.62 },
+    blurb: 'His own kind, at last, and his own ground. Everything you have learned is the price of entry. Crown Pack.',
+    levels: 15,
+    names: [
+      'The Descent', 'Bone Halls', 'The Black Chorus', 'Hounds of the Pit', 'Portalfall',
+      'The Long Siege', 'Where the Air Burns', 'The Balor', 'Throne Approach', 'The Kings Below',
+      'Azrath, the Demon Prince', 'The Last Company', 'The King Rises', 'The Gate Itself', 'The Last Gate',
+    ],
   },
 ];
+
+/**
+ * What a fort of this region fields.
+ *
+ * The family's own members, ordered by how much trouble they are, revealed a
+ * few at a time so a region opens with its rank and file and ends with
+ * everything it has. The commander never appears in the pool - it is fought
+ * once, at the last fort.
+ */
+function poolFor(family: EnemyFamily, boss: string, index: number, total: number): string[] {
+  const roster = familyOf(family)
+    .filter((e) => e.id !== boss && e.special !== 'boss' && !e.specials?.includes('boss'))
+    .sort((a, b) => a.threat - b.threat);
+  if (!roster.length) return ['goblin'];
+  // Everything is on the table by two thirds of the way through the region.
+  const share = Math.min(1, 0.45 + (index / Math.max(1, total - 1)) * 0.85);
+  const shown = Math.max(2, Math.round(roster.length * share));
+  // Drop the weakest as the region goes on, so late forts are not padded
+  // with something the player stopped noticing ten forts ago.
+  const from = index > total * 0.6 ? Math.min(2, roster.length - shown) : 0;
+  return roster.slice(from, from + shown).map((e) => e.id);
+}
 
 function buildLevel(
   chapterIdx: number,
@@ -223,7 +250,7 @@ function buildLevel(
     waves,
     budgetStart: 3 + i * 1.5 + tier * 7,
     budgetGrowth: 1.2 + tier * 0.025,
-    pool: meta.pool[i] ?? meta.pool[meta.pool.length - 1]!,
+    pool: poolFor(meta.family, meta.boss, i, meta.levels),
     boss: last ? meta.boss : undefined,
     startingGold: 175 + Math.min(125, i * 10) + tier * 25,
     reward: 120 + i * 30 + tier * 90 + (last ? 400 : 0),
@@ -243,6 +270,8 @@ export const CHAPTERS: ChapterDef[] = CHAPTER_META.map((meta, ci) => ({
   id: meta.id,
   name: meta.name,
   biome: meta.biome,
+  family: meta.family,
+  race: meta.race,
   blurb: meta.blurb,
   premium: meta.premium,
   commander: meta.commander,

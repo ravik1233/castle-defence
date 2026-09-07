@@ -79,6 +79,78 @@ export const HEROES: HeroDef[] = [
   },
   {
     /*
+     * Elarion's commander. The elves fight orcs by never being where the
+     * orc swung, so her spells move her own line rather than the enemy's.
+     */
+    id: 'faelith',
+    name: 'Faelith of Elarion',
+    title: 'Warden of the Ashen Woods',
+    art: 'elf_spellweaver',
+    blurb: 'She watched the woods burn for a season and did not once break formation.',
+    spells: [
+      {
+        id: 'arrowstorm',
+        name: 'Arrow Storm',
+        blurb: 'A volley down one lane. Light, but it lands on everything in it.',
+        icon: 'fx.spark',
+        target: 'lane',
+        cooldown: 14,
+        damage: 180,
+        effect: 'chain',
+        fx: 'fx.spark',
+      },
+      {
+        id: 'quickstep',
+        name: 'Quickstep',
+        blurb: 'Every defender strikes faster and takes less for 8 seconds.',
+        icon: 'fx.shockwave',
+        target: 'global',
+        cooldown: 28,
+        duration: 8,
+        effect: 'rally',
+        fx: 'fx.shockwave',
+      },
+    ],
+  },
+  {
+    /*
+     * Sael's commander, and the only one who fights on water. Both his
+     * spells are about the ground itself - freezing it, or taking it away.
+     */
+    id: 'nerion',
+    name: 'Nerion of Sael',
+    title: 'Tidewarden of the Drowned Coast',
+    art: 'siren',
+    blurb: 'He has drowned more of the horde than the whole Order has killed.',
+    premium: true,
+    spells: [
+      {
+        id: 'undertow',
+        name: 'Undertow',
+        blurb: 'Drags a lane back toward the water and holds it there.',
+        icon: 'fx.frost_ring',
+        target: 'lane',
+        cooldown: 18,
+        damage: 150,
+        duration: 4,
+        effect: 'freeze',
+        fx: 'fx.frost_ring',
+      },
+      {
+        id: 'springtide',
+        name: 'Spring Tide',
+        blurb: 'The sea comes up. Heavy damage to everything on the field.',
+        icon: 'fx.frost_ring',
+        target: 'global',
+        cooldown: 42,
+        damage: 220,
+        effect: 'smite',
+        fx: 'fx.frost_ring',
+      },
+    ],
+  },
+  {
+    /*
      * The Abyss commander, and a Crown Pack one. Her spells are the answer to
      * a region of demons: holy where everything else has been steel.
      */

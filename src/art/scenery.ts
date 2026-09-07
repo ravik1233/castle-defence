@@ -5,7 +5,7 @@
 import { darken, lighten, mix, withAlpha } from '../core/color';
 import { Svg, draw } from './Svg';
 
-export type BiomeId = 'fields' | 'woods' | 'abyss' | 'throne';
+export type BiomeId = 'fields' | 'barrows' | 'woods' | 'highland' | 'coast' | 'abyss' | 'throne';
 
 export interface Biome {
   id: BiomeId;
@@ -42,6 +42,39 @@ export const BIOMES: Record<BiomeId, Biome> = {
     groundAlt: '#514a41',
     accent: '#a8926a',
     mote: '#d9c9a8',
+  },
+  barrows: {
+    id: 'barrows',
+    name: 'The Barrow Moors',
+    sky: ['#2f3a4e', '#6a7a86'],
+    far: '#3a4452',
+    mid: '#2e3a3e',
+    ground: '#4a5348',
+    groundAlt: '#424b41',
+    accent: '#9fb8a8',
+    mote: '#cfe8dd',
+  },
+  highland: {
+    id: 'highland',
+    name: 'The Iron Highlands',
+    sky: ['#8aa2c0', '#d7e2ea'],
+    far: '#5f6f86',
+    mid: '#4a5560',
+    ground: '#6f6a58',
+    groundAlt: '#655f4e',
+    accent: '#c9b98a',
+    mote: '#efe6cf',
+  },
+  coast: {
+    id: 'coast',
+    name: 'The Drowned Coast',
+    sky: ['#3f6f8e', '#a8d2e2'],
+    far: '#3a6070',
+    mid: '#2f5560',
+    ground: '#3c6f78',
+    groundAlt: '#356068',
+    accent: '#8fd0c0',
+    mote: '#cdeff2',
   },
   abyss: {
     id: 'abyss',

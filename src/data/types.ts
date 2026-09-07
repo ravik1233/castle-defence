@@ -17,6 +17,47 @@ export type DamageType = 'physical' | 'fire' | 'frost' | 'holy';
  */
 export type EnemyKind = 'living' | 'armoured' | 'undead' | 'demon';
 
+/**
+ * Who the horde is, region by region.
+ *
+ * A region draws only from its own family, so crossing a border changes what
+ * you are fighting rather than only how much of it. Each family carries one
+ * behaviour of its own - see `FAMILY_TRAIT` - which is the thing the region's
+ * own defenders are built to answer.
+ */
+export type EnemyFamily =
+  | 'goblin'
+  | 'undead'
+  | 'orc'
+  | 'beast'
+  /** The water region: everything here comes out of the deep. */
+  | 'drowned'
+  /** Men who took the King's side. His household guard at the Throne. */
+  | 'fallen'
+  /** The King's own kind, held back until his own region. */
+  | 'demon';
+
+/**
+ * What a cell of the field is made of.
+ *
+ * A flat grid means every fort plays the same. Ground that refuses to be
+ * built on, slows what crosses it, or pays a building more turns placement
+ * into a decision about this fort rather than a habit.
+ */
+export type TileKind =
+  /** Ordinary ground. */
+  | 'plain'
+  /** Cannot be built on at all. */
+  | 'rubble'
+  /** Anything walking across it is slowed. */
+  | 'marsh'
+  /** Whoever stands here strikes harder. */
+  | 'shrine'
+  /** An economy building here pays more. */
+  | 'seam'
+  /** Nothing can stand here and only flyers cross it. */
+  | 'chasm';
+
 export interface AttackDef {
   damage: number;
   /** Defaults to physical when a unit does not say otherwise. */
@@ -73,13 +114,28 @@ export interface DefenderDef {
    * A named behaviour that is not expressible as numbers. `mason` mends the
    * gate section in its own lane; the rest are combat quirks.
    */
-  trait?: 'thorns' | 'deathblast' | 'chain' | 'knockback' | 'smite' | 'executioner' | 'mason';
-  /**
-   * Set on cards whose art must be drawn frames rather than assembled parts.
-   * Until the frames are installed the card is simply not offered - a unit
-   * built out of loose limbs is not something to sell anyone.
-   */
-  requiresFrames?: boolean;
+  trait?:
+    | 'thorns'
+    | 'deathblast'
+    | 'chain'
+    | 'knockback'
+    | 'smite'
+    | 'executioner'
+    | 'mason'
+    /** Holy ground: the undead it kills in this lane do not get back up. */
+    | 'consecrate'
+    /** Roots what it hits in place for a moment. Answers a charging pack. */
+    | 'root'
+    /** Ignores a shield carried against the front. */
+    | 'shieldbreak'
+    /** Only hits flyers, and hits them hard. */
+    | 'skyward'
+    /** Bleeds what it hits, so raging enemies pay for their own rage. */
+    | 'bleed'
+    /** Drags the lane's front-most enemy into reach and holds its attention. */
+    | 'taunt'
+    /** Closes portals and cancels a demon's step. */
+    | 'ward';
 }
 
 export type EnemySpecial =
@@ -97,7 +153,19 @@ export type EnemySpecial =
    * facing. Punishes leaving a lane open far more sharply than a plain
    * attack on the keep does.
    */
-  | 'flanker';
+  | 'flanker'
+  /** Undead: gets back up once, unless holy or fire put it down. */
+  | 'risen'
+  /** Orcs: hits harder the more it has bled. */
+  | 'rager'
+  /** Beasts: faster while other beasts are near it. */
+  | 'pack'
+  /** The Fallen: a shield that blunts everything coming at its front. */
+  | 'shieldwall'
+  /** Demons: steps through a portal past whatever is blocking it, once. */
+  | 'stepper'
+  /** Goblins: takes gold off the player when it lands a hit. */
+  | 'thief';
 
 export interface EnemyDef {
   id: string;
@@ -119,7 +187,11 @@ export interface EnemyDef {
   bounty: number;
   /** Cost against a wave's budget; drives the wave generator. */
   threat: number;
+  /** Which horde it belongs to. Drives which region it turns up in. */
+  family?: EnemyFamily;
   special?: EnemySpecial;
+  /** A second behaviour, so a boss can rage and summon both. */
+  specials?: EnemySpecial[];
   projectile?: ProjectileId;
   scale?: number;
   /** Tint applied to elite variants. */
@@ -212,6 +284,10 @@ export interface ChapterDef {
   blurb: string;
   premium?: boolean;
   levels: LevelDef[];
+  /** Whose horde holds this ground. Every fort here fields it and nothing else. */
+  family: EnemyFamily;
+  /** Who holds the wall with you. Named on the map and in the briefing. */
+  race: string;
   /** The hero who commands here, and whose spells the player fights with. */
   commander: string;
   /** Defenders this region musters, granted on arrival. */

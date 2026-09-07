@@ -1,11 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { Profile } from '../src/systems/profile';
 import { defaultSave } from '../src/systems/save';
 import { DEFENDERS, MAX_UPGRADE_LEVEL, defender, upgradeCost, upgradedStats } from '../src/data/defenders';
 import { ALL_LEVELS, level } from '../src/data/levels';
 import { HEROES } from '../src/data/heroes';
 import { EQUIPMENT_SLOTS, consumable, equipment, salvageFor } from '../src/data/workshop';
-import { setFramedArt } from '../src/systems/artstate';
 
 let p: Profile;
 beforeEach(() => {
@@ -40,9 +39,7 @@ describe('campaign gating', () => {
 });
 
 describe('crown pack entitlements', () => {
-  // Cards still waiting on their drawn frames are covered on their own,
-  // below: the pack pays for them but the game does not offer them yet.
-  const premiumCards = DEFENDERS.filter((d) => d.premium && !d.requiresFrames).map((d) => d.id);
+  const premiumCards = DEFENDERS.filter((d) => d.premium).map((d) => d.id);
 
   it('locks premium cards, hero, skins and chapter 4 without the pack', () => {
     for (const id of premiumCards) expect(p.isCardUnlocked(id)).toBe(false);
@@ -64,23 +61,26 @@ describe('crown pack entitlements', () => {
     // The pack pays for the premium commanders; the campaign still decides
     // when they turn up.
     expect(p.availableHeroes()).toEqual(['aldric']);
-    for (const l of ALL_LEVELS.slice(0, 10)) p.recordVictory(l.id, 3, l.waves, 0);
+    // Fifteen forts is one region, so this is the moment region 2 opens.
+    for (const l of ALL_LEVELS.slice(0, 15)) p.recordVictory(l.id, 3, l.waves, 0);
     expect(p.availableHeroes()).toEqual(['aldric', 'bran']);
-    for (const l of ALL_LEVELS.slice(0, 30)) p.recordVictory(l.id, 3, l.waves, 0);
+    for (const l of ALL_LEVELS) p.recordVictory(l.id, 3, l.waves, 0);
     expect(p.availableHeroes()).toEqual(HEROES.map((h) => h.id));
   });
 
   it("musters a region's own units the moment the player arrives", () => {
-    expect(p.isCardUnlocked('frostmage')).toBe(false);
-    for (const l of ALL_LEVELS.slice(0, 10)) p.recordVictory(l.id, 3, l.waves, 0);
+    // A dwarf card belongs to region 2 and cannot be had in region 1.
+    expect(p.isCardUnlocked('runesmith')).toBe(false);
+    for (const l of ALL_LEVELS.slice(0, 15)) p.recordVictory(l.id, 3, l.waves, 0);
     expect(p.currentRegion().id).toBe(2);
-    expect(p.isCardUnlocked('frostmage')).toBe(true);
+    expect(p.isCardUnlocked('runesmith')).toBe(true);
   });
 
-  it('still gates premium chapter levels behind campaign progress', () => {
+  it('still gates premium regions behind campaign progress', () => {
     p.grantCrownPack();
     expect(p.isLevelUnlocked('c4l1')).toBe(false);
-    for (const l of ALL_LEVELS.slice(0, 30)) p.recordVictory(l.id, 3, l.waves, 0);
+    // The paid regions begin after the three free ones: 45 forts.
+    for (const l of ALL_LEVELS.slice(0, 45)) p.recordVictory(l.id, 3, l.waves, 0);
     expect(p.isLevelUnlocked('c4l1')).toBe(true);
   });
 
@@ -222,31 +222,4 @@ describe('workshop', () => {
   });
 });
 
-describe('cards waiting on art', () => {
-  const pending = DEFENDERS.filter((d) => d.requiresFrames);
 
-  afterEach(() => setFramedArt([]));
-
-  it('has some, and none of them are offered while their frames are missing', () => {
-    expect(pending.length).toBeGreaterThan(0);
-    p.grantCrownPack();
-    for (const d of pending) expect(p.isCardUnlocked(d.id)).toBe(false);
-  });
-
-  it('offers them the moment the frames are installed', () => {
-    p.grantCrownPack();
-    setFramedArt(pending.map((d) => (d.art.kind === 'unit' ? d.art.id : '')));
-    for (const d of pending) expect(p.isCardUnlocked(d.id)).toBe(true);
-  });
-
-  it('still keeps them behind the pack once the art exists', () => {
-    setFramedArt(pending.map((d) => (d.art.kind === 'unit' ? d.art.id : '')));
-    for (const d of pending) expect(p.isCardUnlocked(d.id)).toBe(false);
-  });
-
-  it('never deals one into a deck', () => {
-    p.grantCrownPack();
-    p.setDeck(pending.map((d) => d.id));
-    for (const id of p.effectiveDeck()) expect(pending.some((d) => d.id === id)).toBe(false);
-  });
-});

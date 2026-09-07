@@ -8,7 +8,6 @@ import { CHAPTERS, ALL_LEVELS, levelNumber } from '../data/levels';
 import { DEFENDERS, MAX_UPGRADE_LEVEL, defender, upgradeCost } from '../data/defenders';
 import { HEROES } from '../data/heroes';
 import { CONSUMABLE_BY_ID, EQUIPMENT_BY_ID, EQUIPMENT_SLOTS } from '../data/workshop';
-import { hasFrames } from './artstate';
 import { WALL_SKINS } from '../art/structures';
 import { defaultSave, loadSave, writeSave, type SaveData, type Settings } from './save';
 
@@ -170,9 +169,6 @@ export class Profile {
    */
   isCardUnlocked(defenderId: string): boolean {
     const def = defender(defenderId);
-    // A card waiting on its art is not offered at all, whatever else the
-    // player owns.
-    if (def.requiresFrames && def.art.kind === 'unit' && !hasFrames(def.art.id)) return false;
     if (def.premium) return this.hasCrownPack;
     // A region hands over its own muster the moment the player reaches it, so
     // arriving somewhere new is arriving with something new to fight with.

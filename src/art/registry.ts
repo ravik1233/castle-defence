@@ -18,7 +18,6 @@
 import type Phaser from 'phaser';
 import { Svg } from './Svg';
 import { ALL_CHARACTER_ART } from './cast';
-import { setFramedArt } from '../systems/artstate';
 import { characterArt } from './compose';
 import * as structures from './structures';
 import * as scenery from './scenery';
@@ -236,9 +235,6 @@ async function paintedOverrides(): Promise<Record<string, string>> {
         files[key] = value;
       }
     }
-    // Tell the rest of the game which units are actually drawn, so a card
-    // that needs frames is not offered before its frames exist.
-    setFramedArt(paintedFrames.keys());
     return files;
   } catch {
     // No painted pack installed - vector art is the shipping art.
