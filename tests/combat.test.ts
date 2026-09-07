@@ -5,6 +5,8 @@ import {
   enemyScaling,
   pickTarget,
   sellValue,
+  damageDealt,
+  damageMultiplier,
   starsForKeep,
   starsForWall,
   tensionFor,
@@ -120,5 +122,41 @@ describe('starsForKeep', () => {
 
   it('gives one star if the heart was struck at all', () => {
     expect(starsForKeep({ ...intact, heartHp: 699 })).toBe(1);
+  });
+});
+
+describe('damage types', () => {
+  it('leaves steel as the honest baseline against flesh', () => {
+    expect(damageMultiplier('physical', 'living')).toBe(1);
+  });
+
+  it('makes armour the answer to steel and holy the answer to armour being the answer', () => {
+    expect(damageMultiplier('physical', 'armoured')).toBeLessThan(1);
+    expect(damageMultiplier('holy', 'undead')).toBeGreaterThan(1.5);
+  });
+
+  it('gives every type something it is bad against', () => {
+    for (const type of ['physical', 'fire', 'frost', 'holy'] as const) {
+      const kinds = ['living', 'armoured', 'undead', 'demon'] as const;
+      const worst = Math.min(...kinds.map((k) => damageMultiplier(type, k)));
+      expect(worst).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('does not let fire be the answer to demons', () => {
+    expect(damageMultiplier('fire', 'demon')).toBeLessThan(1);
+    expect(damageMultiplier('frost', 'demon')).toBeGreaterThan(1);
+  });
+
+  it('defaults to physical against living, so old data keeps working', () => {
+    expect(damageMultiplier()).toBe(1);
+    expect(damageDealt(100, undefined, undefined, 0)).toBe(100);
+  });
+
+  it('applies the matchup before armour, under the usual floor', () => {
+    // Holy against undead: 100 * 1.7 = 170, less 20 armour.
+    expect(damageDealt(100, 'holy', 'undead', 20)).toBe(150);
+    // Resisted and heavily armoured still scratches rather than doing nothing.
+    expect(damageDealt(10, 'physical', 'armoured', 999)).toBeGreaterThan(0);
   });
 });

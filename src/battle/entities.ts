@@ -10,9 +10,9 @@ import { characterArt } from '../art/compose';
 import { ALL_CHARACTER_ART } from '../art/cast';
 import type { ProjectileId } from '../art/props';
 import { GRID, KEEP, WALL_FACE_X, cellCenter, laneGroundY } from '../core/layout';
-import type { DefenderDef, EnemyDef } from '../data/types';
+import type { DamageType, DefenderDef, EnemyDef } from '../data/types';
 import { Rig } from '../objects/Rig';
-import { applyDamage, damageAfterArmor } from './combat';
+import { applyDamage, damageDealt, damageMultiplier } from './combat';
 
 export interface BattleWorld {
   /** The Phaser scene the battle runs in. Named `stage` because `Scene.scene`
@@ -94,6 +94,8 @@ export class Defender {
   private cooldown = 0;
   private economyTimer: number;
   private auraTimer = 0;
+  /** Swings taken, for traits that land on a count rather than a chance. */
+  private swings = 0;
   private pendingShot?: () => void;
 
   constructor(
@@ -222,6 +224,21 @@ export class Defender {
     const target = this.findTarget(attack.range, attack.targets !== 'ground');
     if (!target) return;
     this.cooldown = 1 / attack.rate;
+    this.swings += 1;
+
+    /*
+     * The only two crits in the game, and neither is a roll.
+     *
+     * A smite lands on every third swing; an executioner's bolt bites on
+     * armour. Both are things the player can count or see coming, which is
+     * the point - a crit nobody can predict is just noise in the numbers,
+     * and one they can predict is a thing to play around.
+     */
+    const smiting = this.def.trait === 'smite' && this.swings % SMITE_EVERY === 0;
+    const executing = this.def.trait === 'executioner' && target.def.kind === 'armoured';
+    const crit = smiting || executing;
+    const blow = crit ? this.damage * CRIT_MULTIPLIER : this.damage;
+    const blowType: DamageType = smiting ? 'holy' : (attack.damageType ?? 'physical');
 
     const fire = (): void => {
       if (!this.alive) return;
@@ -229,7 +246,8 @@ export class Defender {
         this.world.spawnProjectile({
           from: { x: this.x + 30, y: this.topY + 40 },
           target,
-          damage: this.damage,
+          damage: blow,
+          damageType: blowType,
           kind: attack.projectile,
           splash: attack.splash ?? 0,
           pierce: attack.pierce ?? 0,
@@ -247,11 +265,12 @@ export class Defender {
         // Melee: hit the target, plus anything caught in the swing.
         this.world.sfx('melee');
         this.world.burst(target.x - 20, target.y - 60, 'hit');
-        target.takeDamage(this.damage);
+        target.takeDamage(blow, false, blowType);
+        if (crit) this.world.burst(target.x - 20, target.y - 80, 'hit');
         if (attack.splash) {
           for (const e of this.world.enemies) {
             if (e === target || !e.alive || e.row !== this.row) continue;
-            if (Math.abs(e.x - target.x) <= attack.splash) e.takeDamage(this.damage * 0.6);
+            if (Math.abs(e.x - target.x) <= attack.splash) e.takeDamage(blow * 0.6, false, blowType);
           }
         }
         if (this.def.trait === 'knockback') target.knockback(26);
@@ -296,7 +315,8 @@ export class Defender {
       for (const e of this.world.enemies) {
         if (!e.alive) continue;
         if (Phaser.Math.Distance.Between(e.x, e.y, this.x, this.y) <= aura.radius) {
-          e.takeDamage(aura.value);
+          // A burn is fire whatever is producing it, so a demon shrugs at it.
+          e.takeDamage(aura.value, false, 'fire');
           e.applySlow(0.25, 1.2);
         }
       }
@@ -322,6 +342,10 @@ export class Defender {
     return best;
   }
 }
+
+/** Swings between smites, and what a crit multiplies by. Counted, not rolled. */
+const SMITE_EVERY = 3;
+const CRIT_MULTIPLIER = 2;
 
 /* ----------------------------------------------------------------- enemy - */
 
@@ -410,12 +434,20 @@ export class Enemy {
     this.x += px;
   }
 
-  takeDamage(amount: number, ignoreArmor = false): void {
+  /**
+   * Takes a blow of a given kind.
+   *
+   * The flash colour follows the type, because a player who cannot see that
+   * their fire is doing nothing to a demon has a matchup system they can only
+   * learn from a wiki.
+   */
+  takeDamage(amount: number, ignoreArmor = false, type: DamageType = 'physical'): void {
     if (!this.alive) return;
     const armor = ignoreArmor ? 0 : this.def.armor;
-    const dealt = damageAfterArmor(amount, armor);
+    const dealt = damageDealt(amount, type, this.def.kind, armor);
     this.hp -= dealt;
-    this.rig.flash(0xffffff, 70);
+    const multiplier = damageMultiplier(type, this.def.kind);
+    this.rig.flash(multiplier > 1.05 ? 0xfff0a0 : multiplier < 0.95 ? 0x7080a0 : 0xffffff, 70);
     if (this.hp <= 0) this.die();
   }
 
@@ -707,6 +739,8 @@ export interface ProjectileOptions {
   pierce: number;
   hitsAir: boolean;
   row: number;
+  /** Carried to the impact, so a holy bolt still lands as holy. */
+  damageType?: DamageType;
   /** Enemy projectiles damage defenders instead. */
   hostile?: boolean;
 }
@@ -772,7 +806,7 @@ export class Projectile {
       if (Math.abs(e.x - this.sprite.x) > 44) continue;
       if (Math.abs(e.y - 50 - this.sprite.y) > 110) continue;
       this.hitIds.add(e);
-      e.takeDamage(this.opts.damage);
+      e.takeDamage(this.opts.damage, false, this.opts.damageType);
       this.world.burst(this.sprite.x, this.sprite.y, this.opts.splash ? 'explosion' : 'hit');
       this.hitCount += 1;
       if (this.opts.splash > 0) {
@@ -795,7 +829,7 @@ export class Projectile {
       for (const e of this.world.enemies) {
         if (!e.alive || this.hitIds.has(e)) continue;
         const d = Phaser.Math.Distance.Between(e.x, e.y - 50, this.sprite.x, this.sprite.y);
-        if (d <= this.opts.splash) e.takeDamage(this.opts.damage * 0.7);
+        if (d <= this.opts.splash) e.takeDamage(this.opts.damage * 0.7, false, this.opts.damageType);
       }
       this.world.burst(this.sprite.x, this.sprite.y, 'explosion');
     }

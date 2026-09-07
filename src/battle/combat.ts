@@ -4,7 +4,7 @@
  * Kept free of Phaser so the rules can be unit tested and reasoned about
  * without booting a game.
  */
-import type { DefenderDef, EnemyDef } from '../data/types';
+import type { DamageType, DefenderDef, EnemyDef, EnemyKind } from '../data/types';
 
 /** Armour is flat reduction with a floor, so big hits still hurt tanks. */
 export function damageAfterArmor(damage: number, armor: number): number {
@@ -64,6 +64,51 @@ export function starsForKeep(keep: KeepState): number {
   if (pct >= 0.9999) return 3;
   if (pct >= 0.6) return 2;
   return 1;
+}
+
+/* ------------------------------------------------------------- damage ---- */
+
+/**
+ * What each damage type does to each kind of enemy.
+ *
+ * Sixteen numbers, chosen to be learnable rather than exhaustive. Steel is
+ * the honest baseline that is never terrible and never exciting; everything
+ * else is good against something and bad against something, so bringing the
+ * wrong deck into a chapter is a mistake the player can understand and fix.
+ *
+ * There is no randomness anywhere in here on purpose. Every blow in this game
+ * is a number the player could have worked out in advance.
+ */
+const TYPE_TABLE: Record<DamageType, Record<EnemyKind, number>> = {
+  //          living  armoured  undead  demon
+  physical: { living: 1, armoured: 0.7, undead: 1, demon: 1 },
+  // Burns flesh, does little to something that lives in fire.
+  fire: { living: 1.3, armoured: 1, undead: 1.1, demon: 0.6 },
+  // Bites hardest into things that run hot; a corpse does not feel the cold.
+  frost: { living: 1, armoured: 1, undead: 0.7, demon: 1.4 },
+  // The answer to what should not exist, and no better than steel on a man.
+  holy: { living: 1, armoured: 0.9, undead: 1.7, demon: 1.5 },
+};
+
+/** The multiplier for a blow of this type against this kind of enemy. */
+export function damageMultiplier(type: DamageType = 'physical', kind: EnemyKind = 'living'): number {
+  return TYPE_TABLE[type][kind];
+}
+
+/**
+ * What a blow actually takes off, in the order it happens: the type matchup
+ * scales the blow, then armour comes off the top under the usual floor.
+ *
+ * One armour rule for the whole game, so a resisted hit and a plain hit are
+ * still governed by the same arithmetic.
+ */
+export function damageDealt(
+  raw: number,
+  type: DamageType | undefined,
+  kind: EnemyKind | undefined,
+  armor: number,
+): number {
+  return damageAfterArmor(raw * damageMultiplier(type, kind), armor);
 }
 
 /**

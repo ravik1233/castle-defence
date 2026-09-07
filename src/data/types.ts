@@ -4,8 +4,23 @@ import type { BiomeId } from '../art/scenery';
 
 export type DefenderRole = 'melee' | 'ranged' | 'economy' | 'wall' | 'support' | 'aoe';
 
+/**
+ * What a blow is made of. Steel is the baseline; the rest trade being poor
+ * against something for being strong against something else, which is what
+ * makes a deck a choice rather than a shopping list of the best numbers.
+ */
+export type DamageType = 'physical' | 'fire' | 'frost' | 'holy';
+
+/**
+ * What an enemy is made of. Four kinds, so the whole matrix is sixteen
+ * numbers a player can actually learn.
+ */
+export type EnemyKind = 'living' | 'armoured' | 'undead' | 'demon';
+
 export interface AttackDef {
   damage: number;
+  /** Defaults to physical when a unit does not say otherwise. */
+  damageType?: DamageType;
   /** Attacks per second. */
   rate: number;
   /** Reach in screen pixels; melee units use roughly one cell. */
@@ -47,8 +62,14 @@ export interface DefenderDef {
   premium?: boolean;
   /** Multiplicative gain per armoury upgrade level. */
   upgrade: { hp: number; damage: number };
-  /** Extra behaviour hooks the battle scene understands. */
-  trait?: 'thorns' | 'deathblast' | 'chain' | 'knockback';
+  /**
+   * Extra behaviour hooks the battle scene understands.
+   *
+   * `smite` and `executioner` are the only crits in the game, and both are
+   * counted rather than rolled: every blow in this game is a number the
+   * player could have worked out beforehand.
+   */
+  trait?: 'thorns' | 'deathblast' | 'chain' | 'knockback' | 'smite' | 'executioner';
 }
 
 export type EnemySpecial =
@@ -81,6 +102,8 @@ export interface EnemyDef {
   range: number;
   /** Flat damage reduction per hit. */
   armor: number;
+  /** What it is made of, for damage type multipliers. Defaults to living. */
+  kind?: EnemyKind;
   flying?: boolean;
   /** Gold awarded on death. */
   bounty: number;

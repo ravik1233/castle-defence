@@ -81,7 +81,7 @@ export const DEFENDERS: DefenderDef[] = [
     cost: 175,
     recharge: 12,
     hp: 200,
-    attack: { damage: 16, rate: 0.8, range: 820, projectile: 'frostbolt', targets: 'all' },
+    attack: { damageType: 'frost', damage: 16, rate: 0.8, range: 820, projectile: 'frostbolt', targets: 'all' },
     aura: { kind: 'slow', radius: 300, value: 0.45, interval: 1 },
     unlockLevel: 5,
     upgrade: { hp: 0.1, damage: 0.14 },
@@ -96,6 +96,8 @@ export const DEFENDERS: DefenderDef[] = [
     recharge: 10,
     hp: 220,
     attack: { damage: 52, rate: 0.62, range: 900, projectile: 'bolt', pierce: 3, targets: 'all' },
+    // A bolt made for plate: doubled against anything armoured.
+    trait: 'executioner',
     unlockLevel: 7,
     upgrade: { hp: 0.1, damage: 0.2 },
   },
@@ -109,7 +111,7 @@ export const DEFENDERS: DefenderDef[] = [
     recharge: 14,
     hp: 240,
     aura: { kind: 'heal', radius: 340, value: 34, interval: 2 },
-    attack: { damage: 18, rate: 0.7, range: 640, projectile: 'holybolt', targets: 'all' },
+    attack: { damageType: 'holy', damage: 18, rate: 0.7, range: 640, projectile: 'holybolt', targets: 'all' },
     unlockLevel: 8,
     upgrade: { hp: 0.12, damage: 0.16 },
   },
@@ -122,7 +124,7 @@ export const DEFENDERS: DefenderDef[] = [
     cost: 275,
     recharge: 16,
     hp: 420,
-    attack: { damage: 70, rate: 0.4, range: 820, projectile: 'cannonball', splash: 150, targets: 'ground' },
+    attack: { damageType: 'fire', damage: 70, rate: 0.4, range: 820, projectile: 'cannonball', splash: 150, targets: 'ground' },
     unlockLevel: 6,
     upgrade: { hp: 0.14, damage: 0.2 },
   },
@@ -164,7 +166,7 @@ export const DEFENDERS: DefenderDef[] = [
     cost: 275,
     recharge: 14,
     hp: 220,
-    attack: { damage: 46, rate: 0.7, range: 760, projectile: 'fireball', splash: 170, targets: 'all' },
+    attack: { damageType: 'fire', damage: 46, rate: 0.7, range: 760, projectile: 'fireball', splash: 170, targets: 'all' },
     unlockLevel: 1,
     premium: true,
     upgrade: { hp: 0.1, damage: 0.2 },
@@ -196,6 +198,9 @@ export const DEFENDERS: DefenderDef[] = [
     unlockLevel: 1,
     premium: true,
     upgrade: { hp: 0.2, damage: 0.18 },
+    // Every third swing comes down holy and doubled. Countable, so it can be
+    // played around rather than merely hoped for.
+    trait: 'smite',
   },
 ];
 
