@@ -1,5 +1,6 @@
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import entitiesSrc from '../src/battle/entities.ts?raw';
+import combatSrc from '../src/battle/combat.ts?raw';
 import { CHAPTERS, generateWaves } from '../src/data/levels';
 import { DEFENDERS, DEFENDER_BY_ID } from '../src/data/defenders';
 import { ENEMIES, enemy } from '../src/data/enemies';
@@ -92,8 +93,10 @@ describe('what a threat point buys', () => {
    * behaviour the player is told about has to exist.
    */
   it('reads every behaviour it lets an enemy declare', () => {
-    const sim = [readFileSync('src/battle/entities.ts', 'utf8'), readFileSync('src/battle/combat.ts', 'utf8')].join('\n');
-    const declared = new Set(ENEMIES.flatMap((e) => [e.special, ...(e.specials ?? [])]).filter((s): s is string => !!s && s !== 'none'));
+    const sim = `${entitiesSrc}\n${combatSrc}`;
+    const declared = new Set(
+      ENEMIES.flatMap((e) => [e.special, ...(e.specials ?? [])]).filter((s) => !!s && s !== 'none'),
+    );
     for (const s of declared) {
       expect(sim.includes(`'${s}'`), `nothing in the simulation reads ${s}`).toBe(true);
     }

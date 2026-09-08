@@ -16,8 +16,15 @@ import { COLORS, Counter, TextButton, fitText, showDialog, tappable, textStyle }
 
 type Tab = 'deck' | 'upgrades' | 'hero' | 'castle';
 
+/** Upgrade rows that fit on one page; the rest pages. */
+const UPGRADES_PER_PAGE = 10;
+/** Rows of cards that fit above the bottom of the screen. */
+const DECK_GRID_ROWS = 3;
+
 export class ArmoryScene extends Phaser.Scene {
   private tab: Tab = 'deck';
+  private upgradePage = 0;
+  private deckPage = 0;
   private body: Phaser.GameObjects.GameObject[] = [];
   private goldCounter!: Counter;
   private deck: string[] = [];
@@ -120,11 +127,46 @@ export class ArmoryScene extends Phaser.Scene {
         .setOrigin(0.5),
     );
 
+    /*
+     * Forty-seven cards in a seven-wide grid ran to y=1710 on a screen 1080
+     * tall: three rows fit and twenty-one cards could not be seen, let alone
+     * tapped. Three rows to a page, and the page you are on is the page the
+     * cards are drawn from.
+     */
     const cols = 7;
     const cw = 250;
     const ch = 230;
+    const perPage = cols * DECK_GRID_ROWS;
+    const pages = Math.max(1, Math.ceil(DEFENDERS.length / perPage));
+    this.deckPage = Math.min(this.deckPage, pages - 1);
+    const shown = DEFENDERS.slice(this.deckPage * perPage, (this.deckPage + 1) * perPage);
+    if (pages > 1) {
+      this.track(this.add.text(w / 2, 246, `${this.deckPage + 1} / ${pages}`, textStyle('tiny', COLORS.gold)).setOrigin(0.5));
+      this.track(
+        new TextButton(this, w / 2 - 150, 246, '<', {
+          width: 84,
+          height: 60,
+          tone: 'stone',
+          onClick: () => {
+            this.deckPage = (this.deckPage + pages - 1) % pages;
+            this.draw();
+          },
+        }),
+      );
+      this.track(
+        new TextButton(this, w / 2 + 150, 246, '>', {
+          width: 84,
+          height: 60,
+          tone: 'stone',
+          onClick: () => {
+            this.deckPage = (this.deckPage + 1) % pages;
+            this.draw();
+          },
+        }),
+      );
+    }
     const startX = (w - cols * cw) / 2 + cw / 2;
-    DEFENDERS.forEach((def, i) => {
+    shown.forEach((def, i) => {
       const unlocked = profile.isCardUnlocked(def.id);
       const x = startX + (i % cols) * cw;
       const y = 330 + Math.floor(i / cols) * ch;
@@ -199,9 +241,45 @@ export class ArmoryScene extends Phaser.Scene {
         .text(w / 2, 196, 'Gold spent here is permanent.', textStyle('small', COLORS.muted))
         .setOrigin(0.5),
     );
+    /*
+     * This used to show the first ten unlocked cards and stop, which meant
+     * that from the third region on, the defenders raised to answer the
+     * horde in front of the player could never be upgraded at all - the gold
+     * only ever reached the starter deck. It pages now.
+     */
     const unlocked = DEFENDERS.filter((d) => profile.isCardUnlocked(d.id));
+    const pages = Math.max(1, Math.ceil(unlocked.length / UPGRADES_PER_PAGE));
+    this.upgradePage = Math.min(this.upgradePage, pages - 1);
+    const shown = unlocked.slice(this.upgradePage * UPGRADES_PER_PAGE, (this.upgradePage + 1) * UPGRADES_PER_PAGE);
+    if (pages > 1) {
+      this.track(
+        this.add.text(w / 2, 232, `${this.upgradePage + 1} / ${pages}`, textStyle('tiny', COLORS.gold)).setOrigin(0.5),
+      );
+      this.track(
+        new TextButton(this, w / 2 - 140, 232, '<', {
+          width: 84,
+          height: 60,
+          tone: 'stone',
+          onClick: () => {
+            this.upgradePage = (this.upgradePage + pages - 1) % pages;
+            this.draw();
+          },
+        }),
+      );
+      this.track(
+        new TextButton(this, w / 2 + 140, 232, '>', {
+          width: 84,
+          height: 60,
+          tone: 'stone',
+          onClick: () => {
+            this.upgradePage = (this.upgradePage + 1) % pages;
+            this.draw();
+          },
+        }),
+      );
+    }
     const colW = w / 2;
-    unlocked.slice(0, 10).forEach((def, i) => {
+    shown.forEach((def, i) => {
       const col = i % 2;
       const cx = colW / 2 + col * colW;
       const y = 280 + Math.floor(i / 2) * 148;

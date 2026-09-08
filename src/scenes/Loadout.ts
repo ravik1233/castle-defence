@@ -11,7 +11,7 @@ import Phaser from 'phaser';
 import { DESIGN } from '../core/layout';
 import { DEFENDERS, defender } from '../data/defenders';
 import { CONSUMABLES, EQUIPMENT, EQUIPMENT_SLOTS } from '../data/workshop';
-import { level as levelById } from '../data/levels';
+import { CHAPTERS, level as levelById } from '../data/levels';
 import { DOCTRINES } from '../data/doctrines';
 import type { LevelDef } from '../data/types';
 import { portraitFor } from '../art/portraits';
@@ -21,10 +21,13 @@ import { audio } from '../systems/audio';
 import { COLORS, Counter, TextButton, fitText, showDialog, tappable, textStyle } from '../ui/kit';
 
 const DECK_MAX = 6;
+/** Cards the bench shows at once; the rest pages. */
+const BENCH_SLOTS = 14;
 
 export class LoadoutScene extends Phaser.Scene {
   private lvl!: LevelDef;
   private deck: string[] = [];
+  private benchPage = 0;
   private body: Phaser.GameObjects.GameObject[] = [];
 
   constructor() {
@@ -161,13 +164,69 @@ export class LoadoutScene extends Phaser.Scene {
       });
     });
 
-    // Everything unlocked and not already in hand.
-    const bench = DEFENDERS.filter((d) => profile.isCardUnlocked(d.id) && !this.deck.includes(d.id));
+    this.drawBench();
+  }
+
+  /**
+   * Everything unlocked and not already in hand.
+   *
+   * Two things this has to get right. The bench used to show the first
+   * fourteen cards in unlock order, which by the fifth region meant the five
+   * defenders raised to answer *this* horde were off the end of the list and
+   * could not be played at all - the whole point of a regional muster,
+   * unreachable. So the region's own cards come first and are named as such,
+   * and the rest pages rather than being cut off.
+   */
+  private drawBench(): void {
+    const local = new Set(CHAPTERS.find((c) => c.id === this.lvl.chapter)?.unlocks ?? []);
+    const bench = DEFENDERS.filter((d) => profile.isCardUnlocked(d.id) && !this.deck.includes(d.id)).sort(
+      (a, b) => Number(local.has(b.id)) - Number(local.has(a.id)),
+    );
+    const pages = Math.max(1, Math.ceil(bench.length / BENCH_SLOTS));
+    this.benchPage = Math.min(this.benchPage, pages - 1);
+    const page = bench.slice(this.benchPage * BENCH_SLOTS, (this.benchPage + 1) * BENCH_SLOTS);
+
     this.track(this.add.text(60, 540, 'MUSTERED', textStyle('small', COLORS.muted)).setOrigin(0, 0.5));
-    bench.slice(0, 14).forEach((def, i) => {
+    if (pages > 1) {
+      this.track(
+        this.add
+          .text(250, 540, `${this.benchPage + 1} / ${pages}`, textStyle('tiny', COLORS.gold))
+          .setOrigin(0, 0.5),
+      );
+      this.track(
+        new TextButton(this, 400, 540, '<', {
+          width: 72,
+          height: 56,
+          tone: 'stone',
+          onClick: () => {
+            this.benchPage = (this.benchPage + pages - 1) % pages;
+            this.draw();
+          },
+        }),
+      );
+      this.track(
+        new TextButton(this, 490, 540, '>', {
+          width: 72,
+          height: 56,
+          tone: 'stone',
+          onClick: () => {
+            this.benchPage = (this.benchPage + 1) % pages;
+            this.draw();
+          },
+        }),
+      );
+    }
+
+    page.forEach((def, i) => {
       const c = this.track(this.add.container(150 + (i % 7) * 170, 640 + Math.floor(i / 7) * 178));
       const full = this.deck.length >= DECK_MAX;
-      c.add(this.add.image(0, 0, 'ui.card').setDisplaySize(150, 168).setTint(full ? 0x6a6478 : 0xffffff));
+      const home = local.has(def.id);
+      c.add(
+        this.add
+          .image(0, 0, 'ui.card')
+          .setDisplaySize(150, 168)
+          .setTint(full ? 0x6a6478 : home ? 0xffe6a8 : 0xffffff),
+      );
       const portrait = portraitFor(this, def);
       if (portrait) {
         const img = this.add.image(0, -22, portrait.key);
@@ -177,6 +236,8 @@ export class LoadoutScene extends Phaser.Scene {
       }
       c.add(fitText(this.add.text(0, 42, def.name, textStyle('tiny', COLORS.parchment)).setOrigin(0.5), 130));
       c.add(this.add.text(0, 68, `${def.cost}g`, textStyle('tiny', COLORS.gold)).setOrigin(0.5));
+      // Raised here, to fight what is here. Worth saying out loud.
+      if (home) c.add(this.add.text(0, 88, 'RAISED HERE', textStyle('tiny', COLORS.gold)).setOrigin(0.5).setAlpha(0.9));
       tappable(c, 150, 168);
       c.on('pointerdown', () => {
         if (this.deck.length >= DECK_MAX) {
