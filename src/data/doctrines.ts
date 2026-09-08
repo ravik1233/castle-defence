@@ -4,8 +4,8 @@
  * A hundred and five forts that differ only in what is walking at you are a
  * hundred and five of the same decision. A doctrine is a rule that changes
  * how the fort has to be played: the gate is already open, or the night is
- * dark and nothing shoots far, or there is no wage and you eat what you
- * kill. It is declared before the player picks a deck, because a rule you
+ * dark and nothing shoots far, or fallen enemies release no Ember. It is
+ * declared before the player picks a deck, because a rule you
  * discover at wave four is not strategy, it is a surprise.
  *
  * Doctrines are drawn from the fort's own id, so every player meets the same
@@ -59,14 +59,14 @@ export const DOCTRINES: Record<DoctrineId, DoctrineDef> = {
   noquarter: {
     id: 'noquarter',
     name: 'No Quarter',
-    blurb: 'No wage between waves. You eat what you kill.',
-    answer: 'An economy building pays for itself here more than anywhere.',
+    blurb: 'Fallen enemies release no Ember.',
+    answer: 'Bring a Miner or extra starting Ember, then spend carefully.',
   },
   frozenground: {
     id: 'frozenground',
     name: 'Frozen Ground',
-    blurb: 'Nothing can be raised from this earth. Economy buildings pay nothing.',
-    answer: 'Bring the gold with you and spend it on the wall instead.',
+    blurb: 'Ember veins are frozen and cannot be mined.',
+    answer: 'Rely on kill Ember and the reserve you brought with you.',
   },
   bombardment: {
     id: 'bombardment',
@@ -96,7 +96,7 @@ export const DOCTRINES: Record<DoctrineId, DoctrineDef> = {
     id: 'thinsupply',
     name: 'Thin Supply',
     blurb: 'The road is cut. Every card costs a quarter more.',
-    answer: 'Fewer, better placements, and call the assault on for the bounty.',
+    answer: 'Protect Ember veins, make fewer placements, and spend carefully.',
   },
   standingorders: {
     id: 'standingorders',

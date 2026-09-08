@@ -12,6 +12,7 @@ import { profile, PREMIUM_SKINS } from '../systems/profile';
 import { ensureAllCastleSkins } from '../systems/textures';
 import { portraitFor, portraitForArt } from '../art/portraits';
 import { audio } from '../systems/audio';
+import { emberCost } from '../battle/economy';
 import { COLORS, Counter, TextButton, fitText, showDialog, tappable, textStyle } from '../ui/kit';
 
 type Tab = 'deck' | 'upgrades' | 'hero' | 'castle';
@@ -191,7 +192,7 @@ export class ArmoryScene extends Phaser.Scene {
       c.add(fitText(this.add.text(0, 48, def.name, textStyle('tiny', COLORS.parchment)).setOrigin(0.5), 180));
       c.add(
         this.add
-          .text(0, 76, unlocked ? `${def.cost}g` : def.premium ? 'Crown Pack' : `Lv ${def.unlockLevel}`, textStyle('tiny', unlocked ? COLORS.gold : COLORS.danger))
+          .text(0, 76, unlocked ? `${emberCost(def.cost)} Ember` : def.premium ? 'Crown Pack' : `Lv ${def.unlockLevel}`, textStyle('tiny', unlocked ? COLORS.gold : COLORS.danger))
           .setOrigin(0.5),
       );
 

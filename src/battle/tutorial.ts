@@ -1,10 +1,9 @@
 /**
  * The first-level tutorial.
  *
- * Four steps, each gated on the player actually doing the thing, with the
- * first wave held back until they have a shrine and a soldier down. It runs
- * once and is skippable on the first tap - a player who already knows what a
- * lane defence is should never be made to sit through it.
+ * Two steps, each gated on the player actually doing the thing. The first
+ * wave waits until one Militia is ready; enemy kills then teach the Ember
+ * loop directly through play.
  */
 import Phaser from 'phaser';
 import { DESIGN, FIELD, cellCenter } from '../core/layout';
@@ -44,23 +43,13 @@ export class Tutorial {
   ) {
     this.steps = [
       {
-        text: 'Tap the Tithe Shrine card.\nGold is the whole game.',
-        target: () => host.cardPosition('tithe'),
-        done: () => this.cardChosen === 'tithe',
-      },
-      {
-        text: 'Now tap a square near the wall to build it.',
-        target: () => cellCenter(2, 0),
-        done: (h) => h.countPlaced('tithe') >= 1,
-      },
-      {
-        text: 'Shrines pay out every few seconds.\nBuild a second one.',
-        target: () => cellCenter(1, 0),
-        done: (h) => h.countPlaced('tithe') >= 2,
-      },
-      {
-        text: 'Goblins come from the right.\nPlace a Militia to stop them.',
+        text: 'Tap the Militia card.\nGoblins release Ember when defeated.',
         target: () => host.cardPosition('militia'),
+        done: () => this.cardChosen === 'militia',
+      },
+      {
+        text: 'Place the Militia near the wall.\nSpend each Ember while the assault is moving.',
+        target: () => cellCenter(2, 0),
         done: (h) => h.countPlaced('militia') >= 1,
       },
     ];
