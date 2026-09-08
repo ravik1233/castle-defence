@@ -15,8 +15,12 @@ import { COLORS, Counter, TextButton, fitText, showDialog, textStyle } from '../
 
 type Tab = 'equipment' | 'stock';
 
+/** Rows of equipment cards that fit above the bottom of the screen. */
+const EQUIPMENT_ROWS = 2;
+
 export class WorkshopScene extends Phaser.Scene {
   private tab: Tab = 'equipment';
+  private equipPage = 0;
   private body: Phaser.GameObjects.GameObject[] = [];
   private salvageCounter!: Counter;
   private slotText!: Phaser.GameObjects.Text;
@@ -87,11 +91,45 @@ export class WorkshopScene extends Phaser.Scene {
       `${profile.equipped.length} / ${EQUIPMENT_SLOTS} fitted   -   what you fit is what the fort has when the horde arrives`,
     );
 
+    /*
+     * Two rows of three-hundred-tall cards is what fits above the bottom of
+     * the screen. A third row sat at y=1070 with its buy button below the
+     * edge, so three of the nine pieces could be read but not bought.
+     */
     const cols = 3;
     const cw = w / cols;
-    EQUIPMENT.forEach((def, i) => {
+    const perPage = cols * EQUIPMENT_ROWS;
+    const pages = Math.max(1, Math.ceil(EQUIPMENT.length / perPage));
+    this.equipPage = Math.min(this.equipPage, pages - 1);
+    const shown = EQUIPMENT.slice(this.equipPage * perPage, (this.equipPage + 1) * perPage);
+    if (pages > 1) {
+      this.track(this.add.text(w / 2, 248, `${this.equipPage + 1} / ${pages}`, textStyle('tiny', COLORS.gold)).setOrigin(0.5));
+      this.track(
+        new TextButton(this, w / 2 - 150, 248, '<', {
+          width: 84,
+          height: 60,
+          tone: 'stone',
+          onClick: () => {
+            this.equipPage = (this.equipPage + pages - 1) % pages;
+            this.draw();
+          },
+        }),
+      );
+      this.track(
+        new TextButton(this, w / 2 + 150, 248, '>', {
+          width: 84,
+          height: 60,
+          tone: 'stone',
+          onClick: () => {
+            this.equipPage = (this.equipPage + 1) % pages;
+            this.draw();
+          },
+        }),
+      );
+    }
+    shown.forEach((def, i) => {
       const cx = cw / 2 + (i % cols) * cw;
-      const y = 390 + Math.floor(i / cols) * 340;
+      const y = 420 + Math.floor(i / cols) * 340;
       const owned = profile.ownsEquipment(def.id);
       const fitted = profile.equipped.includes(def.id);
       const locked = Boolean(def.premium) && !profile.hasCrownPack;
