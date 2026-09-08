@@ -31,7 +31,7 @@ import { WALL_SKINS } from '../art/structures';
 import { DEFENDERS, defender, upgradedStats } from '../data/defenders';
 import { enemy as enemyDef } from '../data/enemies';
 import { hero as heroDef } from '../data/heroes';
-import { CHAPTERS, generateWaves, level as levelById, levelNumber, type Wave } from '../data/levels';
+import { CHAPTERS, generateWaves, hashString, level as levelById, levelNumber, type Wave } from '../data/levels';
 import type { LevelDef, SpellDef, TileKind } from '../data/types';
 import { profile } from '../systems/profile';
 import { audio, haptic, type SfxId } from '../systems/audio';
@@ -152,6 +152,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private rallyTimer = 0;
   /** Seconds of sanctuary left: while it holds, our own take less. */
   private guardTimer = 0;
+  /** The card Standing Orders has taken for this fort, if any. */
+  private spokenFor?: string;
   chapter = 1;
 
   private selectedCard?: string;
@@ -789,6 +791,19 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     if (mods?.fixedDeck) return mods.fixedDeck;
     let deck = profile.effectiveDeck();
     if (mods?.bannedCards) deck = deck.filter((id) => !mods.bannedCards!.includes(id));
+    /*
+     * Standing Orders. The rule cannot be written into the level, because the
+     * level is generated before anyone has a deck: which card is spoken for
+     * only means anything once we know what the player brought. Picked from
+     * the fort's own id, so it is the same card for the same player at the
+     * same fort every time, and never the last two - a rule that leaves
+     * someone with one card is not a rule, it is a loss.
+     */
+    if (this.under('standingorders') && deck.length > 2) {
+      const spokenFor = deck[hashString(`${this.levelDef.id}:${deck.join(',')}`) % deck.length]!;
+      this.spokenFor = spokenFor;
+      deck = deck.filter((id) => id !== spokenFor);
+    }
     return deck;
   }
 
@@ -1692,7 +1707,15 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private briefingText(): string {
     const rules = [...this.doctrines].map((id) => DOCTRINES[id]);
     if (!rules.length) return this.levelDef.brief;
-    const lines = rules.map((d) => `${d.name.toUpperCase()}: ${d.blurb}\n${d.answer}`);
+    const lines = rules.map((d) => {
+      // Standing Orders names the card it took, since which card it is only
+      // becomes known once the player's deck is in hand.
+      const blurb =
+        d.id === 'standingorders' && this.spokenFor
+          ? `The ${defender(this.spokenFor).name} is spoken for elsewhere and cannot be played here.`
+          : d.blurb;
+      return `${d.name.toUpperCase()}: ${blurb}\n${d.answer}`;
+    });
     return `${this.levelDef.brief}\n\n${lines.join('\n\n')}`;
   }
 

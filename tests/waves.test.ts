@@ -4,6 +4,8 @@ import { ENEMY_BY_ID, enemy } from '../src/data/enemies';
 import { DEFENDERS, DEFENDER_BY_ID } from '../src/data/defenders';
 import { HERO_BY_ID, HEROES } from '../src/data/heroes';
 import battleSrc from '../src/scenes/Battle.ts?raw';
+import levelsSrc from '../src/data/levels.ts?raw';
+import entitiesSrc from '../src/battle/entities.ts?raw';
 import { canStandOn, tilesFor } from '../src/data/tiles';
 import { DOCTRINES, doctrinesFor } from '../src/data/doctrines';
 import { GRID } from '../src/core/layout';
@@ -342,6 +344,18 @@ describe('what each fort demands', () => {
     const total = Object.values(counts).reduce((a, b) => a + b, 0);
     for (const [id, n] of Object.entries(counts)) {
       expect(n / total, `${id} is ${((n / total) * 100).toFixed(0)}% of every rule set`).toBeLessThan(0.34);
+    }
+  });
+
+  /*
+   * `standingorders` shipped declared, drawn at forts across every region,
+   * printed in the briefing with its counter-play - and read by nothing. A
+   * rule the player is told about has to exist.
+   */
+  it('is a rule the game actually plays under', () => {
+    const sim = `${battleSrc}\n${levelsSrc}\n${entitiesSrc}`;
+    for (const id of Object.keys(DOCTRINES)) {
+      expect(sim.includes(`'${id}'`), `nothing reads the ${id} rule`).toBe(true);
     }
   });
 
