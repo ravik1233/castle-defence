@@ -889,7 +889,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     // body squeezed into 150px; structures show the whole building.
     const portrait = portraitFor(this, def);
     if (portrait) {
-      const img = this.add.image(0, portrait.whole ? 46 : 8, portrait.key);
+      const img = this.add.image(0, portrait.whole ? 46 : 8, portrait.key, portrait.frame);
       if (portrait.whole) {
         img.setOrigin(0.5, 1);
         img.setScale(Math.min((scale * 150) / img.width, (scale * 150) / img.height));

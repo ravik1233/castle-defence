@@ -8,7 +8,7 @@
 import Phaser from 'phaser';
 import type { DamageType, DefenderDef, EnemyDef, EnemyKind } from '../data/types';
 import { damageMultiplier } from '../battle/combat';
-import { portraitFor } from '../art/portraits';
+import { portraitFor, portraitForArt } from '../art/portraits';
 import { COLORS, showDialog, textStyle } from './kit';
 
 const TYPE_LABEL: Record<DamageType, string> = {
@@ -79,7 +79,7 @@ export function showDefenderEntry(scene: Phaser.Scene, def: DefenderDef, onClose
     build: (group, w, h) => {
       const art = portraitFor(scene, def);
       if (art) {
-        const img = scene.add.image(-w / 2 + 130, -h / 2 + 210, art.key);
+        const img = scene.add.image(-w / 2 + 130, -h / 2 + 210, art.key, art.frame);
         const size = art.whole ? 190 : 150;
         const ratio = img.width / img.height;
         img.setDisplaySize(ratio > 1 ? size : size * ratio, ratio > 1 ? size / ratio : size);
@@ -153,11 +153,9 @@ export function showEnemyEntry(scene: Phaser.Scene, def: EnemyDef, onClose?: () 
     dismissable: false,
     buttons: [{ text: 'CLOSE', tone: 'stone', onClick: onClose }],
     build: (group, w, h) => {
-      const key = scene.textures.exists(`unit.${def.art}.frame0`)
-        ? `unit.${def.art}.frame0`
-        : `unit.${def.art}.head`;
-      if (scene.textures.exists(key)) {
-        const img = scene.add.image(-w / 2 + 130, -h / 2 + 200, key);
+      const portrait = portraitForArt(scene, def.art);
+      if (portrait) {
+        const img = scene.add.image(-w / 2 + 130, -h / 2 + 200, portrait.key, portrait.frame);
         const ratio = img.width / img.height;
         img.setDisplaySize(ratio > 1 ? 180 : 180 * ratio, ratio > 1 ? 180 / ratio : 180);
         group.add(img);

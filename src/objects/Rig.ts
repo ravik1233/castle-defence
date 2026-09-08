@@ -8,7 +8,7 @@
 import Phaser from 'phaser';
 import { REST_POSE, armLength, characterLayout } from '../art/compose';
 import type { CharacterArt } from '../art/humanoid';
-import { SUPERSAMPLE, paintedFrameSet, paintedRig } from '../art/registry';
+import { SUPERSAMPLE, paintedFrameSet, paintedRig, type PaintedFrames } from '../art/registry';
 import { WORLD_ART_SCALE } from '../core/layout';
 
 export type RigAnim = 'idle' | 'walk' | 'attack' | 'cast' | 'hurt' | 'die' | 'spawn';
@@ -72,6 +72,8 @@ export class Rig extends Phaser.GameObjects.Container {
   /** Set when the unit has drawn animation frames rather than a rig. */
   private readonly frames?: Phaser.GameObjects.Image;
   private frameCount = 0;
+  private frameSet?: PaintedFrames;
+  private sheetKey?: string;
   private shownFrame = -1;
   private facingSign: 1 | -1;
   private anim: RigAnim = 'idle';
@@ -94,6 +96,31 @@ export class Rig extends Phaser.GameObjects.Container {
     this.shadow = scene.add.ellipse(0, 0, sk.hipWidth * 2.4 * this.artScale, sk.hipWidth * 0.8 * this.artScale, 0x120c1c, 0.32);
     this.add(this.shadow);
 
+    /*
+     * Drawn frames win over everything else. If an artist has drawn the poses
+     * there is nothing to assemble, nothing to guess at, and nothing that can
+     * come out wrong: the unit simply shows the pose it is in.
+     */
+    const strip = paintedFrameSet(art.id);
+    const sheetKey = `unit.${art.id}.sheet`;
+    if (strip && (scene.textures.exists(sheetKey) || scene.textures.exists(`unit.${art.id}.frame0`))) {
+      this.frameCount = strip.count;
+      this.frameSet = strip;
+      this.sheetKey = scene.textures.exists(sheetKey) ? sheetKey : undefined;
+      const img = this.sheetKey
+        ? scene.add.image(0, 0, this.sheetKey, 0)
+        : scene.add.image(0, 0, `unit.${art.id}.frame0`);
+      // Frames share one canvas with the feet on its bottom edge, so anchoring
+      // there puts every pose on the ground without further arithmetic.
+      img.setOrigin(0.5, 1);
+      img.setDisplaySize((strip.width / strip.height) * this.worldHeight, this.worldHeight);
+      this.frames = img;
+      this.add(img);
+      this.setScale(this.facingSign, 1);
+      scene.add.existing(this);
+      return;
+    }
+
     // Painted art path: one image, animated procedurally.
     const painted = fullSpriteKey(art.id);
     if (scene.textures.exists(painted)) {
@@ -104,26 +131,6 @@ export class Rig extends Phaser.GameObjects.Container {
       img.setOrigin(0.5, 1);
       img.setDisplaySize((img.width / img.height) * this.worldHeight, this.worldHeight);
       this.sprite = img;
-      this.add(img);
-      this.setScale(this.facingSign, 1);
-      scene.add.existing(this);
-      return;
-    }
-
-    /*
-     * Drawn frames win over everything else. If an artist has drawn the poses
-     * there is nothing to assemble, nothing to guess at, and nothing that can
-     * come out wrong: the unit simply shows the pose it is in.
-     */
-    const strip = paintedFrameSet(art.id);
-    if (strip && scene.textures.exists(`unit.${art.id}.frame0`)) {
-      this.frameCount = strip.count;
-      const img = scene.add.image(0, 0, `unit.${art.id}.frame0`);
-      // Frames share one canvas with the feet on its bottom edge, so anchoring
-      // there puts every pose on the ground without further arithmetic.
-      img.setOrigin(0.5, 1);
-      img.setDisplaySize((strip.width / strip.height) * this.worldHeight, this.worldHeight);
-      this.frames = img;
       this.add(img);
       this.setScale(this.facingSign, 1);
       scene.add.existing(this);
@@ -309,7 +316,8 @@ export class Rig extends Phaser.GameObjects.Container {
     const clamped = Math.max(0, Math.min(this.frameCount - 1, i));
     if (clamped === this.shownFrame) return;
     this.shownFrame = clamped;
-    this.frames?.setTexture(`unit.${this.art.id}.frame${clamped}`);
+    if (this.sheetKey) this.frames?.setFrame(clamped);
+    else this.frames?.setTexture(`unit.${this.art.id}.frame${clamped}`);
   }
 
   /**
@@ -326,7 +334,19 @@ export class Rig extends Phaser.GameObjects.Container {
     img.setPosition(0, 0);
     img.setRotation(0);
     img.setAlpha(1);
-    img.setDisplaySize(img.width * (h / img.height), h);
+    img.setDisplaySize((this.frameSet!.width / this.frameSet!.height) * h, h);
+
+    const clip = this.frameSet?.animations?.[this.anim];
+    if (clip?.frames.length) {
+      const loop = this.anim === 'idle' || this.anim === 'walk';
+      const duration = ONE_SHOT[this.anim];
+      const tick = duration
+        ? Math.floor((this.animT / duration) * clip.frames.length)
+        : Math.floor((loop ? this.t : this.animT) * clip.fps);
+      this.showFrame(clip.frames[loop ? tick % clip.frames.length : Math.min(tick, clip.frames.length - 1)]!);
+      if (this.anim === 'die') img.setAlpha(1 - Math.min(1, this.animT / 0.55) * 0.9);
+      return;
+    }
 
     switch (this.anim) {
       case 'walk': {
@@ -383,7 +403,7 @@ export class Rig extends Phaser.GameObjects.Container {
       // beat as the rigged one, or damage stops matching the picture.
       const d = ONE_SHOT[this.anim];
       if (d) {
-        if (!this.attackHit && this.animT >= d * 0.55) {
+        if (!this.attackHit && this.animT >= d * (this.anim === 'cast' ? 0.5 : 0.55)) {
           this.attackHit = true;
           this.onAttackHit?.();
         }
@@ -391,6 +411,9 @@ export class Rig extends Phaser.GameObjects.Container {
           this.oneShot = false;
           this.play('idle');
         }
+      }
+      if ((this.anim === 'hurt' && this.animT >= 0.24) || (this.anim === 'spawn' && this.animT >= 0.3)) {
+        this.play('idle');
       }
       return;
     }
@@ -548,6 +571,7 @@ export class Rig extends Phaser.GameObjects.Container {
   }
 
   private get tintTargets(): Phaser.GameObjects.Image[] {
+    if (this.frames) return [this.frames];
     if (this.sprite) return [this.sprite];
     return [...this.views.values()].map((v) => v.image);
   }

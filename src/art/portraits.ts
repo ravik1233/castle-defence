@@ -13,6 +13,7 @@ import { fullSpriteKey } from '../objects/Rig';
 
 export interface Portrait {
   key: string;
+  frame?: number;
   /** True when the image is a whole figure rather than a head crop. */
   whole: boolean;
 }
@@ -22,6 +23,8 @@ export interface Portrait {
  * the half of `portraitFor` that knows nothing about cards.
  */
 export function portraitForArt(scene: Phaser.Scene, artId: string): Portrait | undefined {
+  const sheet = `unit.${artId}.sheet`;
+  if (scene.textures.exists(sheet)) return { key: sheet, frame: 0, whole: true };
   const idle = `unit.${artId}.frame0`;
   if (scene.textures.exists(idle)) return { key: idle, whole: true };
   const painted = fullSpriteKey(artId);
