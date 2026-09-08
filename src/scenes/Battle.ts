@@ -111,6 +111,9 @@ interface SpellView {
   ready: Phaser.GameObjects.Image;
 }
 
+/** What a blow against one of ours is worth while sanctuary holds. */
+const SANCTUARY_GUARD = 0.5;
+
 export class BattleScene extends Phaser.Scene implements BattleWorld {
   private levelDef!: LevelDef;
   private waves: Wave[] = [];
@@ -147,6 +150,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
   rallyFactor = 1;
   private rallyTimer = 0;
+  /** Seconds of sanctuary left: while it holds, our own take less. */
+  private guardTimer = 0;
   chapter = 1;
 
   private selectedCard?: string;
@@ -314,6 +319,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     this.goldSpent = 0;
     this.rallyFactor = 1;
     this.rallyTimer = 0;
+    this.guardTimer = 0;
     this.enemies.length = 0;
     this.defenders.length = 0;
     this.projectiles.length = 0;
@@ -1077,6 +1083,23 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         }
         break;
       }
+      /*
+       * Sanctuary. This case did not exist: the spell was declared with an
+       * effect the battle had no branch for, so the one hero card the player
+       * carries into the last region fell through to `default` and did
+       * nothing at all while its blurb promised a heal and a shield.
+       */
+      case 'heal': {
+        this.sfx('upgrade');
+        this.guardTimer = spell.duration ?? 4;
+        for (const d of this.defenders) {
+          if (!d.alive) continue;
+          d.heal(spell.damage ?? 260);
+        }
+        const halo = this.add.image(DESIGN.width / 2, laneCenterY(2), 'fx.holy_ring').setDepth(4000).setScale(0.4);
+        this.tweens.add({ targets: halo, scale: 9, alpha: 0, duration: 800, onComplete: () => halo.destroy() });
+        break;
+      }
       case 'rally': {
         this.sfx('upgrade');
         this.rallyFactor = 1.6;
@@ -1362,6 +1385,11 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   }
 
   /** How far a defender can see. The night takes a quarter of it. */
+  /** Sanctuary blunts what lands on our own while it holds. */
+  guardFactor(): number {
+    return this.guardTimer > 0 ? SANCTUARY_GUARD : 1;
+  }
+
   rangeFactor(): number {
     return this.under('night') ? DOCTRINE_EFFECT.nightRange : 1;
   }
@@ -1720,6 +1748,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       }
     }
 
+    if (this.guardTimer > 0) this.guardTimer -= dt;
     if (this.rallyTimer > 0) {
       this.rallyTimer -= dt;
       if (this.rallyTimer <= 0) this.rallyFactor = 1;

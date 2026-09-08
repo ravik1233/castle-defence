@@ -180,7 +180,7 @@ const CHAPTER_META: Array<{
     biome: 'abyss',
     family: 'fallen',
     race: 'The Order of the Last Gate',
-    commander: 'maerwyn',
+    commander: 'garrick',
     boss: 'betrayer',
     premium: true,
     unlocks: ['cleric', 'monk', 'templar', 'shieldbreaker', 'reliquary'],

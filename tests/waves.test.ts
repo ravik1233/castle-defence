@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { ALL_LEVELS, CHAPTERS, generateWaves, hashString, level, levelNumber, mulberry32 } from '../src/data/levels';
 import { ENEMY_BY_ID, enemy } from '../src/data/enemies';
 import { DEFENDERS, DEFENDER_BY_ID } from '../src/data/defenders';
-import { HERO_BY_ID } from '../src/data/heroes';
+import { HERO_BY_ID, HEROES } from '../src/data/heroes';
+import battleSrc from '../src/scenes/Battle.ts?raw';
 import { canStandOn, tilesFor } from '../src/data/tiles';
 import { DOCTRINES, doctrinesFor } from '../src/data/doctrines';
 import { GRID } from '../src/core/layout';
@@ -204,6 +205,29 @@ describe('who holds each region', () => {
     }
     // Six lieutenants under the King, each holding their own ground.
     expect(new Set(CHAPTERS.map((c) => c.family)).size).toBe(7);
+  });
+
+  it('never sends the same commander to two regions', () => {
+    // Maerwyn was named at both the Fallen March and the Throne, so thirty
+    // forts were fought with one identical hand.
+    const seen = new Map<string, string>();
+    for (const ch of CHAPTERS) {
+      const already = seen.get(ch.commander);
+      expect(already, `${ch.commander} commands both ${already} and ${ch.name}`).toBeUndefined();
+      seen.set(ch.commander, ch.name);
+    }
+  });
+
+  it('gives every commander spells the battle actually casts', () => {
+    // Sanctuary shipped with an effect the spell switch had no branch for and
+    // did nothing at all.
+    const cast = battleSrc;
+    for (const h of HEROES) {
+      for (const sp of h.spells) {
+        expect(sp.effect, `${h.id}/${sp.id} has no effect`).toBeDefined();
+        expect(cast.includes(`case '${sp.effect}'`), `nothing casts ${sp.effect} (${h.id}/${sp.id})`).toBe(true);
+      }
+    }
   });
 
   it('leaves every card that is not mustered as a Crown Pack extra', () => {

@@ -34,6 +34,8 @@ export interface BattleWorld {
   readonly defenders: Defender[];
   /** Rally buff multiplier on defender attack speed, 1 when inactive. */
   rallyFactor: number;
+  /** What a blow against one of ours is multiplied by. Sanctuary blunts it. */
+  guardFactor(): number;
   defenderAt(row: number, col: number): Defender | undefined;
   spawnProjectile(opts: ProjectileOptions): void;
   damageWall(amount: number, atY: number): void;
@@ -195,6 +197,7 @@ export class Defender {
   }
 
   takeDamage(amount: number): void {
+    amount *= this.world.guardFactor();
     if (!this.alive) return;
     // Tall grass is cover: what shoots at it mostly hits the grass.
     const cover = this.ground === 'tallgrass' ? TILE_EFFECT.grassCover : 1;

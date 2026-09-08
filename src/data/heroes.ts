@@ -48,7 +48,7 @@ export const HEROES: HeroDef[] = [
      */
     id: 'bran',
     name: 'Bran Ironbark',
-    title: 'Warden of the Ashen Woods',
+    title: 'Hearthwarden of Kar Duhrn',
     art: 'monk',
     blurb: 'Held the woods for eleven winters with a hundred men and no wall.',
     spells: [
@@ -186,7 +186,47 @@ export const HEROES: HeroDef[] = [
       },
     ],
   },
-{
+  {
+    /*
+     * The Fallen March had no commander of its own: Maerwyn was named at both
+     * this region and the Throne, so fifteen forts here and fifteen there
+     * were fought with one identical hand. Garrick held this ground before
+     * the men on the other side of the field were the enemy.
+     */
+    id: 'garrick',
+    name: 'Ser Garrick Vane',
+    title: 'Marshal of the Fallen March',
+    art: 'guardian',
+    blurb: 'He trained half the men now under the King\u2019s banner. He knows where their shields do not reach.',
+    premium: true,
+    spells: [
+      {
+        id: 'breakingblow',
+        name: 'Breaking Blow',
+        blurb: 'A hammerfall on one spot. Shields do not stop it.',
+        icon: 'fx.shockwave',
+        target: 'point',
+        cooldown: 18,
+        damage: 260,
+        radius: 180,
+        effect: 'smite',
+        fx: 'fx.shockwave',
+      },
+      {
+        id: 'closeranks',
+        name: 'Close Ranks',
+        blurb: 'Mends the line and blunts what lands on it for a moment.',
+        icon: 'fx.holy_ring',
+        target: 'global',
+        cooldown: 34,
+        duration: 5,
+        damage: 220,
+        effect: 'heal',
+        fx: 'fx.holy_ring',
+      },
+    ],
+  },
+  {
     /*
      * The last region's commander. By the throne there is no line left to
      * hold, so her spells are about buying seconds rather than winning ground.
