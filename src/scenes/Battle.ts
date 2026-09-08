@@ -823,8 +823,11 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       const art = this.cardArt(id, 0, -10, 0.27);
       container.add(art);
 
+      // The price this fort actually charges. Thin Supply puts every card up
+      // a quarter, and a tray showing the ledger price instead of the one it
+      // will take is the rule lying to the player.
       const costText = this.add
-        .text(10, TRAY.cardH / 2 - 20, String(def.cost), textStyle('tiny', COLORS.gold))
+        .text(10, TRAY.cardH / 2 - 20, String(this.priceOf(def.cost)), textStyle('tiny', COLORS.gold))
         .setOrigin(0.5);
       container.add(costText);
       container.add(this.add.image(-20, TRAY.cardH / 2 - 20, 'icon.coin').setDisplaySize(24, 24));
@@ -1806,7 +1809,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       if (card.cooldownLeft > 0) {
         card.cooldownLeft = Math.max(0, card.cooldownLeft - dt);
       }
-      const affordable = this.gold >= card.cost;
+      const affordable = this.gold >= this.priceOf(card.cost);
       const ready = card.cooldownLeft <= 0;
       card.overlay.setVisible(!ready || !affordable);
       card.overlay.height = ready ? TRAY.cardH - 10 : (TRAY.cardH - 10) * (card.cooldownLeft / card.cooldown);
