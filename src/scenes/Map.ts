@@ -5,6 +5,7 @@ import { CHAPTERS, levelNumber, levelThreat } from '../data/levels';
 import type { LevelDef } from '../data/types';
 import { profile } from '../systems/profile';
 import { audio } from '../systems/audio';
+import { emberCost } from '../battle/economy';
 import { COLORS, Counter, TextButton, fitText, showDialog, starRow, tappable, textStyle } from '../ui/kit';
 
 export class MapScene extends Phaser.Scene {
@@ -179,7 +180,7 @@ export class MapScene extends Phaser.Scene {
     const threat = Math.round(levelThreat(lvl));
     showDialog(this, {
       title: lvl.name,
-      body: `${lvl.brief}\n\n${lvl.waves} waves  ·  threat ${threat}\nStarting gold ${lvl.startingGold}${
+      body: `${lvl.brief}\n\n${lvl.waves} waves  ·  threat ${threat}\nStarting Ember ${emberCost(lvl.startingGold)}${
         record ? `\nBest: ${record.stars} stars` : ''
       }`,
       height: 620,

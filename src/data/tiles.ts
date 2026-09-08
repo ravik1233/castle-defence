@@ -42,7 +42,7 @@ function hash(text: string): number {
  * region a different game rather than a different palette.
  */
 const COUNTRY: Record<BiomeId, Partial<Record<TileKind, number>>> = {
-  fields: { tallgrass: 0.14, shrine: 0.04, rubble: 0.05 },
+  fields: { tallgrass: 0.12, shrine: 0.04, rubble: 0.05, seam: 0.05 },
   barrows: { marsh: 0.2, shrine: 0.06, rubble: 0.06 },
   woods: { tallgrass: 0.2, rubble: 0.07, marsh: 0.05 },
   highland: { highground: 0.16, rubble: 0.12, seam: 0.05 },
@@ -88,6 +88,24 @@ export function tilesFor(levelId: string, biome: BiomeId, index: number): TileKi
   }
 
   /*
+   * Region 1 teaches the finite mine deliberately: one safe vein in the
+   * second fort, then two exposed choices in the third. Later maps let the
+   * seeded terrain generator decide where the veins lie.
+   */
+  const taughtVeins: Array<[number, number]> =
+    levelId === 'c1l2' ? [[2, 3]] : levelId === 'c1l3' ? [[1, 2], [3, 4]] : [];
+  if (taughtVeins.length) {
+    for (const cells of rows) {
+      for (let col = 0; col < cells.length; col += 1) {
+        if (cells[col] === 'seam') cells[col] = 'plain';
+      }
+    }
+  }
+  for (const [row, col] of taughtVeins) {
+    if (rows[row]?.[col] !== undefined) rows[row]![col] = 'seam';
+  }
+
+  /*
    * Every lane keeps dry ground to build on, however the dice fell.
    *
    * Two cells, not one: a region whose ground can only be held by the units
@@ -119,7 +137,7 @@ export const TILE_NAME: Record<TileKind, string> = {
   rubble: 'rubble',
   marsh: 'marsh',
   shrine: 'old shrine',
-  seam: 'ore seam',
+  seam: 'Ember vein',
   highground: 'high ground',
   tallgrass: 'tall grass',
   water: 'open water',

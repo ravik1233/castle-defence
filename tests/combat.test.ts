@@ -16,7 +16,12 @@ import {
   risesAgain,
   throughShield,
 } from '../src/battle/combat';
-import { CALL_BOUNTY, MUSTER_PAY, callBounty, musterPay } from '../src/battle/economy';
+import {
+  EMBER_DEPOSITS_PER_VEIN,
+  emberBounty,
+  emberCost,
+  musterPay,
+} from '../src/battle/economy';
 import { defender } from '../src/data/defenders';
 import { enemy } from '../src/data/enemies';
 
@@ -168,26 +173,15 @@ describe('damage types', () => {
 });
 
 describe('battle income', () => {
-  it('pays a muster wage that rises with the region', () => {
-    expect(musterPay(1)).toBe(MUSTER_PAY);
-    expect(musterPay(2)).toBeGreaterThan(musterPay(1));
-    expect(musterPay(4)).toBeGreaterThan(musterPay(3));
+  it('converts old roster values into small whole Ember amounts', () => {
+    expect(emberCost(50)).toBe(2);
+    expect(emberCost(75)).toBe(3);
+    expect(emberBounty(enemy('goblin').bounty)).toBe(1);
+    expect(EMBER_DEPOSITS_PER_VEIN).toBe(3);
   });
 
-  it('folds a level trickle into the wage rather than dripping it', () => {
-    expect(musterPay(1, 6)).toBeGreaterThan(musterPay(1));
-  });
-
-  it('pays for the muster given up, and nothing for a muster already over', () => {
-    expect(callBounty(10)).toBe(10 * CALL_BOUNTY);
-    expect(callBounty(2.4)).toBe(2 * CALL_BOUNTY);
-    expect(callBounty(0)).toBe(0);
-    expect(callBounty(-3)).toBe(0);
-  });
-
-  it('always pays whole coins', () => {
-    for (let s = 0; s < 12; s += 0.37) expect(Number.isInteger(callBounty(s))).toBe(true);
-    for (let c = 1; c <= 4; c += 1) expect(Number.isInteger(musterPay(c, 6))).toBe(true);
+  it('pays no passive or between-wave wage', () => {
+    for (let c = 1; c <= 7; c += 1) expect(musterPay(c, 999)).toBe(0);
   });
 });
 

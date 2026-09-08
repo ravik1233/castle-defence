@@ -59,15 +59,15 @@ Do these in order. Each one is a thing that recently changed.
     untouched).
 14. **Demons step through portals.** One meets your line and comes out behind
     it — unless a **ward** (Reliquary, Lastward) is alive in that lane.
-15. **Goblin thieves take gold.** Watch the purse drop when one lands a hit.
+15. **Goblin thieves take Ember.** Watch the battle purse drop when one lands a hit.
 
 ### The ground
 
 16. Forts are no longer flat. Look for **rock** (nothing builds on it, but a
     shooter beside it reaches further), **rubble** (nothing builds), **marsh**
     (everything crossing slows), **tall grass** (cover — units in it take
-    less), an **old shrine** (whoever stands on it hits harder) and an **ore
-    seam** (a tithe there pays half again).
+    less), an **old shrine** (whoever stands on it hits harder) and an **Ember
+    vein** (an Ember Miner can extract its three visible deposits).
 17. The **Drowned Coast is mostly water**. Only Sael's five float; everything
     else needs dry ground. Every lane keeps at least two dry cells, so you
     can always build something.
@@ -103,8 +103,8 @@ Past the third fort of region one, no two forts should play the same.
       exists, and its section reads REBUILD.
     - **Night Assault** — every defender's reach is a quarter shorter.
     - **Forced March** — the muster clock is half as long.
-    - **No Quarter** — no muster pay at all between waves.
-    - **Frozen Ground** — a Tithe Shrine pays nothing.
+    - **No Quarter** — fallen enemies release no Ember.
+    - **Frozen Ground** — Ember veins cannot be mined.
     - **Thin Supply** — every card costs a quarter more than the ledger says.
     - **Warband** — half as many bodies, each twice the size.
     - **Swarm** — twice as many, each half the size.
@@ -117,15 +117,12 @@ Past the third fort of region one, no two forts should play the same.
 
 ### The fight has phases now
 
-22. Between waves the HUD reads **MUSTER — Ns to the assault** and a gold
-    **CALL THEM ON +N** button appears at the top right. That is the lull:
-    build in it.
-23. Every muster pays a lump of gold — a `MUSTER +55` floats up — instead of
-    the old invisible trickle. Gold arrives in amounts you can count and plan
-    around.
-24. Tap **CALL THEM ON** and the wave starts immediately, paying **4 gold per
-    second of lull you gave up**. The number on the button counts down as the
-    lull runs out, so calling early is worth more than calling late.
+22. Between waves the HUD reads **MUSTER — Ns to the assault** and a
+    **START NOW** button appears at the top right. No resource is paid during
+    the lull.
+23. Ember arrives only from visible combat actions and finite veins. The
+    battle purse must not rise merely because time or a wave passed.
+24. Tap **START NOW** and the wave begins immediately without a bonus.
 25. Clearing a wave ends the assault straight away — you do not wait out the
     clock for the lull to start.
 26. Waves marked as big are now **SIEGE** waves: the banner says SIEGE
@@ -142,7 +139,8 @@ The gap between battles is a real part of the game now.
     **the rules it is fought under**, your six cards, what is fitted to the
     wall, and what is in your pack.
 29. Tap a card in hand to drop it; tap one from MUSTERED to take it. Six is
-    the limit and two is the floor.
+    the limit and two is the floor. Teaching stages explicitly label their
+    fixed hand instead.
 29b. MUSTERED puts **the region's own five defenders first**, marked RAISED
     HERE, and pages with `<` `>` once you have more than fourteen cards. From
     region four on, those cards used to be off the end of the list and could
@@ -156,7 +154,7 @@ The gap between battles is a real part of the game now.
     piece at a time and burned inside one battle.
 33. Fit **Reinforced Gates** and every lane's bar starts visibly longer. Fit
     **Deep Cellars** and you start the battle richer.
-34. Fit **Signal Horn** and the CALL THEM ON bounty goes up by half.
+34. Fit **Signal Horn** and defender cards recharge 15% sooner.
 35. Fit **Boiling Oil** and anything hacking at a gate section takes fire back
     every time it swings.
 36. Fit **Watchfires** and the whole horde walks in slower.
@@ -176,7 +174,7 @@ The gap between battles is a real part of the game now.
     fires as well — a breach is survivable, not instant death.
 42. The **Keep Heart** bar (top centre) only drops once something is inside
     hitting it. Lose the heart and the run ends.
-43. **REPAIR** rebuilds a fallen section for 75 gold at 60% health. Costly
+43. **REPAIR** rebuilds a fallen section for 3 Ember at 60% health. Costly
     on purpose: it should hurt to rebuild mid-fight.
 44. Finishing with any section breached caps you at **one star**, even on a
     clean-looking win.
@@ -258,12 +256,12 @@ or Settings inside the game → RESET.
 ## 3. Automated checks
 
 ```bash
-npm test          # 86 unit tests: progression, combat maths, art, layout
+npm test          # 145 unit tests: progression, combat maths, art, layout
 npm run hittest   # every button responds across its own footprint, and the
                   # menu -> continent -> region -> forts route works
 npm run breachtest# drives a real battle: breach, repair, keep garrison, stars
 npm run damagetest# damage-type table and the counted crit, in the live game
-npm run siegetest # muster pay, calling the assault on early, siege bombardment
+npm run siegetest # muster timing, starting the assault early, siege bombardment
 npm run sortietest# a unit marches out, fights, comes home, and salvage pays more
 npm run workshoptest # equipment bought between battles changes the next one
 npm run familytest# the dead rise, orcs rage, packs run, shields hold, portals open

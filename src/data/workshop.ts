@@ -1,10 +1,9 @@
 /**
  * Fort equipment and the things the workshop makes.
  *
- * Gold is spent inside a battle; salvage is what comes back out of one.
- * Everything here is bought with salvage, which means every purchase is paid
- * for by a fight that already happened - the player is arming the next fort
- * with what they dragged off the field of the last one.
+ * Ember is spent inside a battle. Gold is permanent progression currency,
+ * while salvage is what the field gives the workshop. Everything here is bought
+ * with salvage from earlier fights.
  *
  * Equipment is permanent once bought and three pieces go to war. Workshop
  * stock is one-use: carried into a battle, spent there, gone.
@@ -36,7 +35,7 @@ export const EQUIPMENT_EFFECT = {
   reinforced: { sectionHp: 1.3 },
   cellars: { startingGold: 90 },
   oil: { gateBurn: 26 },
-  horn: { callBonus: 0.5 },
+  horn: { cardRecharge: 0.85 },
   watchfires: { enemySlow: 0.12 },
   garrison: { garrisonDps: 1.6 },
 } as const;
@@ -52,9 +51,9 @@ export const EQUIPMENT: EquipmentDef[] = [
   {
     id: 'cellars',
     name: 'Deep Cellars',
-    blurb: 'Start each battle with 90 more gold.',
+    blurb: 'Start each battle with 4 more Ember.',
     cost: 35,
-    icon: 'icon.coin',
+    icon: 'fx.ember',
   },
   {
     id: 'oil',
@@ -66,7 +65,7 @@ export const EQUIPMENT: EquipmentDef[] = [
   {
     id: 'horn',
     name: 'Signal Horn',
-    blurb: 'Calling the assault on early pays half again.',
+    blurb: 'Defender cards answer 15% sooner.',
     cost: 45,
     icon: 'fx.shockwave',
   },

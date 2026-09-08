@@ -1,26 +1,33 @@
 /**
- * Battle income, in whole coins.
+ * The in-battle Ember economy.
  *
- * Gold used to arrive as a continuous trickle, which meant the player could
- * never say what a decision cost - only that they had more later. Everything
- * here pays in lumps a player can count and plan against: a wage at each
- * muster, and a bounty for giving the muster up early.
+ * Gold is permanent and lives in the profile. Ember exists for one battle:
+ * it is spent on deployments and earned from visible actions such as kills
+ * and finite mineral veins. Nothing here pays a passive wage between waves.
  */
 
-/** Base wage paid at the start of every muster. */
-export const MUSTER_PAY = 55;
-/** Gold per whole second of muster given up by calling the assault on. */
-export const CALL_BOUNTY = 4;
+/** Existing roster prices were authored on a 25-gold step. */
+export const LEGACY_GOLD_PER_EMBER = 25;
+/** Slightly generous once the horde becomes heavier, without returning to
+ * fractional or trickling income. */
+export const LEGACY_BOUNTY_PER_EMBER = 10;
+/** Every vein is finite and advertises this many deposits. */
+export const EMBER_DEPOSITS_PER_VEIN = 3;
 
-/**
- * What a muster pays. Scaled per region the same way kill bounties are, so
- * the wage keeps buying roughly the same thing as costs rise.
- */
-export function musterPay(chapter: number, trickle = 0): number {
-  return Math.round((MUSTER_PAY + trickle * 8) * (1 + (Math.max(1, chapter) - 1) * 0.15));
+/** Small whole-number cost shown and charged during battle. */
+export function emberCost(legacyGold: number): number {
+  return Math.max(1, Math.round(legacyGold / LEGACY_GOLD_PER_EMBER));
 }
 
-/** What calling the assault on with this much muster left would pay. */
-export function callBounty(secondsLeft: number): number {
-  return Math.max(0, Math.round(secondsLeft)) * CALL_BOUNTY;
+/** Whole Ember released when an enemy falls. */
+export function emberBounty(legacyBounty: number): number {
+  return Math.max(1, Math.round(legacyBounty / LEGACY_BOUNTY_PER_EMBER));
+}
+
+/**
+ * Kept for campaign balance calculations while old level data is migrated.
+ * A muster deliberately pays nothing: battle income comes from play.
+ */
+export function musterPay(_chapter: number, _trickle = 0): number {
+  return 0;
 }

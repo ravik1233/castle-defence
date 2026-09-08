@@ -1,11 +1,9 @@
 /**
- * Drives the phase loop: muster, calling the assault on early, and a siege
+ * Drives the phase loop: muster, starting the assault early, and a siege
  * wave battering the wall from out of reach.
  *
- * All three are decisions the player makes with gold, so this checks the
- * numbers that decision rests on - what a call pays, that the pay is the
- * seconds given up, and that a siege damages the wall with nothing touching
- * it - rather than that the words appear on screen.
+ * It checks that neither waiting nor starting early creates Ember, then that
+ * a siege damages the wall with nothing touching it.
  */
 import { launchBrowser } from './browser.mjs';
 
@@ -55,17 +53,10 @@ const before = await state();
 const paid = await page.evaluate(() => globalThis.__battle.call());
 const after = await state();
 
-if (paid <= 0) fail('calling the assault on early paid nothing');
-// Four gold a second is the trade the button offers.
-const expected = before.musterLeft * 4;
-if (Math.abs(paid - expected) > 4) {
-  fail(`calling on with ${before.musterLeft}s left paid ${paid}, not about ${expected}`);
-}
-if (after.gold - before.gold !== paid) {
-  fail(`the purse moved by ${after.gold - before.gold} for a ${paid} bounty`);
-}
+if (paid !== 0) fail(`starting the assault paid ${paid} Ember`);
+if (after.gold !== before.gold) fail(`starting the assault moved the purse by ${after.gold - before.gold}`);
 if (after.phase === 'muster') fail('calling the assault on left the fight in muster');
-console.log(`called the assault on with ${before.musterLeft}s left for ${paid} gold`);
+console.log(`started the assault with ${before.musterLeft}s left and no payout`);
 
 // Calling twice must not pay twice: the muster is over.
 const twice = await page.evaluate(() => globalThis.__battle.call());
@@ -73,8 +64,7 @@ if (twice !== 0) fail(`calling on during an assault paid ${twice}`);
 
 /* -------------------------------------------------- the muster comes back */
 
-// Clear the field and the lull returns, with its lump of pay.
-const mid = await state();
+// Clear the field and the unpaid lull returns.
 // A wave keeps spawning for its whole duration, so clearing the field means
 // killing what is there again and again until the queue is finally empty.
 let mustered = false;
@@ -87,8 +77,8 @@ if (!mustered) {
   fail('the muster never returned once the field was clear');
 } else {
   const rested = await state();
-  if (rested.gold <= mid.gold) fail('a muster arrived without paying anything');
-  else console.log(`the muster paid ${rested.gold - mid.gold} for clearing the wave`);
+  if (rested.musterLeft <= 0) fail('the returned muster has no time in it');
+  else console.log(`the unpaid muster returned with ${rested.musterLeft}s`);
 }
 
 /* --------------------------------------------------------------- a siege */

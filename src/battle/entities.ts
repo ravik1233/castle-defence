@@ -39,7 +39,7 @@ export interface BattleWorld {
   defenderAt(row: number, col: number): Defender | undefined;
   spawnProjectile(opts: ProjectileOptions): void;
   damageWall(amount: number, atY: number): void;
-  /** Mend a standing gate section. Rebuilding a fallen one costs gold. */
+  /** Mend a standing gate section. Rebuilding a fallen one costs Ember. */
   mendWall(row: number, amount: number): void;
   /** True once this lane's gate section has fallen and the way is open. */
   isBreached(row: number): boolean;
@@ -57,9 +57,11 @@ export interface BattleWorld {
   tileUnder(row: number, x: number): TileKind;
   /** Damage the heart of the keep, which only breached enemies can reach. */
   damageHeart(amount: number): void;
-  /** A goblin thief lifts gold straight out of the purse. */
+  /** A goblin thief lifts Ember straight out of the battle purse. */
   stealGold(amount: number, x: number, y: number): void;
   awardGold(amount: number, x: number, y: number): void;
+  /** Mine one finite deposit from a specific Ember vein. */
+  mineEmber(row: number, col: number, amount: number, x: number, y: number): boolean;
   onEnemyKilled(enemy: Enemy): void;
   burst(x: number, y: number, kind: 'hit' | 'blood' | 'magic' | 'explosion' | 'coin' | 'heal'): void;
   shake(intensity: number): void;
@@ -159,7 +161,7 @@ export class Defender {
     this.economyTimer = def.economy ? def.economy.interval : 0;
     /*
      * The ground a unit is put on is part of the decision to put it there:
-     * an old shrine sharpens a blade, an ore seam pays a tithe more, and
+     * an old shrine sharpens a blade, an Ember vein can be mined, and
      * tall grass keeps an archer alive long enough to matter.
      */
     this.ground = world.tileAt(row, col);
@@ -253,15 +255,22 @@ export class Defender {
     this.bar.update(this.x, this.topY - 16, this.hp / this.maxHp, this.y);
     if (this.sortie !== 'held') this.march(dt);
 
-    if (this.def.economy) {
-      this.economyTimer -= dt;
-      if (this.economyTimer <= 0) {
-        this.economyTimer = this.def.economy.interval;
-        // A tithe raised over an ore seam is worth half as much again, and
-        // nothing at all where the ground is frozen.
-        if (this.world.under('frozenground')) return;
-        const seam = this.ground === 'seam' ? TILE_EFFECT.seamGold : 1;
-        this.world.awardGold(Math.round(this.def.economy.amount * seam), this.x, this.topY);
+    if (this.def.economy && this.sortie === 'held') {
+      const threatened =
+        this.def.economy.requiresSeam &&
+        this.world.enemies.some((e) => e.alive && e.row === this.row && Math.abs(e.x - this.x) <= 260);
+      // A Miner drops the pick and uses their weapon when danger closes in.
+      // Frozen ground also pauses extraction without preventing combat.
+      if (!threatened && !this.world.under('frozenground')) {
+        this.economyTimer -= dt;
+        if (this.economyTimer <= 0) {
+          this.economyTimer = this.def.economy.interval;
+          if (this.def.economy.requiresSeam) {
+            this.world.mineEmber(this.row, this.col, this.def.economy.amount, this.x, this.topY);
+          } else {
+            this.world.awardGold(this.def.economy.amount, this.x, this.topY);
+          }
+        }
       }
     }
 
@@ -516,7 +525,7 @@ const PACK_RADIUS = 260;
 /** How far a demon steps through its portal, and how long the step takes. */
 const STEP_DISTANCE = 260;
 /** What a thief lifts per hit. */
-const THIEF_TAKE = 12;
+const THIEF_TAKE = 1;
 /** What the answering traits are worth, in seconds and in share of a blow. */
 const ROOT_SECONDS = 1.6;
 const BLEED_SHARE = 0.5;

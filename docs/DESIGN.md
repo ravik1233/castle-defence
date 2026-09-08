@@ -9,13 +9,14 @@ gate reaches zero, and that is the end of humanity, not a lost level.
 
 ## The loop
 
-1. Place a **Tithe Shrine** to start gold flowing.
-2. Spend that gold on defenders in the five lanes as the horde arrives.
-3. Tap hero spells to save a lane that is about to break.
-4. Survive every wave; the gate's remaining health becomes your star rating.
-5. Spend the payout in the Armoury on permanent upgrades and a better deck.
+1. Spend a small reserve of **Ember** to establish the first defender.
+2. Earn whole Ember from kills and spend it on reinforcements while the horde is moving.
+3. From Stage 2, decide whether an armed Miner can safely work a finite Ember vein.
+4. Tap hero spells to save a lane that is about to break.
+5. Survive every wave; the gate's remaining health becomes your star rating.
+6. Spend permanent Gold in the Armoury on upgrades and a better deck.
 
-A battle lasts 3–6 minutes: right for a phone, long enough to build an economy.
+A battle lasts 3–6 minutes: right for a phone, with deployment decisions throughout.
 
 ## Why landscape
 
@@ -30,16 +31,16 @@ and room to see a wave coming.
 
 | | |
 | --- | --- |
-| Starting gold | 175–300, rising through the campaign |
-| Tithe Shrine | 50 gold, returns 25 every 7s (pays for itself in ~14s) |
-| Cheapest defender | 50 (Militia, Barricade) |
-| Most expensive | 375 (Paladin, Crown Pack) |
-| Kill bounty | 6–80, +15% per chapter |
-| Level reward | 120–1000, one third on replay |
+| Stage 1 reserve | 5 Ember |
+| Militia | 2 Ember |
+| Goblin Grunt | Releases 1 Ember when defeated |
+| Ember vein | 3 visible deposits; Miner extracts 2 each |
+| Tithe Shrine | Later unlock; surviving victory earns 20 permanent Gold |
+| Level reward | Permanent Gold; one third on replay |
 
-Tuning intent: an economy-first opening is correct but risky — skipping the
-first Militia to squeeze in a second Shrine should feel like a real gamble on
-the first wave's timing.
+Tuning intent: income follows visible actions, never a passive trickle or a
+wave payout. A Miner creates an active risk: extraction stops when enemies
+approach, and the Miner fights until the lane is safe.
 
 ## Difficulty
 
@@ -76,7 +77,7 @@ behaviour of its own, and the region's own five defenders are raised to answer
 it: the undead **rise again** unless holy or fire put them down, orcs **rage**
 as they bleed, beasts run faster **in a pack**, the Fallen carry a **shield
 wall**, demons **step** through a portal past whatever is blocking them, and
-goblins **steal gold** off you when they land a hit. Each region ends on one of
+goblins **steal Ember** off you when they land a hit. Each region ends on one of
 the King's commanders, and the last on the King.
 
 ## What a fort demands
@@ -98,8 +99,8 @@ one idea and no two forts running pose the same demand.
 ## Ground
 
 The field is not flat. A cell can be rubble (nothing builds on it), marsh
-(slows what crosses), a shrine (whoever stands here hits harder), an ore seam
-(an economy building pays half again), high ground (nothing stands on it, but a
+(slows what crosses), a shrine (whoever stands here hits harder), an Ember vein
+(three finite deposits for a Miner), high ground (nothing stands on it, but a
 shooter beside it sees further), tall grass (cover from what shoots back), or
 open water - which only what floats can be placed on, and the Drowned Coast is
 made of it. Ground is generated per fort from its id, so placement is a
@@ -111,7 +112,7 @@ Each defender answers a specific threat, so the deck is a real decision:
 
 | Role | Answer to | Cards |
 | --- | --- | --- |
-| Economy | The whole game | Tithe Shrine |
+| Economy | Active reinforcements and meta risk | Ember Miner, Tithe Shrine |
 | Wall | Chargers, buying time | Barricade |
 | Melee | Anything that reaches the line | Militia, Guardian, Monk, Paladin |
 | Ranged | Flyers, packed lanes | Archer, Arbalest, Ballista |
