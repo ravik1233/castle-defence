@@ -224,12 +224,24 @@ function poolFor(family: EnemyFamily, boss: string, index: number, total: number
     .filter((e) => e.id !== boss && e.special !== 'boss' && !e.specials?.includes('boss'))
     .sort((a, b) => a.threat - b.threat);
   if (!roster.length) return ['goblin'];
-  // Everything is on the table by two thirds of the way through the region.
-  const share = Math.min(1, 0.45 + (index / Math.max(1, total - 1)) * 0.85);
+  /*
+   * Widen slowly, then all at once at the end.
+   *
+   * A linear reveal adds the region's heaviest body around the halfway fort,
+   * which doubles the pressure between one fort and the next - it reads as
+   * the game breaking rather than tightening. Easing it means the big
+   * arrivals land late, where the player is ready for them.
+   */
+  const progress = index / Math.max(1, total - 1);
+  const share = Math.min(1, 0.45 + Math.pow(progress, 1.35) * 0.55);
   const shown = Math.max(2, Math.round(roster.length * share));
-  // Drop the weakest as the region goes on, so late forts are not padded
-  // with something the player stopped noticing ten forts ago.
-  const from = index > total * 0.6 ? Math.min(2, roster.length - shown) : 0;
+  /*
+   * Drop the weakest as the region goes on, so late forts are not padded with
+   * something the player stopped noticing ten forts ago - but one at a time,
+   * and late. Dropping two at once used to halve a region's difficulty in a
+   * single fort, which reads as the game breaking rather than relenting.
+   */
+  const from = index > total * 0.75 ? Math.min(1, roster.length - shown) : 0;
   return roster.slice(from, from + shown).map((e) => e.id);
 }
 
@@ -240,7 +252,7 @@ function buildLevel(
 ): LevelDef {
   const global = CHAPTER_META.slice(0, chapterIdx).reduce((n, c) => n + c.levels, 0) + i + 1;
   const last = i === meta.levels - 1;
-  const waves = 6 + Math.min(6, Math.floor(i * 0.8)) + (last ? 2 : 0);
+  const waves = 6 + Math.min(7, Math.floor(i * 0.5)) + (last ? 2 : 0);
   const tier = chapterIdx;
   return {
     id: `c${meta.id}l${i + 1}`,
@@ -249,11 +261,11 @@ function buildLevel(
     name: meta.names[i] ?? `Wave ${i + 1}`,
     biome: meta.biome,
     waves,
-    budgetStart: 3 + i * 1.5 + tier * 7,
-    budgetGrowth: 1.2 + tier * 0.025,
+    budgetStart: 8 + i * 2.2 + tier * 5,
+    budgetGrowth: 1.22 + tier * 0.02,
     pool: poolFor(meta.family, meta.boss, i, meta.levels),
     boss: last ? meta.boss : undefined,
-    startingGold: 175 + Math.min(125, i * 10) + tier * 25,
+    startingGold: 165 + Math.min(90, i * 7) + tier * 18,
     reward: 120 + i * 30 + tier * 90 + (last ? 400 : 0),
     premium: meta.premium,
     brief:

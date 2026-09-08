@@ -1292,7 +1292,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
      * opening the gate and going out to meet them.
      */
     const far = e.x > FIELD_BOUNTY_LINE;
-    const bounty = Math.round(e.def.bounty * (1 + (this.chapter - 1) * 0.15) * (far ? 1.5 : 1));
+    const bounty = Math.round(e.def.bounty * (1 + (this.chapter - 1) * 0.08) * (far ? 1.5 : 1));
     this.gold += bounty;
     floatText(this, e.x, e.y - 100, far ? `+${bounty} salvage` : `+${bounty}`, COLORS.gold, 'tiny');
     this.updateHud();
