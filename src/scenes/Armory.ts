@@ -21,7 +21,7 @@ const UPGRADES_PER_PAGE = 10;
 /** Rows of cards that fit above the bottom of the screen. */
 const DECK_GRID_ROWS = 3;
 /** Where the page controls sit: clear of the tabs above and the grid below. */
-const PAGER_X = 1560;
+const PAGER_X = 1660;
 const PAGER_Y = 196;
 
 export class ArmoryScene extends Phaser.Scene {
@@ -369,21 +369,24 @@ export class ArmoryScene extends Phaser.Scene {
 
       const face = portraitForArt(this, h.art);
       if (face) {
-        const img = this.add.image(cx, y - 128, face.key);
-        img.setScale(Math.min(108 / img.width, 108 / img.height));
+        const img = this.add.image(cx, y - 140, face.key);
+        img.setScale(Math.min(88 / img.width, 88 / img.height));
         img.setAlpha(owned ? 1 : 0.35);
         this.track(img);
       }
 
-      const name = this.add.text(cx, y - 62, h.name, textStyle('body', COLORS.gold)).setOrigin(0.5);
+      const name = this.add.text(cx, y - 76, h.name, textStyle('body', COLORS.gold)).setOrigin(0.5);
       this.track(fitText(name, cardW - 60));
       const where = this.add
-        .text(cx, y - 34, region ? region.name : h.title, textStyle('tiny', COLORS.muted))
+        .text(cx, y - 50, region ? region.name : h.title, textStyle('tiny', COLORS.muted))
         .setOrigin(0.5);
       this.track(fitText(where, cardW - 60));
 
       h.spells.forEach((s, si) => {
-        const sy = y + si * 62;
+        // A blurb runs to three lines at this width, so the spells sit 74
+        // apart and the button 155 down: at 62 and 148 the first blurb ran
+        // into the second spell's name and the second ran under CHOOSE.
+        const sy = y - 22 + si * 74;
         if (this.textures.exists(s.icon)) {
           this.track(this.add.image(cx - cardW / 2 + 40, sy + 12, s.icon).setDisplaySize(46, 46));
         }
@@ -405,9 +408,9 @@ export class ArmoryScene extends Phaser.Scene {
 
       const label = active ? 'LEADING' : owned ? 'CHOOSE' : h.premium && !profile.hasCrownPack ? 'CROWN PACK' : 'NOT YET MET';
       this.track(
-        new TextButton(this, cx, y + 148, label, {
+        new TextButton(this, cx, y + 155, label, {
           width: cardW - 60,
-          height: 62,
+          height: 58,
           size: 'small',
           tone: active ? 'stone' : owned ? 'green' : h.premium && !profile.hasCrownPack ? 'gold' : 'stone',
           enabled: !active && (owned || (h.premium && !profile.hasCrownPack)),
