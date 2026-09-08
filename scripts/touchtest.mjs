@@ -152,12 +152,18 @@ for (const device of DEVICES) {
   }
   await page.mouse.click(btn.x, btn.y);
   await page.waitForTimeout(900);
+  /*
+   * DEFEND opens the continent, and a region is chosen from there. This used
+   * to assert 'Map' because it was written before the continent existed, and
+   * had been failing on all nine profiles ever since - reporting a broken hit
+   * area when what it had actually caught was its own stale expectation.
+   */
   const scene = await page.evaluate(() => globalThis.__game.scene.getScenes(true)[0].scene.key);
-  if (scene !== 'Map') fail(`${device.name}: tapping DEFEND left us on ${scene}`);
+  if (scene !== 'Continent') fail(`${device.name}: tapping DEFEND left us on ${scene}`);
   else {
     console.log(
       `${device.name} canvas ${Math.round(geom.rect.w)}x${Math.round(geom.rect.h)} ` +
-        `at ${Math.round(geom.rect.x)},${Math.round(geom.rect.y)} - centred, taps true, DEFEND works`,
+        `at ${Math.round(geom.rect.x)},${Math.round(geom.rect.y)} - centred, taps true, DEFEND opens the continent`,
     );
   }
   await page.close();
