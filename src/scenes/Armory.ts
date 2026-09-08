@@ -395,15 +395,22 @@ export class ArmoryScene extends Phaser.Scene {
             .text(cx - cardW / 2 + 72, sy, `${s.name}  (${s.cooldown}s)`, textStyle('tiny', COLORS.parchment))
             .setOrigin(0, 0.5),
         );
-        this.track(
-          this.add
-            .text(cx - cardW / 2 + 72, sy + 14, s.blurb, {
-              ...textStyle('tiny', COLORS.muted),
-              wordWrap: { width: (cardW - 100) / 0.85 },
-            })
-            .setOrigin(0, 0)
-            .setScale(0.85),
-        );
+        /*
+         * Two lines and no more. The blurbs vary from one line to four, and
+         * a four-line one printed its tail over the next spell's name or the
+         * CHOOSE button below it. The full text is on the card in battle and
+         * in the ledger; here it only has to say which spell this is.
+         */
+        const blurb = this.add
+          .text(cx - cardW / 2 + 72, sy + 14, s.blurb, {
+            ...textStyle('tiny', COLORS.muted),
+            wordWrap: { width: (cardW - 100) / 0.85 },
+          })
+          .setOrigin(0, 0)
+          .setScale(0.85);
+        const wrapped = blurb.getWrappedText(s.blurb);
+        if (wrapped.length > 2) blurb.setText(`${wrapped.slice(0, 2).join('\n').replace(/[.,;\s]+$/, '')}...`);
+        this.track(blurb);
       });
 
       const label = active ? 'LEADING' : owned ? 'CHOOSE' : h.premium && !profile.hasCrownPack ? 'CROWN PACK' : 'NOT YET MET';
