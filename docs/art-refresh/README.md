@@ -25,8 +25,11 @@ Multiple gameplay units currently share character art. Shared IDs therefore
 need a second review against gameplay roles before claiming visually distinct
 coverage for every gameplay unit and commander.
 
-All new artwork remains pending until it passes visual checks and is installed.
-The existing game has only twenty painted five-pose character sets.
+Stage 1 is the first production slice. Militia, Archer, Goblin Grunt, Goblin
+Runner and Commander Aldric now use clean packed eight-frame sets, with distinct
+idle, walk, attack, hurt and defeat poses. The Tithe Shrine and Ironhold gate
+also use the new premium direction. Later forts still fall back to their
+existing painted or vector artwork until their region is refreshed.
 
 ## Animation support
 
@@ -78,8 +81,10 @@ speed improvement is claimed yet.
 
 - TypeScript check passed.
 - Existing suite: 144 tests passed.
-- Production build passed.
-- New final sprite coverage: pending.
+- Production and QA builds passed.
+- Packed runtime checks: 13 passed.
+- Browser smoke test passed through victory and defeat.
+- New final sprite coverage: Stage 1 complete; Region 1 pending.
 
-This branch is an animation foundation and art-direction work area, not the
+This branch is a playable Stage 1 art and animation test build, not the
 completed full-roster replacement.

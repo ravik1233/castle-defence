@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createServer } from 'vite';
 import { launchBrowser } from './browser.mjs';
 
+process.env.QA = '1';
 const server = await createServer({ server: { host: '127.0.0.1', port: 5201 } });
 await server.listen();
 const browser = await launchBrowser();
@@ -10,25 +11,6 @@ try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  await page.route('**/assets/painted/manifest.json', async (route) => {
-    const response = await route.fetch();
-    const json = await response.json();
-    // Reuse an existing image as a test texture. Its appearance is irrelevant:
-    // the assertions below exercise frame selection and combat events.
-    json['unit.militia.frames'] = {
-      sheet: json['unit.militia.frame0'], count: 24, width: 32, height: 32,
-      names: [], animations: {
-        idle: { frames: [0, 1], fps: 6 },
-        walk: { frames: [2, 3, 4, 5], fps: 10 },
-        attack: { frames: [6, 7, 8, 9], fps: 10 },
-        cast: { frames: [10, 11], fps: 4 },
-        hurt: { frames: [12], fps: 5 },
-        spawn: { frames: [13, 0], fps: 7 },
-        die: { frames: [14, 15], fps: 4 },
-      },
-    };
-    await route.fulfill({ response, json });
-  });
   await page.goto('http://127.0.0.1:5201/?scene=Battle&level=c1l1&unlock=1&nomodal=1');
   await page.waitForFunction(() => !!globalThis.__battle, { timeout: 120000 });
   const results = await page.evaluate(async () => {
@@ -45,7 +27,7 @@ try {
     const portrait = portraitForArt(scene, 'militia');
     output.portraitUsesSheet = portrait.key === 'unit.militia.sheet' && portrait.frame === 0;
     rig.play('walk'); rig.update(0, 110);
-    output.walkAdvances = image.frame.name === 3;
+    output.walkAdvances = image.frame.name === 2;
     let hits = 0;
     rig.play('cast', () => hits++); rig.update(0, 270);
     output.castBeforeImpact = hits === 0;
