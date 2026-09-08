@@ -46,9 +46,9 @@ export class LoadoutScene extends Phaser.Scene {
 
     this.add.text(w / 2, 46, this.lvl.name.toUpperCase(), textStyle('title', COLORS.gold)).setOrigin(0.5);
     const brief = this.add
-      .text(w / 2, 96, this.lvl.brief, { ...textStyle('small', COLORS.muted), wordWrap: { width: 1400 }, align: 'center' })
+      .text(w / 2, 88, this.lvl.brief, { ...textStyle('small', COLORS.muted), wordWrap: { width: 1200 }, align: 'center' })
       .setOrigin(0.5, 0);
-    fitText(brief, 1400);
+    fitText(brief, 1200);
     this.drawDoctrines();
 
     new Counter(this, 40, 46, 'icon.coin', profile.gold, 'small');
@@ -87,9 +87,10 @@ export class LoadoutScene extends Phaser.Scene {
 
     rules.forEach((d, i) => {
       const cx = (w - total) / 2 + cardW / 2 + i * (cardW + 20);
-      const cy = 196;
+      // Clear of the fort's brief above: the cards used to be drawn over it.
+      const cy = 208;
       const wrap = cardW - 56;
-      this.add.rectangle(cx, cy, cardW, 152, 0x3a2434, 0.92).setStrokeStyle(3, 0xc0603a);
+      this.add.rectangle(cx, cy, cardW, 144, 0x3a2434, 0.92).setStrokeStyle(3, 0xc0603a);
       const name = this.add.text(cx, cy - 56, d.name.toUpperCase(), textStyle('small', COLORS.danger)).setOrigin(0.5);
       fitText(name, wrap);
       this.add
@@ -236,8 +237,12 @@ export class LoadoutScene extends Phaser.Scene {
       }
       c.add(fitText(this.add.text(0, 42, def.name, textStyle('tiny', COLORS.parchment)).setOrigin(0.5), 130));
       c.add(this.add.text(0, 68, `${def.cost}g`, textStyle('tiny', COLORS.gold)).setOrigin(0.5));
-      // Raised here, to fight what is here. Worth saying out loud.
-      if (home) c.add(this.add.text(0, 88, 'RAISED HERE', textStyle('tiny', COLORS.gold)).setOrigin(0.5).setAlpha(0.9));
+      // Raised here, to fight what is here. Worth saying out loud - inside
+      // the card, where it cannot run into the card beside it.
+      if (home) {
+        c.add(this.add.rectangle(0, -72, 150, 24, 0xf5c542, 0.9));
+        c.add(fitText(this.add.text(0, -72, 'RAISED HERE', textStyle('tiny', COLORS.ink)).setOrigin(0.5), 138));
+      }
       tappable(c, 150, 168);
       c.on('pointerdown', () => {
         if (this.deck.length >= DECK_MAX) {
