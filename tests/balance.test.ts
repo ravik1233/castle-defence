@@ -128,6 +128,25 @@ describe('what a threat point buys', () => {
     }
   });
 
+  /*
+   * Flyers pass over the whole line - `findBlocker` returns nothing for
+   * them - so only something that shoots can stop one. A region whose horde
+   * flies and whose muster does not shoot is a region with an unanswerable
+   * enemy in it, which is the reason the goblin flyer waited until there
+   * were archers to shoot it.
+   */
+  it('gives every region something that can shoot down what flies at it', () => {
+    const pool: string[] = [];
+    for (const ch of CHAPTERS) {
+      pool.push(...ch.unlocks);
+      if (!ENEMIES.some((e) => e.family === ch.family && e.flying)) continue;
+      const answers = pool
+        .map((id) => DEFENDER_BY_ID.get(id)!)
+        .filter((d) => d.attack && d.attack.range > 200 && (d.attack.targets ?? 'all') === 'all');
+      expect(answers.length, `${ch.name} fields flyers nothing there can reach`).toBeGreaterThan(0);
+    }
+  });
+
   it('pays a bounty in proportion to the health it took to earn it', () => {
     for (const f of families) {
       const list = rank(f);
