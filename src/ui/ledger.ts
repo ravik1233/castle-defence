@@ -174,10 +174,14 @@ export function showEnemyEntry(scene: Phaser.Scene, def: EnemyDef, onClose?: () 
           .setOrigin(0, 0),
       );
 
-      // The row of the table that matters when you are looking at this thing.
+      /*
+       * The row of the table that matters when you are looking at this thing.
+       * It sits clear of the CLOSE button, which the dialog puts at h/2-88:
+       * at h/2-160 the two numbers in the middle were printed underneath it.
+       */
       group.add(
         scene.add
-          .text(-w / 2 + 60, h / 2 - 200, 'Hurt most by:', textStyle('tiny', COLORS.parchment))
+          .text(-w / 2 + 60, h / 2 - 250, 'Hurt most by:', textStyle('tiny', COLORS.parchment))
           .setOrigin(0, 0),
       );
       TYPES.forEach((type, i) => {
@@ -186,7 +190,7 @@ export function showEnemyEntry(scene: Phaser.Scene, def: EnemyDef, onClose?: () 
           scene.add
             .text(
               -w / 2 + 60 + i * 200,
-              h / 2 - 160,
+              h / 2 - 210,
               `${TYPE_LABEL[type]}\n${m.toFixed(2)}x`,
               textStyle('small', tone(m)),
             )

@@ -342,53 +342,61 @@ export class ArmoryScene extends Phaser.Scene {
         .setOrigin(0.5),
     );
 
-    // Four commanders now, so they get a row of narrower cards rather than
-    // two wide ones. Locked commanders still show: knowing who is out there
-    // is half the reason to keep marching.
-    const colW = w / HEROES.length;
+    /*
+     * Seven commanders. A single row of seven gave each card 274 pixels, and
+     * at that width the spell blurbs ran to six lines, overlapped each other
+     * and the CHOOSE button, and the seventh card hung off the right edge.
+     * Four and three, in two rows, gives each one 440 and room for two lines.
+     */
+    const cols = 4;
+    const colW = w / cols;
+    const cardW = colW - 40;
+    const half = 190;
     HEROES.forEach((h, i) => {
-      const cx = colW / 2 + i * colW;
-      const y = 630;
+      const row = Math.floor(i / cols);
+      const inRow = Math.min(cols, HEROES.length - row * cols);
+      // A short last row is centred rather than left-aligned under the first.
+      const cx = (w - inRow * colW) / 2 + colW / 2 + (i % cols) * colW;
+      const y = 430 + row * 410;
       const owned = profile.availableHeroes().includes(h.id);
       const active = profile.heroId === h.id;
       const region = CHAPTERS.find((c) => c.commander === h.id);
       this.track(
         this.add
-          .rectangle(cx, y, colW - 40, 660, active ? 0x33405e : 0x2a2338, 0.9)
+          .rectangle(cx, y, cardW, half * 2, active ? 0x33405e : 0x2a2338, 0.9)
           .setStrokeStyle(4, active ? 0xf5c542 : 0x4a4060),
       );
 
       const face = portraitForArt(this, h.art);
       if (face) {
-        const img = this.add.image(cx, y - 216, face.key);
-        img.setScale(Math.min(180 / img.width, 180 / img.height));
+        const img = this.add.image(cx, y - 128, face.key);
+        img.setScale(Math.min(108 / img.width, 108 / img.height));
         img.setAlpha(owned ? 1 : 0.35);
         this.track(img);
       }
 
-      const name = this.add.text(cx, y - 110, h.name, textStyle('body', COLORS.gold)).setOrigin(0.5);
-      this.track(fitText(name, colW - 80));
-      this.track(
-        this.add
-          .text(cx, y - 70, region ? region.name : h.title, textStyle('tiny', COLORS.muted))
-          .setOrigin(0.5),
-      );
+      const name = this.add.text(cx, y - 62, h.name, textStyle('body', COLORS.gold)).setOrigin(0.5);
+      this.track(fitText(name, cardW - 60));
+      const where = this.add
+        .text(cx, y - 34, region ? region.name : h.title, textStyle('tiny', COLORS.muted))
+        .setOrigin(0.5);
+      this.track(fitText(where, cardW - 60));
 
       h.spells.forEach((s, si) => {
-        const sy = y - 30 + si * 148;
+        const sy = y + si * 62;
         if (this.textures.exists(s.icon)) {
-          this.track(this.add.image(cx - colW / 2 + 50, sy, s.icon).setDisplaySize(56, 56));
+          this.track(this.add.image(cx - cardW / 2 + 40, sy + 12, s.icon).setDisplaySize(46, 46));
         }
         this.track(
-          this.add.text(cx - colW / 2 + 88, sy, s.name, textStyle('tiny', COLORS.parchment)).setOrigin(0, 0.5),
+          this.add
+            .text(cx - cardW / 2 + 72, sy, `${s.name}  (${s.cooldown}s)`, textStyle('tiny', COLORS.parchment))
+            .setOrigin(0, 0.5),
         );
-        // Blurbs run to three lines at this width, so they hang below the
-        // name rather than being centred on it.
         this.track(
           this.add
-            .text(cx - colW / 2 + 88, sy + 22, `${s.blurb}  (${s.cooldown}s)`, {
+            .text(cx - cardW / 2 + 72, sy + 14, s.blurb, {
               ...textStyle('tiny', COLORS.muted),
-              wordWrap: { width: (colW - 130) / 0.85 },
+              wordWrap: { width: (cardW - 100) / 0.85 },
             })
             .setOrigin(0, 0)
             .setScale(0.85),
@@ -397,9 +405,9 @@ export class ArmoryScene extends Phaser.Scene {
 
       const label = active ? 'LEADING' : owned ? 'CHOOSE' : h.premium && !profile.hasCrownPack ? 'CROWN PACK' : 'NOT YET MET';
       this.track(
-        new TextButton(this, cx, y + 278, label, {
-          width: colW - 90,
-          height: 82,
+        new TextButton(this, cx, y + 148, label, {
+          width: cardW - 60,
+          height: 62,
           size: 'small',
           tone: active ? 'stone' : owned ? 'green' : h.premium && !profile.hasCrownPack ? 'gold' : 'stone',
           enabled: !active && (owned || (h.premium && !profile.hasCrownPack)),
@@ -416,6 +424,7 @@ export class ArmoryScene extends Phaser.Scene {
       );
     });
   }
+
 
   /* --------------------------------------------------------------- castle */
 
