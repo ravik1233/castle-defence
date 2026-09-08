@@ -197,8 +197,9 @@ export class Defender {
   }
 
   takeDamage(amount: number): void {
-    amount *= this.world.guardFactor();
     if (!this.alive) return;
+    // Sanctuary blunts what lands on the line while it holds.
+    amount *= this.world.guardFactor();
     // Tall grass is cover: what shoots at it mostly hits the grass.
     const cover = this.ground === 'tallgrass' ? TILE_EFFECT.grassCover : 1;
     const state = { hp: this.hp, maxHp: this.maxHp };
