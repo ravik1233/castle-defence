@@ -8,6 +8,7 @@
 import { GRID } from '../core/layout';
 import { enemy, familyOf } from './enemies';
 import { tilesFor } from './tiles';
+import { DOCTRINE_EFFECT, doctrinesFor } from './doctrines';
 import type { ChapterDef, EnemyFamily, LevelDef } from './types';
 
 /** Deterministic PRNG so generated waves are stable across devices. */
@@ -35,6 +36,8 @@ export interface WaveEntry {
   row: number;
   /** Seconds after the wave starts. */
   delay: number;
+  /** Body size, for forts fought under a warband or a swarm. */
+  scale?: number;
 }
 
 export interface Wave {
@@ -282,7 +285,10 @@ function buildLevel(
     modifiers:
       global === 1
         ? { fixedDeck: ['tithe', 'militia', 'archer'], goldTrickle: 6 }
-        : { tiles: tilesFor(`c${meta.id}l${i + 1}`, meta.biome, i) },
+        : {
+            tiles: tilesFor(`c${meta.id}l${i + 1}`, meta.biome, i),
+            doctrines: doctrinesFor(`c${meta.id}l${i + 1}`, meta.family, i, meta.id),
+          },
   };
 }
 
@@ -330,10 +336,27 @@ export function generateWaves(def: LevelDef): Wave[] {
     const finale = w === def.waves - 1;
     let budget = def.budgetStart * Math.pow(def.budgetGrowth, w) * (big ? 1.55 : 1);
 
+    /*
+     * A warband is half as many at twice the size; a swarm is the reverse.
+     * The budget is the same either way - what changes is whether the answer
+     * is one heavy blow or something that hits a whole lane.
+     */
+    const doctrines = def.modifiers?.doctrines ?? [];
+    const bodyScale = doctrines.includes('warband')
+      ? DOCTRINE_EFFECT.warbandSize
+      : doctrines.includes('swarm')
+        ? DOCTRINE_EFFECT.swarmSize
+        : 1;
     const entries: WaveEntry[] = [];
     // Later enemies in the pool only appear once the budget can carry them.
     const pool = def.pool.map(enemy).sort((a, b) => a.threat - b.threat);
-    const spawnWindow = Math.min(22, 9 + w * 1.1);
+    /*
+     * Bigger bodies walk in over a longer window and smaller ones flood.
+     * A warband is meant to be heavy blows arriving steadily - packed into
+     * the same seconds as a normal wave it stops being a different shape of
+     * fight and becomes simply an unpayable one.
+     */
+    const spawnWindow = Math.min(26, (9 + w * 1.1) * Math.sqrt(bodyScale));
 
     /**
      * A wave picks two or three featured enemy types up front and then spends
@@ -383,11 +406,14 @@ export function generateWaves(def: LevelDef): Wave[] {
         ]!;
       }
       previous = pick.id;
-      budget -= pick.threat;
+      // A body that is twice the size costs the wave twice as much, so the
+      // horde's weight is the same and only its shape changes.
+      budget -= pick.threat * bodyScale;
       entries.push({
         enemyId: pick.id,
         row: Math.floor(rand() * GRID.rows),
         delay: rand() * spawnWindow,
+        scale: bodyScale === 1 ? undefined : bodyScale,
       });
     }
 

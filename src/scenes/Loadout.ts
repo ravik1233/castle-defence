@@ -12,6 +12,7 @@ import { DESIGN } from '../core/layout';
 import { DEFENDERS, defender } from '../data/defenders';
 import { CONSUMABLES, EQUIPMENT, EQUIPMENT_SLOTS } from '../data/workshop';
 import { level as levelById } from '../data/levels';
+import { DOCTRINES } from '../data/doctrines';
 import type { LevelDef } from '../data/types';
 import { portraitFor } from '../art/portraits';
 import { profile } from '../systems/profile';
@@ -42,9 +43,10 @@ export class LoadoutScene extends Phaser.Scene {
 
     this.add.text(w / 2, 46, this.lvl.name.toUpperCase(), textStyle('title', COLORS.gold)).setOrigin(0.5);
     const brief = this.add
-      .text(w / 2, 100, this.lvl.brief, { ...textStyle('small', COLORS.muted), wordWrap: { width: 1400 }, align: 'center' })
+      .text(w / 2, 96, this.lvl.brief, { ...textStyle('small', COLORS.muted), wordWrap: { width: 1400 }, align: 'center' })
       .setOrigin(0.5, 0);
     fitText(brief, 1400);
+    this.drawDoctrines();
 
     new Counter(this, 40, 46, 'icon.coin', profile.gold, 'small');
     new Counter(this, 250, 46, 'icon.hammer', profile.salvage, 'small');
@@ -64,6 +66,45 @@ export class LoadoutScene extends Phaser.Scene {
     });
 
     this.draw();
+  }
+
+  /**
+   * The rules this fort is fought under, before a card is chosen.
+   *
+   * This is the whole point of the screen: a deck is only a decision if the
+   * player knows what is being asked of it. Each rule carries its answer, so
+   * the briefing teaches the counter rather than only naming the problem.
+   */
+  private drawDoctrines(): void {
+    const rules = (this.lvl.modifiers?.doctrines ?? []).map((id) => DOCTRINES[id]);
+    if (!rules.length) return;
+    const w = DESIGN.width;
+    const cardW = Math.min(760, 1560 / rules.length);
+    const total = rules.length * cardW + (rules.length - 1) * 20;
+
+    rules.forEach((d, i) => {
+      const cx = (w - total) / 2 + cardW / 2 + i * (cardW + 20);
+      const cy = 196;
+      const wrap = cardW - 56;
+      this.add.rectangle(cx, cy, cardW, 152, 0x3a2434, 0.92).setStrokeStyle(3, 0xc0603a);
+      const name = this.add.text(cx, cy - 56, d.name.toUpperCase(), textStyle('small', COLORS.danger)).setOrigin(0.5);
+      fitText(name, wrap);
+      this.add
+        .text(cx, cy - 36, d.blurb, {
+          ...textStyle('tiny', COLORS.parchment),
+          wordWrap: { width: wrap },
+          align: 'center',
+        })
+        .setOrigin(0.5, 0);
+      this.add
+        .text(cx, cy + 16, d.answer, {
+          ...textStyle('tiny', COLORS.muted),
+          wordWrap: { width: wrap },
+          align: 'center',
+        })
+        .setOrigin(0.5, 0)
+        .setScale(0.9);
+    });
   }
 
   private clearBody(): void {
@@ -87,17 +128,17 @@ export class LoadoutScene extends Phaser.Scene {
 
   private drawDeck(): void {
     this.track(
-      this.add.text(60, 200, `IN HAND  ${this.deck.length} / ${DECK_MAX}`, textStyle('body', COLORS.gold)).setOrigin(0, 0.5),
+      this.add.text(60, 296, `IN HAND  ${this.deck.length} / ${DECK_MAX}`, textStyle('body', COLORS.gold)).setOrigin(0, 0.5),
     );
     this.track(
       this.add
-        .text(60, 244, 'Tap a card to drop it. Tap one below to take it.', textStyle('tiny', COLORS.muted))
+        .text(60, 330, 'Tap a card to drop it. Tap one below to take it.', textStyle('tiny', COLORS.muted))
         .setOrigin(0, 0.5),
     );
 
     this.deck.forEach((id, i) => {
       const def = defender(id);
-      const c = this.track(this.add.container(150 + i * 170, 350));
+      const c = this.track(this.add.container(150 + i * 170, 424));
       c.add(this.add.image(0, 0, 'ui.card').setDisplaySize(150, 168).setTint(0x9ff0b4));
       const portrait = portraitFor(this, def);
       if (portrait) {
@@ -122,9 +163,9 @@ export class LoadoutScene extends Phaser.Scene {
 
     // Everything unlocked and not already in hand.
     const bench = DEFENDERS.filter((d) => profile.isCardUnlocked(d.id) && !this.deck.includes(d.id));
-    this.track(this.add.text(60, 480, 'MUSTERED', textStyle('small', COLORS.muted)).setOrigin(0, 0.5));
-    bench.slice(0, 16).forEach((def, i) => {
-      const c = this.track(this.add.container(150 + (i % 8) * 170, 590 + Math.floor(i / 8) * 190));
+    this.track(this.add.text(60, 540, 'MUSTERED', textStyle('small', COLORS.muted)).setOrigin(0, 0.5));
+    bench.slice(0, 14).forEach((def, i) => {
+      const c = this.track(this.add.container(150 + (i % 7) * 170, 640 + Math.floor(i / 7) * 178));
       const full = this.deck.length >= DECK_MAX;
       c.add(this.add.image(0, 0, 'ui.card').setDisplaySize(150, 168).setTint(full ? 0x6a6478 : 0xffffff));
       const portrait = portraitFor(this, def);
@@ -153,11 +194,11 @@ export class LoadoutScene extends Phaser.Scene {
   /* ------------------------------------------------------------ equipment */
 
   private drawEquipment(): void {
-    const x = 1480;
+    const x = 1560;
     const fitted = profile.equipped;
     this.track(
       this.add
-        .text(x, 200, `FITTED TO THE WALL  ${fitted.length} / ${EQUIPMENT_SLOTS}`, textStyle('body', COLORS.gold))
+        .text(x, 296, `FITTED TO THE WALL  ${fitted.length} / ${EQUIPMENT_SLOTS}`, textStyle('body', COLORS.gold))
         .setOrigin(0.5),
     );
 
@@ -165,9 +206,9 @@ export class LoadoutScene extends Phaser.Scene {
     if (!owned.length) {
       this.track(
         this.add
-          .text(x, 300, 'Nothing yet. The workshop turns salvage into walls.', {
+          .text(x, 372, 'Nothing yet. The workshop turns salvage into walls.', {
             ...textStyle('small', COLORS.muted),
-            wordWrap: { width: 700 },
+            wordWrap: { width: 600 },
             align: 'center',
           })
           .setOrigin(0.5),
@@ -175,15 +216,15 @@ export class LoadoutScene extends Phaser.Scene {
     }
 
     owned.forEach((def, i) => {
-      const y = 280 + i * 96;
+      const y = 356 + i * 92;
       const on = fitted.includes(def.id);
       const row = this.track(this.add.container(x, y));
-      row.add(this.add.rectangle(0, 0, 720, 84, on ? 0x33405e : 0x2a2338, 0.92).setStrokeStyle(3, on ? 0xf5c542 : 0x4a4060));
-      if (this.textures.exists(def.icon)) row.add(this.add.image(-320, 0, def.icon).setDisplaySize(52, 52));
-      row.add(fitText(this.add.text(-280, -14, def.name, textStyle('small', COLORS.parchment)).setOrigin(0, 0.5), 560));
-      row.add(fitText(this.add.text(-280, 18, def.blurb, textStyle('tiny', COLORS.muted)).setOrigin(0, 0.5), 560));
-      row.add(this.add.text(310, 0, on ? 'ON' : 'OFF', textStyle('tiny', on ? COLORS.gold : COLORS.muted)).setOrigin(0.5));
-      tappable(row, 720, 84);
+      row.add(this.add.rectangle(0, 0, 620, 84, on ? 0x33405e : 0x2a2338, 0.92).setStrokeStyle(3, on ? 0xf5c542 : 0x4a4060));
+      if (this.textures.exists(def.icon)) row.add(this.add.image(-270, 0, def.icon).setDisplaySize(52, 52));
+      row.add(fitText(this.add.text(-232, -14, def.name, textStyle('small', COLORS.parchment)).setOrigin(0, 0.5), 430));
+      row.add(fitText(this.add.text(-232, 18, def.blurb, textStyle('tiny', COLORS.muted)).setOrigin(0, 0.5), 430));
+      row.add(this.add.text(262, 0, on ? 'ON' : 'OFF', textStyle('tiny', on ? COLORS.gold : COLORS.muted)).setOrigin(0.5));
+      tappable(row, 620, 84);
       row.on('pointerdown', () => {
         if (!profile.toggleEquipped(def.id)) {
           audio.play('deny');
@@ -201,8 +242,8 @@ export class LoadoutScene extends Phaser.Scene {
     });
 
     this.track(
-      new TextButton(this, x, 830, 'THE WORKSHOP', {
-        width: 420,
+      new TextButton(this, x, 838, 'THE WORKSHOP', {
+        width: 360,
         height: 84,
         size: 'small',
         tone: 'blue',
@@ -214,13 +255,13 @@ export class LoadoutScene extends Phaser.Scene {
   /* ---------------------------------------------------------------- stock */
 
   private drawStock(): void {
-    const x = 1480;
+    const x = 1560;
     const carried = CONSUMABLES.filter((c) => profile.stockOf(c.id) > 0);
     const line = carried.length
       ? carried.map((c) => `${c.name} x${profile.stockOf(c.id)}`).join('    ')
       : 'No stock in the pack.';
     this.track(this.add.text(x, 930, 'IN THE PACK', textStyle('small', COLORS.gold)).setOrigin(0.5));
-    this.track(fitText(this.add.text(x, 972, line, textStyle('tiny', COLORS.muted)).setOrigin(0.5), 720));
+    this.track(fitText(this.add.text(x, 972, line, textStyle('tiny', COLORS.muted)).setOrigin(0.5), 620));
   }
 
   /* --------------------------------------------------------------- march */

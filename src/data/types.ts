@@ -1,6 +1,7 @@
 /** Shared gameplay data types. Stats live here; art lives in `src/art`. */
 import type { ProjectileId } from '../art/props';
 import type { BiomeId } from '../art/scenery';
+import type { DoctrineId } from './doctrines';
 
 export type DefenderRole = 'melee' | 'ranged' | 'economy' | 'wall' | 'support' | 'aoe';
 
@@ -272,6 +273,8 @@ export interface LevelModifiers {
   bannedCards?: string[];
   /** Only these cards are available. */
   fixedDeck?: string[];
+  /** The rules this fort is fought under, declared before the deck is picked. */
+  doctrines?: DoctrineId[];
 }
 
 export interface LevelDef {

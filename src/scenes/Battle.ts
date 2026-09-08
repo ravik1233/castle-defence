@@ -43,6 +43,7 @@ import { enemyScaling, starsForKeep, tensionFor } from '../battle/combat';
 import { callBounty, musterPay } from '../battle/economy';
 import { CONSUMABLES, EQUIPMENT_EFFECT, consumable } from '../data/workshop';
 import { TILE_NAME, canStandOn } from '../data/tiles';
+import { DOCTRINES, DOCTRINE_EFFECT, type DoctrineId } from '../data/doctrines';
 import type { KeepState } from '../battle/combat';
 
 /**
@@ -121,8 +122,10 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private fitted = new Set<string>();
   /** The ground this fort is fought on, row by row. */
   private tiles: TileKind[][] = [];
+  /** The rules this fort is fought under. */
+  private doctrines = new Set<DoctrineId>();
   private sectionMax = SECTION_MAX_HP;
-  private spawnQueue: Array<{ at: number; enemyId: string; row: number }> = [];
+  private spawnQueue: Array<{ at: number; enemyId: string; row: number; scale?: number }> = [];
   private elapsed = 0;
   private finished = false;
 
@@ -296,12 +299,16 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
      */
     this.fitted = new Set(profile.equipped);
     this.tiles = this.levelDef.modifiers?.tiles ?? [];
+    this.doctrines = new Set(this.levelDef.modifiers?.doctrines ?? []);
     this.sectionMax = Math.round(
       SECTION_MAX_HP * (this.fitted.has('reinforced') ? EQUIPMENT_EFFECT.reinforced.sectionHp : 1),
     );
     this.gold =
       this.levelDef.startingGold + (this.fitted.has('cellars') ? EQUIPMENT_EFFECT.cellars.startingGold : 0);
     this.sections = new Array(GRID.rows).fill(this.sectionMax);
+    // A breached gate is the fort's opening position, not something that
+    // happens to it: the player picks their deck already knowing.
+    if (this.doctrines.has('breached')) this.sections[Math.floor(GRID.rows / 2)] = 0;
     this.heartHp = HEART_MAX_HP;
     this.killCount = 0;
     this.goldSpent = 0;
@@ -331,7 +338,11 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     audio.startMusic();
     audio.setTension(0);
 
-    if (!this.skipBriefing) this.announce(this.levelDef.name, this.levelDef.brief);
+    if (!this.skipBriefing) {
+      // Two rules need more panel than one: a briefing the player has to
+      // read around the button is not a briefing.
+      this.announce(this.levelDef.name, this.briefingText(), 460 + this.doctrines.size * 170);
+    }
     if (this.levelDef.id === 'c1l1' && !profile.raw.tutorialDone) this.startTutorial();
     this.installTestHooks();
 
@@ -965,10 +976,10 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     hero.spells.forEach((spell, i) => {
       const x = DESIGN.width - 250 + i * 150;
       // Label above the button: below it would fall off the bottom edge.
-      this.add
-        .text(x, TRAY.y + 20, spell.name, textStyle('tiny', COLORS.muted))
-        .setOrigin(0.5)
-        .setDepth(3001);
+      fitText(
+        this.add.text(x, TRAY.y + 20, spell.name, textStyle('tiny', COLORS.muted)).setOrigin(0.5).setDepth(3001),
+        138,
+      );
       const container = this.add.container(x, TRAY.y + TRAY.height / 2 + 14).setDepth(3001);
       const ring = this.add.image(0, 0, 'ui.button.blue').setDisplaySize(112, 100);
       container.add(ring);
@@ -1139,6 +1150,11 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     const col = colFromX(x);
 
     if (this.selectedCard === '__sell__') {
+      if (!this.canGiveGround()) {
+        audio.play('deny');
+        floatText(this, x, y - 40, 'no ground given here', COLORS.muted, 'tiny');
+        return;
+      }
       const target = this.occupancy.get(`${row},${col}`);
       if (target) {
         const refund = Math.max(10, Math.round(target.def.cost * 0.5));
@@ -1177,7 +1193,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       floatText(this, x, y - 40, 'recharging', COLORS.muted, 'tiny');
       return;
     }
-    if (this.gold < card.cost) {
+    if (this.gold < this.priceOf(card.cost)) {
       audio.play('deny');
       floatText(this, x, y - 40, 'not enough gold', COLORS.danger, 'tiny');
       return;
@@ -1185,8 +1201,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
     this.placeDefender(this.selectedCard, row, col);
     card.cooldownLeft = card.cooldown;
-    this.gold -= card.cost;
-    this.goldSpent += card.cost;
+    this.gold -= this.priceOf(card.cost);
+    this.goldSpent += this.priceOf(card.cost);
     this.updateHud();
     audio.play('place');
     haptic(14);
@@ -1220,7 +1236,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     const row = Math.max(0, Math.min(GRID.rows - 1, rowFromY(atY)));
     const before = this.sections[row] ?? 0;
     if (before <= 0) return;
-    this.sections[row] = Math.max(0, before - amount);
+    this.sections[row] = Math.max(0, before - amount * this.wallDamageFactor());
     /*
      * Boiling oil answers whoever is swinging at the gate. It is poured on
      * the swing rather than on a timer, so it only ever hits what is
@@ -1335,6 +1351,31 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     audio.play(id);
   }
 
+  /** True when this fort is fought under the named rule. */
+  under(id: DoctrineId): boolean {
+    return this.doctrines.has(id);
+  }
+
+  /** What a card costs here. Thin supply puts the price up. */
+  private priceOf(cost: number): number {
+    return this.under('thinsupply') ? Math.round(cost * DOCTRINE_EFFECT.thinSupplyCost) : cost;
+  }
+
+  /** How far a defender can see. The night takes a quarter of it. */
+  rangeFactor(): number {
+    return this.under('night') ? DOCTRINE_EFFECT.nightRange : 1;
+  }
+
+  /** What a gate section takes from a blow. Sappers came for the gate. */
+  wallDamageFactor(): number {
+    return this.under('sappers') ? DOCTRINE_EFFECT.sapperWallDamage : 1;
+  }
+
+  /** Whether a unit may be sold or sent out. Not under standing orders. */
+  canGiveGround(): boolean {
+    return !this.under('holdtheline');
+  }
+
   /** How much stock the player is carrying, all kinds together. */
   private itemsHeld(): number {
     return CONSUMABLES.reduce((n, c) => n + profile.stockOf(c.id), 0);
@@ -1429,6 +1470,11 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
    * square stays the handle for calling it home.
    */
   private toggleSortie(row: number, col: number, x: number, y: number): void {
+    if (!this.canGiveGround()) {
+      audio.play('deny');
+      floatText(this, x, y - 40, 'no sorties here', COLORS.muted, 'tiny');
+      return;
+    }
     const target =
       this.occupancy.get(`${row},${col}`) ??
       this.defenders.find(
@@ -1489,6 +1535,12 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     this.phase = 'muster';
     // The old drip-fed trickle is paid here instead, in one readable lump:
     // gold you can count is gold you can plan with.
+    if (this.under('noquarter')) {
+      // You eat what you kill: the muster still happens, it simply pays nothing.
+      floatText(this, DESIGN.width / 2, HUD.height + 90, 'NO QUARTER  -  no wage', COLORS.muted, 'small');
+      this.updateHud();
+      return;
+    }
     const pay = musterPay(this.chapter, this.levelDef.modifiers?.goldTrickle ?? 0);
     this.gold += pay;
     audio.play('coin');
@@ -1541,11 +1593,11 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     this.waveIndex += 1;
     const wave = this.waves[this.waveIndex];
     if (!wave) return;
-    this.waveTimer = wave.duration;
+    this.waveTimer = wave.duration * (this.under('forcedmarch') ? DOCTRINE_EFFECT.forcedMarchMuster : 1);
     for (const e of wave.entries) {
-      this.spawnQueue.push({ at: this.elapsed + e.delay, enemyId: e.enemyId, row: e.row });
+      this.spawnQueue.push({ at: this.elapsed + e.delay, enemyId: e.enemyId, row: e.row, scale: e.scale });
     }
-    this.phase = wave.big ? 'siege' : 'assault';
+    this.phase = wave.big || this.under('bombardment') ? 'siege' : 'assault';
     this.bombardTimer = BOMBARD_EVERY;
     audio.play('wave');
     this.banner(
@@ -1555,9 +1607,10 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     this.updateHud();
   }
 
-  private spawnEnemy(id: string, row: number, x = SPAWN_X): void {
+  private spawnEnemy(id: string, row: number, x = SPAWN_X, body = 1): void {
     const def = enemyDef(id);
-    const scale = enemyScaling(this.chapter, Math.max(0, this.waveIndex)) * (this.levelDef.modifiers?.hpScale ?? 1);
+    const scale =
+      enemyScaling(this.chapter, Math.max(0, this.waveIndex)) * (this.levelDef.modifiers?.hpScale ?? 1) * body;
     const e = new Enemy(this, def, row, x, { hpScale: scale, damageScale: Math.sqrt(scale) });
     // Watchfires burn all night: everything that walks into their light is
     // already slower than it wanted to be.
@@ -1607,12 +1660,20 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     });
   }
 
-  private announce(title: string, body: string): void {
+  /** The fort's own brief, plus the rules it is fought under. */
+  private briefingText(): string {
+    const rules = [...this.doctrines].map((id) => DOCTRINES[id]);
+    if (!rules.length) return this.levelDef.brief;
+    const lines = rules.map((d) => `${d.name.toUpperCase()}: ${d.blurb}\n${d.answer}`);
+    return `${this.levelDef.brief}\n\n${lines.join('\n\n')}`;
+  }
+
+  private announce(title: string, body: string, height = 460): void {
     showDialog(this, {
       title,
       body,
-      width: 860,
-      height: 460,
+      width: 980,
+      height,
       dismissable: false,
       buttons: [{ text: 'HOLD THE GATE', tone: 'green' }],
     });
@@ -1646,7 +1707,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     // Scheduled spawns
     while (this.spawnQueue.length && this.spawnQueue[0]!.at <= this.elapsed) {
       const s = this.spawnQueue.shift()!;
-      this.spawnEnemy(s.enemyId, s.row);
+      this.spawnEnemy(s.enemyId, s.row, undefined, s.scale);
     }
     this.spawnQueue.sort((a, b) => a.at - b.at);
 

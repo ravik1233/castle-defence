@@ -84,8 +84,11 @@ describe('the shape of the campaign', () => {
       let hp = 0;
       for (const e of w.entries) {
         const def = enemy(e.enemyId);
-        hp += def.hp * enemyScaling(l.chapter, wi);
-        bounty += Math.round(def.bounty * (1 + (l.chapter - 1) * 0.08));
+        // A warband fields half as many bodies at twice the size; the weight
+        // is the same either way, and the measurement has to know that.
+        const body = e.scale ?? 1;
+        hp += def.hp * enemyScaling(l.chapter, wi) * body;
+        bounty += Math.round(def.bounty * body * (1 + (l.chapter - 1) * 0.08));
       }
       peak = Math.max(peak, hp / Math.max(1, w.duration));
     });

@@ -4,6 +4,7 @@ import { ENEMY_BY_ID, enemy } from '../src/data/enemies';
 import { DEFENDERS, DEFENDER_BY_ID } from '../src/data/defenders';
 import { HERO_BY_ID } from '../src/data/heroes';
 import { canStandOn, tilesFor } from '../src/data/tiles';
+import { DOCTRINES, doctrinesFor } from '../src/data/doctrines';
 import { GRID } from '../src/core/layout';
 
 describe('rng', () => {
@@ -150,13 +151,15 @@ describe('generateWaves', () => {
   });
 
   it('gets harder chapter over chapter', () => {
+    // Weight, not head count: a fort fought under a warband fields half as
+    // many bodies at twice the size, and is not therefore half the fight.
     const total = (id: string) =>
       generateWaves(level(id)).reduce(
-        (s, w) => s + w.entries.reduce((n, e) => n + enemy(e.enemyId).threat, 0),
+        (n, w) => n + w.entries.reduce((m, e) => m + enemy(e.enemyId).threat * (e.scale ?? 1), 0),
         0,
       );
     expect(total('c2l1')).toBeGreaterThan(total('c1l1'));
-    expect(total('c3l1')).toBeGreaterThan(total('c2l1'));
+    expect(total('c7l1')).toBeGreaterThan(total('c3l1'));
   });
 });
 
@@ -265,5 +268,69 @@ describe('the ground a fort is fought on', () => {
     const b = tilesFor('c5l4', 'coast', 3);
     expect(a).toEqual(b);
     expect(tilesFor('c5l5', 'coast', 4)).not.toEqual(a);
+  });
+});
+
+describe('what each fort demands', () => {
+  /*
+   * A hundred and five forts that differ only in who is walking at you are
+   * a hundred and five of the same decision. These check that the rules are
+   * spread, teachable, and never set against themselves.
+   */
+  it('teaches the opening forts before it tests them', () => {
+    for (const l of CHAPTERS[0]!.levels.slice(0, 3)) {
+      expect(l.modifiers?.doctrines ?? [], `${l.id} should be plain`).toEqual([]);
+    }
+  });
+
+  it('gives every later fort at least one rule of its own', () => {
+    const later = ALL_LEVELS.filter((l) => !(l.chapter === 1 && l.index <= 3));
+    for (const l of later) {
+      expect((l.modifiers?.doctrines ?? []).length, `${l.id} has no demand`).toBeGreaterThan(0);
+    }
+  });
+
+  it('never sets two rules that undo each other', () => {
+    for (const l of ALL_LEVELS) {
+      const d = l.modifiers?.doctrines ?? [];
+      expect(d.includes('warband') && d.includes('swarm'), `${l.id}`).toBe(false);
+      expect(d.includes('noquarter') && d.includes('frozenground'), `${l.id}`).toBe(false);
+      expect(new Set(d).size, `${l.id} repeats a rule`).toBe(d.length);
+    }
+  });
+
+  it('draws every rule from the pool its region can pose', () => {
+    for (const ch of CHAPTERS) {
+      for (const l of ch.levels) {
+        for (const id of l.modifiers?.doctrines ?? []) {
+          expect(DOCTRINES[id], `${l.id} sets unknown rule ${id}`).toBeDefined();
+        }
+      }
+    }
+  });
+
+  it('uses the whole vocabulary rather than the same trick everywhere', () => {
+    const used = new Set(ALL_LEVELS.flatMap((l) => l.modifiers?.doctrines ?? []));
+    expect(used.size).toBeGreaterThanOrEqual(10);
+    // And no single rule is more than a third of the campaign.
+    const counts: Record<string, number> = {};
+    for (const l of ALL_LEVELS) for (const d of l.modifiers?.doctrines ?? []) counts[d] = (counts[d] ?? 0) + 1;
+    const total = Object.values(counts).reduce((a, b) => a + b, 0);
+    for (const [id, n] of Object.entries(counts)) {
+      expect(n / total, `${id} is ${((n / total) * 100).toFixed(0)}% of every rule set`).toBeLessThan(0.34);
+    }
+  });
+
+  it('tells the player the answer, not only the problem', () => {
+    for (const d of Object.values(DOCTRINES)) {
+      expect(d.blurb.length, `${d.id}`).toBeGreaterThan(20);
+      expect(d.answer.length, `${d.id} has no counter-play`).toBeGreaterThan(20);
+    }
+  });
+
+  it('is the same demand at the same fort for every player', () => {
+    const a = doctrinesFor('c4l7', 'beast', 6, 4);
+    expect(doctrinesFor('c4l7', 'beast', 6, 4)).toEqual(a);
+    expect(doctrinesFor('c4l8', 'beast', 7, 4)).not.toEqual([]);
   });
 });

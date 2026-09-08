@@ -45,6 +45,10 @@ export interface BattleWorld {
   isConsecrated(row: number): boolean;
   /** True while a ward is shut over this lane, so nothing can step through. */
   isWarded(row: number): boolean;
+  /** How far anything of ours can see here. The night takes a quarter. */
+  rangeFactor(): number;
+  /** True when this fort is fought under the named rule. */
+  under(id: import('../data/doctrines').DoctrineId): boolean;
   /** What kind of ground a cell is: rock, marsh, shrine, water, or plain. */
   tileAt(row: number, col: number): TileKind;
   /** The ground under a point on the field, for anything that is walking. */
@@ -249,7 +253,9 @@ export class Defender {
       this.economyTimer -= dt;
       if (this.economyTimer <= 0) {
         this.economyTimer = this.def.economy.interval;
-        // A tithe raised over an ore seam is worth half as much again.
+        // A tithe raised over an ore seam is worth half as much again, and
+        // nothing at all where the ground is frozen.
+        if (this.world.under('frozenground')) return;
         const seam = this.ground === 'seam' ? TILE_EFFECT.seamGold : 1;
         this.world.awardGold(Math.round(this.def.economy.amount * seam), this.x, this.topY);
       }
@@ -281,8 +287,10 @@ export class Defender {
     this.cooldown -= dt * this.world.rallyFactor;
     if (this.cooldown > 0) return;
 
-    // Standing beside rock lets a shooter see further down the lane.
-    const reach = this.ground === 'highground' ? attack.range * TILE_EFFECT.highgroundRange : attack.range;
+    // Standing beside rock lets a shooter see further down the lane; a dark
+    // night takes reach off everyone.
+    const vantage = this.ground === 'highground' ? TILE_EFFECT.highgroundRange : 1;
+    const reach = attack.range * vantage * this.world.rangeFactor();
     const target = this.findTarget(reach, attack.targets !== 'ground');
     if (!target) return;
     this.cooldown = 1 / attack.rate;
