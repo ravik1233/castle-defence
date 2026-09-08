@@ -82,9 +82,38 @@ Do these in order. Each one is a thing that recently changed.
 20. Each region's spell bar is its commander's: Aldric's Smite and Rally,
     Bran's Rockfall and War Horn, **Faelith's Arrow Storm and Quickstep**,
     Seraphina's Chain Lightning and Blizzard, **Nerion's Undertow and Spring
-    Tide**, Maerwyn's Sanctuary and Word of Ending.
-21. ARMOURY → HERO shows all six. Ones whose region you have not reached read
-    NOT YET MET.
+    Tide**, **Garrick's Breaking Blow and Close Ranks**, Maerwyn's Sanctuary
+    and Word of Ending.
+21. ARMOURY → HERO shows all **seven**. Ones whose region you have not reached
+    read NOT YET MET. No commander appears in two regions — the Fallen March
+    is Garrick's, the Throne is Maerwyn's.
+21b. Cast **Sanctuary** or **Close Ranks** with a hurt line: every defender
+    mends and, for the next few seconds, takes half of what lands on it. It
+    used to do nothing at all.
+
+### Every fort demands something of its own
+
+Past the third fort of region one, no two forts should play the same.
+
+27a. The loadout names the fort's rule **before** you pick a deck, with its
+    counter-play printed under it. The battle repeats it in the opening
+    briefing. Twelve rules exist; a region uses seven of them.
+27b. Spot-check the ones you can see at a glance:
+    - **Breached Gate** — a lane is already open before the first enemy
+      exists, and its section reads REBUILD.
+    - **Night Assault** — every defender's reach is a quarter shorter.
+    - **Forced March** — the muster clock is half as long.
+    - **No Quarter** — no muster pay at all between waves.
+    - **Frozen Ground** — a Tithe Shrine pays nothing.
+    - **Thin Supply** — every card costs a quarter more than the ledger says.
+    - **Warband** — half as many bodies, each twice the size.
+    - **Swarm** — twice as many, each half the size.
+    - **Sappers** — the gate takes double damage.
+    - **Hold the Line** — no selling and no sorties.
+    - **Standing Orders** — one of your six cards is missing from the tray,
+      and the briefing names which. It should never leave you fewer than two.
+27c. No region should pose the same rule at two forts running, or lean on one
+    rule more than three times in its fifteen.
 
 ### The fight has phases now
 
@@ -110,9 +139,14 @@ Do these in order. Each one is a thing that recently changed.
 The gap between battles is a real part of the game now.
 
 28. Choosing a fort opens **the loadout**, not the battle: the fort's brief,
-    your six cards, what is fitted to the wall, and what is in your pack.
+    **the rules it is fought under**, your six cards, what is fitted to the
+    wall, and what is in your pack.
 29. Tap a card in hand to drop it; tap one from MUSTERED to take it. Six is
     the limit and two is the floor.
+29b. MUSTERED puts **the region's own five defenders first**, marked RAISED
+    HERE, and pages with `<` `>` once you have more than fourteen cards. From
+    region four on, those cards used to be off the end of the list and could
+    not be played at all — check they are reachable in every region.
 30. **MARCH OUT** starts the fight with exactly what is on that screen.
 31. Winning pays **salvage** as well as gold — the result screen says how much.
     Salvage comes from what you killed, how many stars, and a bonus the first
@@ -186,6 +220,14 @@ The gate opens both ways now.
 55. Menu → **WAR LEDGER**. Three tabs: OUR FORCES, THE HORDE, WHAT BEATS
     WHAT. Every unit and enemy with real numbers, and the type table in
     full. Nothing in there should say "???" or be blank.
+56. Both roster tabs **page** with `<` `>` — three rows at a time, and the
+    page counter resets when you switch tabs. Walk to the last page of THE
+    HORDE and check the seventy-first enemy is there and tappable: the grid
+    used to run to y=2400 on a screen 1080 tall and four fifths of the horde
+    was drawn below the bottom edge.
+57. ARMOURY → **UPGRADES** pages too. Every card you have unlocked must be
+    reachable, not only the first ten — the region's own five included.
+    ARMOURY → DECK pages the same way.
 
 ---
 
