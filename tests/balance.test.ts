@@ -102,6 +102,32 @@ describe('what a threat point buys', () => {
     }
   });
 
+  /*
+   * The Ashen Woods ended on a fifteen-hundred-health body while the region
+   * before it ended on six and a half thousand: the orc warlord was written
+   * before the regions were and never revisited. A region's boss has to be
+   * the hardest thing in that region, and the campaign's bosses have to get
+   * harder as the player walks east.
+   */
+  it('ends every region on something bigger than anything else in it', () => {
+    let previous = 0;
+    for (const ch of CHAPTERS) {
+      const bossId = ch.levels[ch.levels.length - 1]!.boss;
+      expect(bossId, `${ch.name} ends on no boss`).toBeDefined();
+      const boss = enemy(bossId!);
+      // Against the rank and file, not against the region's other bosses:
+      // the Throne fields a Demon Prince as well as the King.
+      const biggest = Math.max(
+        ...ENEMIES.filter(
+          (e) => e.family === ch.family && !(e.special === 'boss' || e.specials?.includes('boss')),
+        ).map((e) => e.hp),
+      );
+      expect(boss.hp, `${ch.name}'s boss is smaller than its own rank and file`).toBeGreaterThan(biggest * 2);
+      expect(boss.hp, `${ch.name}'s boss is no harder than the region before it`).toBeGreaterThan(previous);
+      previous = boss.hp;
+    }
+  });
+
   it('pays a bounty in proportion to the health it took to earn it', () => {
     for (const f of families) {
       const list = rank(f);

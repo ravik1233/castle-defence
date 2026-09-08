@@ -265,20 +265,30 @@ const GOBLINS_AND_ORCS: EnemyDef[] = [
     threat: 14.9,
   },
   {
+    /*
+     * One of the King's commanders, and the end of the Ashen Woods. He was
+     * written before the regions were, and shipped with fifteen hundred
+     * health while the boss on either side of him had six and a half and
+     * nine and a half thousand - so region three's finale was a fifth of the
+     * fight region two ended on. Placed on the curve his peers sit on, and
+     * marked the boss he is used as.
+     */
     id: 'orc_warlord',
     family: 'orc',
-    name: 'Orc Warlord',
+    name: 'Grulmak the Warlord',
     art: 'orc_warlord',
-    hp: 1500,
-    speed: 34,
-    damage: 78,
-    rate: 0.9,
-    range: 126,
+    hp: 8100,
+    speed: 24,
+    damage: 118,
+    rate: 0.8,
+    range: 150,
     kind: 'armoured',
-    armor: 16,
-    bounty: 97,
-    threat: 17.9,
-    special: 'summoner',
+    armor: 18,
+    bounty: 284,
+    threat: 64.8,
+    special: 'boss',
+    specials: ['boss', 'rager', 'summoner'],
+    scale: 1.2,
   },
   {
     id: 'demon_knight',

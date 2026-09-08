@@ -19,12 +19,24 @@ node scripts/shot.mjs /preview.html art.png 1000 1500      # the whole cast
 - Landscape lane defence: Plants vs. Zombies pacing with a Clash-style card
   tray and a hero you tap to cast with. Landscape because the lanes run
   horizontally - lane direction should match the long axis of the screen.
-- 38 hand-named levels across four chapters, each with a seeded wave
-  generator so every player fights identical waves.
-- 14 defenders, 14 enemy types, a Demon King boss, two heroes.
-- Free to play. One optional purchase: **the Crown Pack, $4.99** — removes all
-  ads, unlocks chapter 4, three defenders, a second hero and every castle skin.
-  Nothing else is for sale.
+- 105 forts across seven regions, each with a seeded generator so every
+  player fights identical waves on identical ground under identical rules.
+- Each region has one horde and nothing else - goblins, then the undead,
+  orcs, beasts, the drowned, the Fallen, and the King's own kind at the
+  Throne - and each horde carries one behaviour the region's own defenders
+  are raised to answer.
+- Each region also has its own people holding the wall beside you (men,
+  dwarves, elves, wardens, the Tidewardens of Sael, the Order) and its own
+  commander, whose two spells are the hand you fight that region with.
+- Every fort past the third declares its own rule before you pick a deck:
+  the gate already open, no wage between waves, nothing that shoots seeing
+  far, half as many bodies at twice the size. The counter-play is printed
+  next to the problem.
+- 47 defenders, 71 enemies, seven commanders, six region bosses and the
+  Demon King.
+- Free to play. One optional purchase: **the Crown Pack, $4.99** — removes
+  all ads and opens regions four through seven, the defenders and commanders
+  raised there, and every castle skin. Nothing else is for sale.
 
 ## Running it
 
