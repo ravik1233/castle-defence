@@ -152,6 +152,11 @@ export const FAMILY = {
   /** A shield is this much of the body's health, and eats this much of a blow. */
   shieldShare: 0.45,
   shieldAbsorb: 0.75,
+  /**
+   * Plate is the same idea, smaller: what an orc ironback or a barnacle hulk
+   * carries. The Fallen's wall stays theirs by being nearly twice as thick.
+   */
+  platedShare: 0.25,
   /** A beast runs this much faster per packmate, up to this much. */
   packStep: 0.1,
   packMax: 0.4,

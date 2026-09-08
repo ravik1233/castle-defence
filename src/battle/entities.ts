@@ -506,6 +506,8 @@ const SORTIE_LIMIT = 1500;
  */
 const RISEN_SHARE = FAMILY.risenShare;
 const SHIELD_SHARE = FAMILY.shieldShare;
+/** Plate: the same shield, a bit over half as thick. */
+const PLATED_SHARE = FAMILY.platedShare;
 const PACK_RADIUS = 260;
 /** How far a demon steps through its portal, and how long the step takes. */
 const STEP_DISTANCE = 260;
@@ -589,6 +591,7 @@ export class Enemy {
     // A shield is a second, smaller pool of health that only counts against
     // blows landing on its front - and a shieldbreaker ignores it entirely.
     if (this.has('shieldwall')) this.shieldHp = Math.round(this.maxHp * SHIELD_SHARE);
+    else if (this.has('shielded')) this.shieldHp = Math.round(this.maxHp * PLATED_SHARE);
 
     const art = characterArt(ALL_CHARACTER_ART[def.art]!);
     this.rig = new Rig(world.stage, x, this.y, art, {

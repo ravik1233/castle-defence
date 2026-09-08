@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { CHAPTERS, generateWaves } from '../src/data/levels';
 import { DEFENDERS, DEFENDER_BY_ID } from '../src/data/defenders';
@@ -82,6 +83,19 @@ describe('what a threat point buys', () => {
       const roster = ENEMIES.filter((e) => e.family === f);
       expect(roster.some((e) => e.flying), `${f} has nothing that flies`).toBe(true);
       expect(roster.some((e) => e.range > 300), `${f} has nothing that shoots`).toBe(true);
+    }
+  });
+
+  /*
+   * `shielded` was declared on five enemies and read by nothing: the ledger
+   * said they carried a shield and the simulation had never heard of it. A
+   * behaviour the player is told about has to exist.
+   */
+  it('reads every behaviour it lets an enemy declare', () => {
+    const sim = [readFileSync('src/battle/entities.ts', 'utf8'), readFileSync('src/battle/combat.ts', 'utf8')].join('\n');
+    const declared = new Set(ENEMIES.flatMap((e) => [e.special, ...(e.specials ?? [])]).filter((s): s is string => !!s && s !== 'none'));
+    for (const s of declared) {
+      expect(sim.includes(`'${s}'`), `nothing in the simulation reads ${s}`).toBe(true);
     }
   });
 
