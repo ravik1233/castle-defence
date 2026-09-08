@@ -35,7 +35,7 @@ const manifest = await page.evaluate(async (href) => {
 check(!manifest.error, 'manifest fetches', manifest.error ? `HTTP ${manifest.error}` : '');
 check(Boolean(manifest.name && manifest.short_name), 'name and short_name');
 check(['standalone', 'fullscreen'].includes(manifest.display), 'display is app-like', manifest.display);
-check(manifest.orientation === 'portrait', 'locked to portrait', manifest.orientation);
+check(manifest.orientation === 'landscape', 'locked to landscape', manifest.orientation);
 check(Boolean(manifest.start_url), 'start_url', manifest.start_url);
 check(Boolean(manifest.background_color && manifest.theme_color), 'background and theme colours');
 
