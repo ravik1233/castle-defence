@@ -20,6 +20,9 @@ type Tab = 'deck' | 'upgrades' | 'hero' | 'castle';
 const UPGRADES_PER_PAGE = 10;
 /** Rows of cards that fit above the bottom of the screen. */
 const DECK_GRID_ROWS = 3;
+/** Where the page controls sit: clear of the tabs above and the grid below. */
+const PAGER_X = 1560;
+const PAGER_Y = 196;
 
 export class ArmoryScene extends Phaser.Scene {
   private tab: Tab = 'deck';
@@ -141,9 +144,9 @@ export class ArmoryScene extends Phaser.Scene {
     this.deckPage = Math.min(this.deckPage, pages - 1);
     const shown = DEFENDERS.slice(this.deckPage * perPage, (this.deckPage + 1) * perPage);
     if (pages > 1) {
-      this.track(this.add.text(w / 2, 246, `${this.deckPage + 1} / ${pages}`, textStyle('tiny', COLORS.gold)).setOrigin(0.5));
+      this.track(this.add.text(PAGER_X, PAGER_Y, `${this.deckPage + 1} / ${pages}`, textStyle('tiny', COLORS.gold)).setOrigin(0.5));
       this.track(
-        new TextButton(this, w / 2 - 150, 246, '<', {
+        new TextButton(this, PAGER_X - 120, PAGER_Y, '<', {
           width: 84,
           height: 60,
           tone: 'stone',
@@ -154,7 +157,7 @@ export class ArmoryScene extends Phaser.Scene {
         }),
       );
       this.track(
-        new TextButton(this, w / 2 + 150, 246, '>', {
+        new TextButton(this, PAGER_X + 120, PAGER_Y, '>', {
           width: 84,
           height: 60,
           tone: 'stone',
@@ -253,10 +256,10 @@ export class ArmoryScene extends Phaser.Scene {
     const shown = unlocked.slice(this.upgradePage * UPGRADES_PER_PAGE, (this.upgradePage + 1) * UPGRADES_PER_PAGE);
     if (pages > 1) {
       this.track(
-        this.add.text(w / 2, 232, `${this.upgradePage + 1} / ${pages}`, textStyle('tiny', COLORS.gold)).setOrigin(0.5),
+        this.add.text(PAGER_X, PAGER_Y, `${this.upgradePage + 1} / ${pages}`, textStyle('tiny', COLORS.gold)).setOrigin(0.5),
       );
       this.track(
-        new TextButton(this, w / 2 - 140, 232, '<', {
+        new TextButton(this, PAGER_X - 120, PAGER_Y, '<', {
           width: 84,
           height: 60,
           tone: 'stone',
@@ -267,7 +270,7 @@ export class ArmoryScene extends Phaser.Scene {
         }),
       );
       this.track(
-        new TextButton(this, w / 2 + 140, 232, '>', {
+        new TextButton(this, PAGER_X + 120, PAGER_Y, '>', {
           width: 84,
           height: 60,
           tone: 'stone',

@@ -24,6 +24,9 @@ const KIND_LABEL = ['Living', 'Armoured', 'Undead', 'Demon'];
 
 /** Rows of cards that fit above the bottom of the screen. */
 const ROSTER_ROWS = 3;
+/** Where the page controls sit: clear of both the tabs and the grid. */
+const PAGER_X = 1560;
+const PAGER_Y = 140;
 
 export class LedgerScene extends Phaser.Scene {
   private tab: Tab = 'defenders';
@@ -114,11 +117,13 @@ export class LedgerScene extends Phaser.Scene {
     this.page = Math.min(this.page, pages - 1);
     const shown = entries.slice(this.page * perPage, (this.page + 1) * perPage);
     if (pages > 1) {
+      // On the tab row, right of the tabs: the card grid starts at y=205 and
+      // anything put between the two is drawn behind the first row of cards.
       this.track(
-        this.add.text(DESIGN.width / 2, 216, `${this.page + 1} / ${pages}`, textStyle('tiny', COLORS.gold)).setOrigin(0.5),
+        this.add.text(PAGER_X, PAGER_Y, `${this.page + 1} / ${pages}`, textStyle('tiny', COLORS.gold)).setOrigin(0.5),
       );
       this.track(
-        new TextButton(this, DESIGN.width / 2 - 150, 216, '<', {
+        new TextButton(this, PAGER_X - 120, PAGER_Y, '<', {
           width: 84,
           height: 60,
           tone: 'stone',
@@ -129,7 +134,7 @@ export class LedgerScene extends Phaser.Scene {
         }),
       );
       this.track(
-        new TextButton(this, DESIGN.width / 2 + 150, 216, '>', {
+        new TextButton(this, PAGER_X + 120, PAGER_Y, '>', {
           width: 84,
           height: 60,
           tone: 'stone',
