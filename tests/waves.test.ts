@@ -328,9 +328,44 @@ describe('what each fort demands', () => {
     }
   });
 
+  it('never leans on one rule for a whole region', () => {
+    for (const ch of CHAPTERS) {
+      const counts: Record<string, number> = {};
+      for (const l of ch.levels) for (const d of l.modifiers?.doctrines ?? []) counts[d] = (counts[d] ?? 0) + 1;
+      for (const [id, n] of Object.entries(counts)) {
+        expect(n, `${ch.name} sets ${id} at ${n} of its ${ch.levels.length} forts`).toBeLessThanOrEqual(3);
+      }
+      // Fifteen forts should not be five ideas: the region borrows a couple.
+      expect(Object.keys(counts).length, `${ch.name} poses only ${Object.keys(counts).length} rules`).toBeGreaterThanOrEqual(6);
+    }
+  });
+
+  it('never poses the same demand two forts running', () => {
+    for (const ch of CHAPTERS) {
+      let last = '';
+      for (const l of ch.levels) {
+        const first = (l.modifiers?.doctrines ?? [])[0] ?? '';
+        if (first) expect(first, `${l.id} repeats ${first} straight after the last fort`).not.toBe(last);
+        last = first;
+      }
+    }
+  });
+
+  it('opens a region with what its own horde is known for', () => {
+    // The first ruled forts of a region draw from its signature alone, so a
+    // player crossing a border learns the country before it plays tricks.
+    for (const ch of CHAPTERS) {
+      const early = ch.levels.slice(0, 8).flatMap((l) => l.modifiers?.doctrines ?? []);
+      const late = ch.levels.slice(8).flatMap((l) => l.modifiers?.doctrines ?? []);
+      const borrowed = new Set(late.filter((d) => !early.includes(d)));
+      expect(new Set(early).size, `${ch.name} opens on too few rules`).toBeGreaterThanOrEqual(4);
+      expect(borrowed.size, `${ch.name} never surprises anyone after the halfway mark`).toBeGreaterThan(0);
+    }
+  });
+
   it('is the same demand at the same fort for every player', () => {
-    const a = doctrinesFor('c4l7', 'beast', 6, 4);
-    expect(doctrinesFor('c4l7', 'beast', 6, 4)).toEqual(a);
-    expect(doctrinesFor('c4l8', 'beast', 7, 4)).not.toEqual([]);
+    const a = doctrinesFor('beast', 6, 4);
+    expect(doctrinesFor('beast', 6, 4)).toEqual(a);
+    expect(doctrinesFor('beast', 7, 4)).not.toEqual([]);
   });
 });

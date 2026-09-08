@@ -60,6 +60,31 @@ describe('what a threat point buys', () => {
     }
   });
 
+  /*
+   * Four of the seven hordes shipped with five or six bodies, which meant a
+   * region's first eleven forts fielded the same two enemies. Depth is not a
+   * nicety here: the pool is what makes fort nine a different fight to fort
+   * three.
+   */
+  it('gives every horde enough bodies to field a different fight each fort', () => {
+    for (const f of families) {
+      const roster = ENEMIES.filter((e) => e.family === f);
+      const rank = roster.filter((e) => !(e.special === 'boss' || e.specials?.includes('boss')));
+      expect(rank.length, `${f} fields only ${rank.length} bodies below its boss`).toBeGreaterThanOrEqual(8);
+      // And they cannot all do the same job.
+      const jobs = new Set(rank.map((e) => [e.flying ? 'fly' : '', e.range > 300 ? 'shoot' : '', e.special ?? '', ...(e.specials ?? [])].join('/')));
+      expect(jobs.size, `${f} fields ${rank.length} bodies doing ${jobs.size} jobs`).toBeGreaterThanOrEqual(6);
+    }
+  });
+
+  it('fields something that flies and something that shoots in every horde', () => {
+    for (const f of families) {
+      const roster = ENEMIES.filter((e) => e.family === f);
+      expect(roster.some((e) => e.flying), `${f} has nothing that flies`).toBe(true);
+      expect(roster.some((e) => e.range > 300), `${f} has nothing that shoots`).toBe(true);
+    }
+  });
+
   it('pays a bounty in proportion to the health it took to earn it', () => {
     for (const f of families) {
       const list = rank(f);

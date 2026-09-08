@@ -124,7 +124,13 @@ export const DOCTRINE_EFFECT = {
   swarmSize: 0.5,
 } as const;
 
-/** Which rules suit which country and which horde. */
+/**
+ * Which rules suit which country and which horde.
+ *
+ * These five are a region's signature - the thing its horde is known for.
+ * Two more are drawn from everything else, so a region has a character
+ * without having only five ideas across fifteen forts.
+ */
 const BY_FAMILY: Record<EnemyFamily, DoctrineId[]> = {
   goblin: ['swarm', 'forcedmarch', 'thinsupply', 'standingorders', 'breached'],
   undead: ['night', 'noquarter', 'frozenground', 'warband', 'holdtheline'],
@@ -134,6 +140,8 @@ const BY_FAMILY: Record<EnemyFamily, DoctrineId[]> = {
   fallen: ['warband', 'bombardment', 'standingorders', 'holdtheline', 'night'],
   demon: ['bombardment', 'breached', 'sappers', 'warband', 'noquarter'],
 };
+
+const ALL: DoctrineId[] = Object.keys(DOCTRINES) as DoctrineId[];
 
 function hash(text: string): number {
   let h = 2166136261;
@@ -145,24 +153,83 @@ function hash(text: string): number {
 }
 
 /**
+ * The order a region deals its rules out in.
+ *
+ * Drawing each fort's rule independently sounds fair and plays badly: over
+ * fifteen forts the same rule lands five or six times by pure chance, and a
+ * region that is "the frozen one" seven forts running is one idea, not
+ * fifteen. So a region deals from a deck instead. The first pass is its five
+ * signature rules alone, so a player arriving in a country learns what that
+ * horde is known for; after that two rules borrowed from elsewhere are
+ * shuffled in, so the back half of a region can still surprise someone who
+ * thinks they have it read.
+ *
+ * No rule repeats until the rest of the deck has been dealt, and each pass
+ * is shuffled separately, so going round again is not the same run again.
+ */
+function orderFor(family: EnemyFamily): DoctrineId[] {
+  const signature = BY_FAMILY[family];
+  const seed = hash(`${family}:deck`);
+  const rest = ALL.filter((d) => !signature.includes(d));
+  const wild = [...new Set([rest[seed % rest.length]!, rest[(seed >>> 7) % rest.length]!])];
+  const full = [...signature, ...wild];
+  const passes = [
+    shuffle(signature, hash(`${family}:pass:0`)),
+    shuffle(full, hash(`${family}:pass:1`)),
+    shuffle(full, hash(`${family}:pass:2`)),
+  ];
+  const out: DoctrineId[] = [];
+  for (const pass of passes) {
+    // A shuffled pass can open on the rule the last one closed with; a
+    // single rotation is enough to keep two forts running from matching.
+    if (out.length && pass[0] === out[out.length - 1]) pass.push(pass.shift()!);
+    out.push(...pass);
+  }
+  return out;
+}
+
+/** Fisher-Yates against a seeded stream, so every player is dealt the same hand. */
+function shuffle<T>(items: T[], seed: number): T[] {
+  const out = items.slice();
+  let s = seed || 1;
+  for (let i = out.length - 1; i > 0; i -= 1) {
+    s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+    const j = s % (i + 1);
+    [out[i], out[j]] = [out[j]!, out[i]!];
+  }
+  return out;
+}
+
+/**
  * The rules this fort is fought under.
  *
  * The first forts of the campaign have none - a player learning which way
  * the enemies walk does not also need a rule about it. After that a fort
  * carries one, and the hard end of a region carries two.
  */
-export function doctrinesFor(levelId: string, family: EnemyFamily, index: number, chapter: number): DoctrineId[] {
+export function doctrinesFor(family: EnemyFamily, index: number, chapter: number): DoctrineId[] {
   // The opening of the whole game is taught, not tested.
   if (chapter === 1 && index < 3) return [];
-  const pool = BY_FAMILY[family];
-  const seed = hash(`${levelId}:doctrine`);
-  const first = pool[seed % pool.length]!;
-  const count = index >= 9 && index % 2 === 1 ? 2 : 1;
-  if (count === 1) return [first];
-  // A second rule, never the same one, and never two that cancel each other.
-  const rest = pool.filter((d) => d !== first && !cancels(first, d));
-  const second = rest[(seed >>> 8) % rest.length]!;
-  return [first, second];
+  const deck = orderFor(family);
+  // The region's forts eat the deck in order, so a fort that poses two rules
+  // takes two cards rather than peeking at a neighbour's. Without this the
+  // second rule is drawn from the same few places every time and one rule
+  // ends up carrying a third of the region.
+  let cursor = 0;
+  for (let i = 0; i < index; i += 1) cursor += ruleCount(i, chapter);
+  const first = deck[cursor % deck.length]!;
+  if (ruleCount(index, chapter) === 1) return [first];
+  for (let step = 1; step < deck.length; step += 1) {
+    const next = deck[(cursor + step) % deck.length]!;
+    if (next !== first && !cancels(first, next)) return [first, next];
+  }
+  return [first];
+}
+
+/** How many rules a fort carries: none while the game is teaching, two at the hard end. */
+function ruleCount(index: number, chapter: number): number {
+  if (chapter === 1 && index < 3) return 0;
+  return index >= 9 && index % 2 === 1 ? 2 : 1;
 }
 
 /** Rules that would undo each other, and so are never set together. */

@@ -287,7 +287,7 @@ function buildLevel(
         ? { fixedDeck: ['tithe', 'militia', 'archer'], goldTrickle: 6 }
         : {
             tiles: tilesFor(`c${meta.id}l${i + 1}`, meta.biome, i),
-            doctrines: doctrinesFor(`c${meta.id}l${i + 1}`, meta.family, i, meta.id),
+            doctrines: doctrinesFor(meta.family, i, meta.id),
           },
   };
 }
