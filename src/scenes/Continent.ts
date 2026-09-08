@@ -210,7 +210,7 @@ export class ContinentScene extends Phaser.Scene {
     const commander = hero(region.commander);
     const portrait = portraitForArt(this, commander.art);
     if (portrait) {
-      const img = this.add.image(-CARD_W / 2 + 68, 4, portrait.key);
+      const img = this.add.image(-CARD_W / 2 + 68, 4, portrait.key, portrait.frame);
       img.setScale(Math.min(112 / img.width, 150 / img.height));
       img.setAlpha(open ? 1 : 0.3);
       node.add(img);

@@ -146,7 +146,7 @@ export class LoadoutScene extends Phaser.Scene {
       c.add(this.add.image(0, 0, 'ui.card').setDisplaySize(150, 168).setTint(0x9ff0b4));
       const portrait = portraitFor(this, def);
       if (portrait) {
-        const img = this.add.image(0, -22, portrait.key);
+        const img = this.add.image(0, -22, portrait.key, portrait.frame);
         img.setScale(Math.min(78 / img.width, 78 / img.height));
         c.add(img);
       }
@@ -230,7 +230,7 @@ export class LoadoutScene extends Phaser.Scene {
       );
       const portrait = portraitFor(this, def);
       if (portrait) {
-        const img = this.add.image(0, -22, portrait.key);
+        const img = this.add.image(0, -22, portrait.key, portrait.frame);
         img.setScale(Math.min(78 / img.width, 78 / img.height));
         img.setAlpha(full ? 0.5 : 1);
         c.add(img);
