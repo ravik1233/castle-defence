@@ -22,8 +22,12 @@ const KINDS: EnemyKind[] = ['living', 'armoured', 'undead', 'demon'];
 const TYPE_LABEL = ['Steel', 'Fire', 'Frost', 'Holy'];
 const KIND_LABEL = ['Living', 'Armoured', 'Undead', 'Demon'];
 
+/** Rows of cards that fit above the bottom of the screen. */
+const ROSTER_ROWS = 3;
+
 export class LedgerScene extends Phaser.Scene {
   private tab: Tab = 'defenders';
+  private page = 0;
   private body: Phaser.GameObjects.GameObject[] = [];
 
   constructor() {
@@ -59,12 +63,18 @@ export class LedgerScene extends Phaser.Scene {
         tone: this.tab === id ? 'gold' : 'stone',
         onClick: () => {
           this.tab = id;
+          this.page = 0;
           this.scene.restart();
         },
       });
     });
 
     this.render();
+  }
+
+  private track<T extends Phaser.GameObjects.GameObject>(o: T): T {
+    this.body.push(o);
+    return o;
   }
 
   private render(): void {
@@ -93,7 +103,45 @@ export class LedgerScene extends Phaser.Scene {
                 : undefined,
           }));
 
-    entries.forEach((entry, i) => {
+    /*
+     * Seventy-one enemies in a seven-wide grid ran to y=2400 on a screen 1080
+     * tall, so most of the bestiary was drawn below the bottom edge - on the
+     * one screen whose entire job is letting the player read what they are
+     * about to fight. Three rows to a page.
+     */
+    const perPage = cols * ROSTER_ROWS;
+    const pages = Math.max(1, Math.ceil(entries.length / perPage));
+    this.page = Math.min(this.page, pages - 1);
+    const shown = entries.slice(this.page * perPage, (this.page + 1) * perPage);
+    if (pages > 1) {
+      this.track(
+        this.add.text(DESIGN.width / 2, 216, `${this.page + 1} / ${pages}`, textStyle('tiny', COLORS.gold)).setOrigin(0.5),
+      );
+      this.track(
+        new TextButton(this, DESIGN.width / 2 - 150, 216, '<', {
+          width: 84,
+          height: 60,
+          tone: 'stone',
+          onClick: () => {
+            this.page = (this.page + pages - 1) % pages;
+            this.render();
+          },
+        }),
+      );
+      this.track(
+        new TextButton(this, DESIGN.width / 2 + 150, 216, '>', {
+          width: 84,
+          height: 60,
+          tone: 'stone',
+          onClick: () => {
+            this.page = (this.page + 1) % pages;
+            this.render();
+          },
+        }),
+      );
+    }
+
+    shown.forEach((entry, i) => {
       const x = x0 + (i % cols) * cellW;
       const y = 300 + Math.floor(i / cols) * cellH;
       const card = this.add.container(x, y);
