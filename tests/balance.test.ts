@@ -168,6 +168,8 @@ describe('the opening Ember lessons', () => {
     expect(waves).toHaveLength(3);
     expect(waves.flatMap((wave) => wave.entries).every((entry) => entry.enemyId === 'goblin')).toBe(true);
     expect(waves.every((wave) => !wave.big)).toBe(true);
+    expect(waves.map((wave) => wave.entries.length)).toEqual([2, 3, 4]);
+    expect(stage.modifiers).toMatchObject({ hpScale: 0.7, waitForClear: true });
   });
 
   it('introduces one finite vein in stage 2 and a second in stage 3', () => {

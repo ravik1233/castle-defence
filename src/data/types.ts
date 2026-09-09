@@ -269,6 +269,8 @@ export interface LevelModifiers {
   tiles?: TileKind[][];
   /** Multiplier on all enemy hp for this level. */
   hpScale?: number;
+  /** Do not begin the next wave until every enemy in the current wave is gone. */
+  waitForClear?: boolean;
   /** Cards the player may not use, e.g. a "no economy" challenge. */
   bannedCards?: string[];
   /** Only these cards are available. */

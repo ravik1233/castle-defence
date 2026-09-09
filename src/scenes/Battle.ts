@@ -167,6 +167,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private phaseText!: Phaser.GameObjects.Text;
   private callButton?: TextButton;
   private itemButton?: TextButton;
+  private speedButton?: TextButton;
+  private battleSpeed: 1 | 2 = 1;
 
 
   private paused = false;
@@ -343,12 +345,16 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     this.cards = [];
     this.spells = [];
     this.paused = false;
+    this.battleSpeed = 1;
     this.tutorial = undefined;
     this.wavesHeld = false;
     this.callButton = undefined;
+    this.speedButton = undefined;
   }
 
   create(): void {
+    this.time.timeScale = this.battleSpeed;
+    this.tweens.timeScale = this.battleSpeed;
     this.buildField();
     this.buildHud();
     this.buildTray();
@@ -478,6 +484,15 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       onClick: () => this.callAssault(),
     });
     this.callButton.setDepth(3002).setVisible(false);
+
+    this.speedButton = new TextButton(this, DESIGN.width - 224, HUD.height / 2, '1x', {
+      width: 128,
+      height: 66,
+      size: 'small',
+      tone: 'blue',
+      onClick: () => this.toggleSpeed(),
+    });
+    this.speedButton.setDepth(3002);
 
     /*
      * The heart of the keep sits centre-top, because it is now the one number
@@ -1600,6 +1615,14 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     }
   }
 
+  /** Switch the whole battle between normal time and a readable fast-forward. */
+  private toggleSpeed(): void {
+    this.battleSpeed = this.battleSpeed === 1 ? 2 : 1;
+    this.time.timeScale = this.battleSpeed;
+    this.tweens.timeScale = this.battleSpeed;
+    this.speedButton?.setText(`${this.battleSpeed}x`);
+  }
+
   /** The short lull between waves; it deliberately pays nothing. */
   private beginMuster(): void {
     if (this.waveIndex >= this.waves.length - 1) return;
@@ -1746,7 +1769,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
   override update(time: number, delta: number): void {
     if (this.paused || this.finished) return;
-    const dt = delta / 1000;
+    const scaledDelta = delta * this.battleSpeed;
+    const dt = scaledDelta / 1000;
     this.elapsed += dt;
 
     this.tutorial?.update();
@@ -1754,12 +1778,13 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
     // Wave pacing
     if (this.waveIndex < this.waves.length - 1) {
-      if (!this.wavesHeld) this.waveTimer -= dt;
+      const waitForClear = this.levelDef.modifiers?.waitForClear === true;
+      if (!this.wavesHeld && (!waitForClear || this.phase === 'muster')) this.waveTimer -= dt;
       // The field going quiet ends the assault and starts the next muster,
       // whatever the clock says: the lull is earned by clearing the wave.
       const clear = this.spawnQueue.length === 0 && this.enemies.every((e) => !e.alive);
       if (this.phase !== 'muster' && clear) this.beginMuster();
-      if (this.waveTimer <= 0) this.startWave();
+      if (this.waveTimer <= 0 && (!waitForClear || this.phase === 'muster')) this.startWave();
       this.updatePhaseHud();
       if (this.waveIndex < 0) this.updateHud();
     } else if (this.waveIndex === this.waves.length - 1) {
@@ -1789,9 +1814,9 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       if (this.rallyTimer <= 0) this.rallyFactor = 1;
     }
 
-    for (const d of this.defenders) d.update(time, delta);
-    for (const e of this.enemies) e.update(time, delta);
-    for (const p of this.projectiles) p.update(time, delta);
+    for (const d of this.defenders) d.update(time, scaledDelta);
+    for (const e of this.enemies) e.update(time, scaledDelta);
+    for (const p of this.projectiles) p.update(time, scaledDelta);
 
     // Reap
     for (let i = this.defenders.length - 1; i >= 0; i -= 1) {
@@ -1821,8 +1846,14 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       const affordable = this.gold >= this.priceOf(card.cost);
       const ready = card.cooldownLeft <= 0;
       card.overlay.setVisible(!ready || !affordable);
-      card.overlay.height = ready ? TRAY.cardH - 10 : (TRAY.cardH - 10) * (card.cooldownLeft / card.cooldown);
-      card.overlay.y = ready ? 0 : -(TRAY.cardH - 10) / 2 + card.overlay.height / 2;
+      const overlayHeight = ready
+        ? TRAY.cardH - 10
+        : (TRAY.cardH - 10) * Phaser.Math.Clamp(card.cooldownLeft / card.cooldown, 0, 1);
+      // Rectangle.height changes only its transform bounds. setSize also
+      // rebuilds the rectangle geometry, keeping the shade inside the card.
+      card.overlay.setSize(TRAY.cardW - 10, overlayHeight);
+      card.overlay.setOrigin(0.5, 0);
+      card.overlay.y = -(TRAY.cardH - 10) / 2;
       card.costText.setColor(affordable ? COLORS.gold : COLORS.danger);
     }
 
