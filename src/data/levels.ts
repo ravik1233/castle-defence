@@ -288,7 +288,7 @@ function buildLevel(
      */
     modifiers:
       first
-        ? { fixedDeck: ['militia'] }
+        ? { fixedDeck: ['militia'], hpScale: 0.7, waitForClear: true }
         : global === 2
           ? { fixedDeck: ['militia', 'dwarf_engineer'], tiles: tilesFor('c1l2', meta.biome, i) }
         : {
@@ -336,15 +336,16 @@ export function levelNumber(id: string): number {
 export function generateWaves(def: LevelDef): Wave[] {
   /*
    * First Light is a hand-authored lesson: one familiar enemy, new lanes
-   * revealed one at a time, and enough kills to fund the next Militia while
-   * the assault is still moving.
+   * revealed one at a time, and enough kills to fund the next Militia. Each
+   * wave clears before the next muster so the lesson cannot silently stack
+   * all of its pressure while the first Grunts are still crossing the field.
    */
   if (def.id === 'c1l1') {
     return [
       {
         index: 0,
         big: false,
-        duration: 10,
+        duration: 12,
         entries: [
           { enemyId: 'goblin', row: 2, delay: 1 },
           { enemyId: 'goblin', row: 1, delay: 5 },
@@ -353,19 +354,18 @@ export function generateWaves(def: LevelDef): Wave[] {
       {
         index: 1,
         big: false,
-        duration: 12,
+        duration: 14,
         entries: [
           { enemyId: 'goblin', row: 2, delay: 1 },
-          { enemyId: 'goblin', row: 1, delay: 3.5 },
-          { enemyId: 'goblin', row: 3, delay: 6 },
-          { enemyId: 'goblin', row: 2, delay: 8.5 },
+          { enemyId: 'goblin', row: 1, delay: 4.5 },
+          { enemyId: 'goblin', row: 3, delay: 8 },
         ],
       },
       {
         index: 2,
         big: false,
-        duration: 15,
-        entries: [1, 2, 3, 1, 2, 3].map((row, i) => ({ enemyId: 'goblin', row, delay: 1 + i * 2.2 })),
+        duration: 16,
+        entries: [1, 2, 3, 2].map((row, i) => ({ enemyId: 'goblin', row, delay: 1 + i * 3.2 })),
       },
     ];
   }
