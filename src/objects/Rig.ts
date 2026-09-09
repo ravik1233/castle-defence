@@ -331,7 +331,8 @@ export class Rig extends Phaser.GameObjects.Container {
     const img = this.frames;
     if (!img) return;
     const h = this.worldHeight;
-    img.setPosition(0, 0);
+    const groundY = ((this.frameSet?.groundOffset ?? 0) / this.frameSet!.height) * h;
+    img.setPosition(0, groundY);
     img.setRotation(0);
     img.setAlpha(1);
     img.setDisplaySize((this.frameSet!.width / this.frameSet!.height) * h, h);
@@ -344,6 +345,13 @@ export class Rig extends Phaser.GameObjects.Container {
         ? Math.floor((this.animT / duration) * clip.frames.length)
         : Math.floor((loop ? this.t : this.animT) * clip.fps);
       this.showFrame(clip.frames[loop ? tick % clip.frames.length : Math.min(tick, clip.frames.length - 1)]!);
+      if (this.anim === 'walk') {
+        // Four authored walk poses are contact, passing, contact, passing.
+        // Lift only on the passing poses so feet plant instead of skating.
+        img.y = groundY - Math.abs(Math.sin(this.t * clip.fps * Math.PI * 0.5)) * h * 0.025;
+      } else if (this.anim === 'idle') {
+        img.y = groundY - Math.abs(Math.sin(this.t * 2.2)) * h * 0.006;
+      }
       if (this.anim === 'die') img.setAlpha(1 - Math.min(1, this.animT / 0.55) * 0.9);
       return;
     }

@@ -47,7 +47,7 @@ export const FIELD = {
   horizon: HORIZON,
 } as const;
 
-export const WALL = { x: 0, width: GRID.x0, gateWidth: 150 } as const;
+export const WALL = { x: 0, width: GRID.x0, gateWidth: 204 } as const;
 
 /** Bottom strip: the card tray, the sell tool, the hero and their spells. */
 export const TRAY = {

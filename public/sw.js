@@ -9,7 +9,7 @@
  * This is what makes the installed game start instantly and work with no
  * signal - useful on a phone, and the whole point of installing it.
  */
-const VERSION = 'lastgate-v1';
+const VERSION = 'lastgate-v2';
 const CORE = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
@@ -38,9 +38,11 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
 
   const isDocument = request.mode === 'navigate' || request.destination === 'document';
+  const isPaintedArt = url.pathname.includes('/assets/painted/');
 
-  if (isDocument) {
-    // Network first: a stale index.html would pin an old build forever.
+  if (isDocument || isPaintedArt) {
+    // Network first: a stale index.html pins an old build, and painted art is
+    // deliberately replaced in-place while a stage is being developed.
     event.respondWith(
       fetch(request)
         .then((response) => {

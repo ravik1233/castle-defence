@@ -94,7 +94,7 @@ interface CardView {
   cooldownLeft: number;
   overlay: Phaser.GameObjects.Rectangle;
   costText: Phaser.GameObjects.Text;
-  frame: Phaser.GameObjects.Image;
+  frame: Phaser.GameObjects.Rectangle;
 }
 
 interface SpellView {
@@ -687,8 +687,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       .setAlpha(0.35)
       .setBlendMode(Phaser.BlendModes.ADD)
       .setDepth(2050);
-    const core = this.add.image(KEEP.x, y, 'icon.crown')
-      .setDisplaySize(KEEP.radius * 1.6, KEEP.radius * 1.6)
+    const core = this.add.image(KEEP.x, y, 'icon.ember_core')
+      .setDisplaySize(KEEP.radius * 1.85, KEEP.radius * 1.85)
       .setDepth(2051);
     // A slow pulse, so it reads as something alive that is worth protecting.
     this.tweens.add({
@@ -852,20 +852,39 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       const y = TRAY.y + TRAY.height / 2;
       const container = this.add.container(x, y).setDepth(3001);
 
-      const frame = this.add.image(0, 0, 'ui.card').setDisplaySize(TRAY.cardW, TRAY.cardH);
+      // A true card-shaped panel: the old 150x200 texture was being stretched
+      // into a near square, which distorted both the summon button and art.
+      const frame = this.add
+        .rectangle(0, 0, TRAY.cardW - 4, TRAY.cardH - 4, 0x302842, 0.98)
+        .setStrokeStyle(4, 0x71608a);
       container.add(frame);
 
-      const art = this.cardArt(id, 0, -10, 0.27);
+      const art = this.cardArt(id, 0, -24, 0.56);
       container.add(art);
 
       // The price this fort actually charges. Thin Supply puts every card up
       // a quarter, and a tray showing the ledger price instead of the one it
       // will take is the rule lying to the player.
+      const stats = upgradedStats(def, profile.upgradeLevel(id));
+      const statY = TRAY.cardH / 2 - 17;
       const costText = this.add
-        .text(10, TRAY.cardH / 2 - 20, String(this.priceOf(def.cost)), textStyle('tiny', COLORS.gold))
+        .text(-42, statY, String(this.priceOf(def.cost)), textStyle('tiny', COLORS.gold, { fontSize: '17px', strokeThickness: 2 }))
         .setOrigin(0.5);
       container.add(costText);
-      container.add(this.add.image(-20, TRAY.cardH / 2 - 20, 'fx.ember').setDisplaySize(24, 24));
+      container.add(this.add.image(-58, statY, 'fx.ember').setDisplaySize(18, 18));
+
+      const hpText = this.add
+        .text(2, statY, String(stats.hp), textStyle('tiny', '#dff7e4', { fontSize: '16px', strokeThickness: 2 }))
+        .setOrigin(0.5);
+      container.add(this.add.image(-15, statY, 'icon.heart').setDisplaySize(17, 17));
+      container.add(hpText);
+
+      const damage = stats.damage || 0;
+      const damageText = this.add
+        .text(49, statY, damage ? String(damage) : '-', textStyle('tiny', '#ffe4d6', { fontSize: '16px', strokeThickness: 2 }))
+        .setOrigin(0.5);
+      container.add(this.add.image(32, statY, 'icon.sword').setDisplaySize(17, 17));
+      container.add(damageText);
 
       const overlay = this.add
         .rectangle(0, 0, TRAY.cardW - 10, TRAY.cardH - 10, 0x0b0713, 0.62)
@@ -962,7 +981,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
   private refreshCardHighlight(): void {
     for (const card of this.cards) {
-      card.frame.setTint(this.selectedCard === card.id ? 0xffe9a8 : 0xffffff);
+      card.frame.setStrokeStyle(this.selectedCard === card.id ? 7 : 4, this.selectedCard === card.id ? 0xffd257 : 0x71608a);
       card.container.setScale(this.selectedCard === card.id ? 1.07 : 1);
     }
   }
