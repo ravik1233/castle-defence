@@ -695,10 +695,11 @@
     ]
   },
   "unit.goblin.frames": {
-    "sheet": "unit.goblin.sheet.png",
+    "sheet": "unit.goblin.sheet.v2.png",
     "count": 16,
     "width": 256,
     "height": 256,
+    "groundOffset": 32,
     "names": [],
     "animations": {
       "idle": {
@@ -1003,5 +1004,7 @@
     ]
   },
   "build.tithe": "build.tithe.png",
-  "gate.stone": "gate.stone.png"
+  "wall.stone": "wall.stone.v2.png",
+  "gate.stone": "gate.stone.v2.png",
+  "icon.ember_core": "icon.ember_core.v2.png"
 }

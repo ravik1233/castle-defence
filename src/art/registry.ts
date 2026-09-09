@@ -33,7 +33,10 @@ export interface TextureSpec {
   scale: number;
 }
 
-export const PAINTED_MANIFEST_URL = 'assets/painted/manifest.json';
+// The query is intentional. Painted files are stable public URLs rather than
+// Vite-hashed imports, so a version here guarantees that a deployed art pass
+// cannot be hidden behind an older service-worker entry.
+export const PAINTED_MANIFEST_URL = 'assets/painted/manifest.json?v=stage1-art-2';
 
 function specs(): TextureSpec[] {
   const out: TextureSpec[] = [];
@@ -201,6 +204,8 @@ export interface PaintedFrames {
   names: string[];
   /** Optional packed sheet; frame indices run left-to-right then top-to-bottom. */
   sheet?: string;
+  /** Transparent pixels below the shared ground line in each authored cell. */
+  groundOffset?: number;
   animations?: Partial<Record<string, { frames: number[]; fps: number }>>;
 }
 

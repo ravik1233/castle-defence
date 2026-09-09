@@ -74,6 +74,7 @@ export interface BattleWorld {
 class HealthBar {
   private readonly back: Phaser.GameObjects.Image;
   private readonly fill: Phaser.GameObjects.Image;
+  private readonly label: Phaser.GameObjects.Text;
   private readonly width: number;
 
   constructor(scene: Phaser.Scene, width: number, tone: 'green' | 'red' | 'gold') {
@@ -84,25 +85,41 @@ class HealthBar {
       .setOrigin(0, 0.5)
       .setDisplaySize(width - 6, width * 0.175 - 6)
       .setDepth(2);
+    this.label = scene.add
+      .text(0, 0, '', {
+        fontFamily: '"Fredoka", "Trebuchet MS", sans-serif',
+        fontSize: `${Math.max(13, Math.round(width * 0.15))}px`,
+        fontStyle: '700',
+        color: '#ffffff',
+        stroke: '#120c1c',
+        strokeThickness: 3,
+      })
+      .setOrigin(0.5)
+      .setDepth(3);
     this.setVisible(false);
   }
 
-  update(x: number, y: number, fraction: number, depth: number): void {
-    const f = Math.max(0, Math.min(1, fraction));
+  update(x: number, y: number, current: number, max: number, depth: number): void {
+    const f = Math.max(0, Math.min(1, current / max));
     this.back.setPosition(x, y).setDepth(depth + 2);
     this.fill.setPosition(x - (this.width - 6) / 2, y).setDepth(depth + 3);
     this.fill.setDisplaySize((this.width - 6) * f, this.width * 0.175 - 6);
-    this.setVisible(f < 0.999);
+    this.label.setPosition(x, y - 1).setDepth(depth + 4).setText(`${Math.max(0, Math.ceil(current))}`);
+    // Explicit numbers make health behave like Ember: a visible, countable
+    // value instead of a colour strip whose meaning has to be guessed.
+    this.setVisible(true);
   }
 
   setVisible(v: boolean): void {
     this.back.setVisible(v);
     this.fill.setVisible(v);
+    this.label.setVisible(v);
   }
 
   destroy(): void {
     this.back.destroy();
     this.fill.destroy();
+    this.label.destroy();
   }
 }
 
@@ -252,7 +269,7 @@ export class Defender {
     if (!this.alive) return;
     const dt = delta / 1000;
     this.rig?.update(time, delta);
-    this.bar.update(this.x, this.topY - 16, this.hp / this.maxHp, this.y);
+    this.bar.update(this.x, this.topY - 16, this.hp, this.maxHp, this.y);
     if (this.sortie !== 'held') this.march(dt);
 
     if (this.def.economy && this.sortie === 'held') {
@@ -1064,7 +1081,7 @@ export class Enemy {
     const hover = this.flying ? Math.sin(this.hoverPhase + performance.now() / 420) * 10 : 0;
     this.rig.setPosition(this.x, this.y + hover);
     this.rig.setDepth(this.y + (this.flying ? 200 : 0));
-    this.bar.update(this.x, this.topY - 18, this.hp / this.maxHp, this.y + (this.flying ? 200 : 0));
+    this.bar.update(this.x, this.topY - 18, this.hp, this.maxHp, this.y + (this.flying ? 200 : 0));
   }
 }
 
