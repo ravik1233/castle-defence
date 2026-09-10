@@ -1,0 +1,2501 @@
+{
+  "direction": "Premium stylized mobile fantasy; expressive silhouettes; true anchored motion; Ember crystal core",
+  "characters": [
+    {
+      "id": "goblin_glider",
+      "specification": {
+        "id": "goblin_glider",
+        "height": 112,
+        "build": "small",
+        "skin": "#7f9a4a",
+        "cloth": "#7a5a2e",
+        "accent": "#d8b23a",
+        "eye": "#f2e04e",
+        "head": {
+          "shape": "round",
+          "ears": "big",
+          "jaw": "fangs",
+          "gear": "cap",
+          "brow": 0.4
+        },
+        "weapon": "dagger",
+        "wings": "feather"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "orc_axethrower",
+      "specification": {
+        "id": "orc_axethrower",
+        "height": 158,
+        "build": "broad",
+        "skin": "#6f8a4e",
+        "cloth": "#5a3d28",
+        "accent": "#c9663a",
+        "eye": "#e8c34e",
+        "head": {
+          "shape": "square",
+          "ears": "torn",
+          "jaw": "tusks",
+          "brow": 0.6,
+          "hair": "#2e2418"
+        },
+        "weapon": "axe"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "orc_powderkeg",
+      "specification": {
+        "id": "orc_powderkeg",
+        "height": 140,
+        "build": "small",
+        "skin": "#7d9455",
+        "cloth": "#4a3a24",
+        "accent": "#e8a23a",
+        "eye": "#f2d24e",
+        "head": {
+          "shape": "round",
+          "ears": "big",
+          "jaw": "fangs",
+          "gear": "cap",
+          "brow": 0.4
+        },
+        "weapon": "torch"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "orc_shaman",
+      "specification": {
+        "id": "orc_shaman",
+        "height": 156,
+        "build": "lean",
+        "skin": "#647f46",
+        "cloth": "#6a2f3a",
+        "accent": "#d84a5a",
+        "eye": "#ff8a8a",
+        "glowEyes": true,
+        "head": {
+          "shape": "long",
+          "ears": "torn",
+          "horns": "small",
+          "jaw": "tusks",
+          "gear": "hood",
+          "brow": 0.3
+        },
+        "weapon": "staff",
+        "aura": "#e06a7a"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "wyvern_rider",
+      "specification": {
+        "id": "wyvern_rider",
+        "height": 170,
+        "build": "broad",
+        "skin": "#6f8a4e",
+        "cloth": "#3f4a2e",
+        "metal": "#8d9682",
+        "accent": "#3ab0c9",
+        "eye": "#a8f0ff",
+        "head": {
+          "shape": "square",
+          "ears": "torn",
+          "jaw": "tusks",
+          "gear": "plume",
+          "brow": 0.5
+        },
+        "weapon": "spear",
+        "wings": "bat",
+        "cape": "#3a4a3a"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "orc_ironback",
+      "specification": {
+        "id": "orc_ironback",
+        "height": 176,
+        "build": "huge",
+        "skin": "#5f7a42",
+        "cloth": "#3a3226",
+        "metal": "#7f8794",
+        "accent": "#c9a03a",
+        "eye": "#f2c14e",
+        "head": {
+          "shape": "square",
+          "ears": "torn",
+          "jaw": "tusks",
+          "gear": "full",
+          "brow": 0.8
+        },
+        "weapon": "hammer",
+        "offhand": "shield"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "plague_bat",
+      "specification": {
+        "id": "plague_bat",
+        "height": 96,
+        "build": "small",
+        "skin": "#5a4a5c",
+        "cloth": "#3a2f3e",
+        "accent": "#9ad84a",
+        "eye": "#c6ff5a",
+        "glowEyes": true,
+        "head": {
+          "shape": "round",
+          "ears": "big",
+          "jaw": "fangs",
+          "brow": 0.5
+        },
+        "weapon": "none",
+        "wings": "bat"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "thornback",
+      "specification": {
+        "id": "thornback",
+        "height": 150,
+        "build": "huge",
+        "skin": "#6a5a44",
+        "cloth": "#463a2c",
+        "metal": "#9a8f7a",
+        "accent": "#d8963a",
+        "eye": "#f2d24e",
+        "head": {
+          "shape": "square",
+          "horns": "curved",
+          "jaw": "tusks",
+          "brow": 0.7
+        },
+        "weapon": "none",
+        "offhand": "shield"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "spitting_lizard",
+      "specification": {
+        "id": "spitting_lizard",
+        "height": 130,
+        "build": "lean",
+        "skin": "#4a7f5a",
+        "cloth": "#2f5a44",
+        "accent": "#a8e04a",
+        "eye": "#d8f26a",
+        "glowEyes": true,
+        "head": {
+          "shape": "long",
+          "horns": "small",
+          "jaw": "fangs",
+          "brow": 0.4
+        },
+        "weapon": "none"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "packmother",
+      "specification": {
+        "id": "packmother",
+        "height": 186,
+        "build": "huge",
+        "skin": "#7f6a4e",
+        "cloth": "#4a3a2c",
+        "accent": "#e06a3a",
+        "eye": "#ffc14e",
+        "glowEyes": true,
+        "head": {
+          "shape": "square",
+          "ears": "torn",
+          "horns": "antler",
+          "jaw": "fangs",
+          "brow": 0.85
+        },
+        "weapon": "club",
+        "cape": "#5a4436"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "harpooner",
+      "specification": {
+        "id": "harpooner",
+        "height": 158,
+        "build": "broad",
+        "skin": "#cfa07a",
+        "cloth": "#2f5a6a",
+        "accent": "#8fd0c0",
+        "eye": "#5a8a92",
+        "head": {
+          "shape": "square",
+          "gear": "cap",
+          "jaw": "beard",
+          "brow": 0.2,
+          "hair": "#3a3a3a"
+        },
+        "weapon": "spear"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "barnacle_hulk",
+      "specification": {
+        "id": "barnacle_hulk",
+        "height": 190,
+        "build": "huge",
+        "skin": "#5c7f70",
+        "cloth": "#2f4a44",
+        "metal": "#93a8a0",
+        "accent": "#d8a03a",
+        "eye": "#c6f2d8",
+        "glowEyes": true,
+        "head": {
+          "shape": "square",
+          "horns": "small",
+          "jaw": "tusks",
+          "brow": 0.8
+        },
+        "weapon": "club",
+        "offhand": "shield"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "abyss_wisp",
+      "specification": {
+        "id": "abyss_wisp",
+        "height": 100,
+        "build": "small",
+        "skin": "#8fd0d8",
+        "cloth": "#2a4a5c",
+        "accent": "#6ae8f2",
+        "eye": "#d8ffff",
+        "glowEyes": true,
+        "head": {
+          "shape": "skull",
+          "brow": 0.2
+        },
+        "weapon": "none",
+        "wings": "feather",
+        "aura": "#6ae8f2"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "kelp_thrall",
+      "specification": {
+        "id": "kelp_thrall",
+        "height": 150,
+        "build": "broad",
+        "skin": "#5f7a5a",
+        "cloth": "#33503a",
+        "accent": "#8fd06a",
+        "eye": "#c6f28a",
+        "glowEyes": true,
+        "head": {
+          "shape": "skull",
+          "jaw": "fangs",
+          "brow": 0.4,
+          "hair": "#3a5a3a"
+        },
+        "weapon": "none",
+        "offhand": "shield"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "sworn_lance",
+      "specification": {
+        "id": "sworn_lance",
+        "height": 162,
+        "build": "broad",
+        "skin": "#d8a87f",
+        "cloth": "#2a2633",
+        "metal": "#6f6a7a",
+        "accent": "#b03a4a",
+        "eye": "#e0c0c0",
+        "head": {
+          "shape": "square",
+          "gear": "full",
+          "brow": 0.3
+        },
+        "weapon": "spear",
+        "cape": "#3a2630"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "bell_chanter",
+      "specification": {
+        "id": "bell_chanter",
+        "height": 154,
+        "build": "lean",
+        "skin": "#c99f78",
+        "cloth": "#332a3a",
+        "accent": "#d8b23a",
+        "eye": "#f2d88a",
+        "glowEyes": true,
+        "head": {
+          "shape": "long",
+          "gear": "hood",
+          "brow": 0.1
+        },
+        "weapon": "staff",
+        "offhand": "lantern",
+        "aura": "#d8b23a"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "black_hawk",
+      "specification": {
+        "id": "black_hawk",
+        "height": 118,
+        "build": "small",
+        "skin": "#4a4048",
+        "cloth": "#26222c",
+        "accent": "#c93a3a",
+        "eye": "#f2884e",
+        "glowEyes": true,
+        "head": {
+          "shape": "round",
+          "ears": "pointy",
+          "jaw": "fangs",
+          "brow": 0.5
+        },
+        "weapon": "none",
+        "wings": "feather"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "martyr",
+      "specification": {
+        "id": "martyr",
+        "height": 150,
+        "build": "lean",
+        "skin": "#cfa080",
+        "cloth": "#3a2a2a",
+        "accent": "#e0632a",
+        "eye": "#ffb04e",
+        "glowEyes": true,
+        "head": {
+          "shape": "round",
+          "gear": "hood",
+          "brow": 0.6
+        },
+        "weapon": "torch",
+        "aura": "#e0632a"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "hell_bombardier",
+      "specification": {
+        "id": "hell_bombardier",
+        "height": 158,
+        "build": "broad",
+        "skin": "#8a3f38",
+        "cloth": "#3a2226",
+        "metal": "#6f5a4a",
+        "accent": "#f2842a",
+        "eye": "#ffb84e",
+        "glowEyes": true,
+        "head": {
+          "shape": "square",
+          "horns": "small",
+          "jaw": "fangs",
+          "gear": "cap",
+          "brow": 0.6
+        },
+        "weapon": "staff",
+        "aura": "#f2842a"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "brimstone_ogre",
+      "specification": {
+        "id": "brimstone_ogre",
+        "height": 200,
+        "build": "huge",
+        "skin": "#6f2f2c",
+        "cloth": "#2e1e22",
+        "metal": "#7a6a5c",
+        "accent": "#e0521f",
+        "eye": "#ffcf6a",
+        "glowEyes": true,
+        "head": {
+          "shape": "square",
+          "horns": "curved",
+          "jaw": "tusks",
+          "brow": 0.9
+        },
+        "weapon": "club",
+        "offhand": "shield"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "soul_harvester",
+      "specification": {
+        "id": "soul_harvester",
+        "height": 172,
+        "build": "lean",
+        "skin": "#5a3348",
+        "cloth": "#241a2c",
+        "accent": "#a84ae0",
+        "eye": "#d89aff",
+        "glowEyes": true,
+        "head": {
+          "shape": "skull",
+          "horns": "curved",
+          "jaw": "fangs",
+          "brow": 0.5
+        },
+        "weapon": "scythe",
+        "cape": "#33203f",
+        "aura": "#a84ae0"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "militia",
+      "specification": {
+        "id": "militia",
+        "height": 150,
+        "build": "lean",
+        "skin": "#e8b48c",
+        "cloth": "#7d6a4f",
+        "accent": "#c9553f",
+        "eye": "#3b4a6b",
+        "head": {
+          "shape": "round",
+          "ears": "none",
+          "jaw": "none",
+          "gear": "cap",
+          "brow": -0.2,
+          "hair": "#6b4a2e"
+        },
+        "weapon": "spear",
+        "metal": "#9aa4b4"
+      },
+      "currentAsset": "unit.militia.sheet.png",
+      "frameCount": 8,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "archer",
+      "specification": {
+        "id": "archer",
+        "height": 152,
+        "build": "lean",
+        "skin": "#f0c093",
+        "cloth": "#3f7a4e",
+        "accent": "#d8b24a",
+        "eye": "#2f5d3a",
+        "head": {
+          "shape": "round",
+          "gear": "hood",
+          "brow": -0.1,
+          "hair": "#8a5a2b"
+        },
+        "weapon": "bow"
+      },
+      "currentAsset": "unit.archer.sheet.png",
+      "frameCount": 8,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "guardian",
+      "specification": {
+        "id": "guardian",
+        "height": 158,
+        "build": "broad",
+        "skin": "#e0a97c",
+        "cloth": "#3d4761",
+        "metal": "#aeb9c9",
+        "accent": "#2f6fb5",
+        "eye": "#2b3a5c",
+        "head": {
+          "shape": "square",
+          "gear": "full",
+          "brow": -0.3
+        },
+        "weapon": "sword",
+        "offhand": "shield"
+      },
+      "currentAsset": "legacy-frames",
+      "frameCount": 5,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "arbalest",
+      "specification": {
+        "id": "arbalest",
+        "height": 154,
+        "build": "lean",
+        "skin": "#dda17a",
+        "cloth": "#5a4470",
+        "metal": "#9aa4b4",
+        "accent": "#c99b3f",
+        "eye": "#3a2f52",
+        "head": {
+          "shape": "round",
+          "gear": "cap",
+          "brow": -0.15,
+          "hair": "#3a2a22"
+        },
+        "weapon": "crossbow"
+      },
+      "currentAsset": "legacy-frames",
+      "frameCount": 5,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "cleric",
+      "specification": {
+        "id": "cleric",
+        "height": 152,
+        "build": "lean",
+        "skin": "#f2c79e",
+        "cloth": "#f0ead8",
+        "accent": "#f2c14e",
+        "eye": "#5a7bb5",
+        "head": {
+          "shape": "round",
+          "gear": "hood",
+          "brow": -0.35,
+          "hair": "#c9a463"
+        },
+        "weapon": "staff",
+        "aura": "#ffe6a3"
+      },
+      "currentAsset": "legacy-frames",
+      "frameCount": 5,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "frostmage",
+      "specification": {
+        "id": "frostmage",
+        "height": 150,
+        "build": "lean",
+        "skin": "#ecc6a4",
+        "cloth": "#2f4f8a",
+        "accent": "#63cfe8",
+        "eye": "#63cfe8",
+        "head": {
+          "shape": "long",
+          "gear": "wizard",
+          "brow": -0.2,
+          "hair": "#dfe8f2"
+        },
+        "weapon": "staff",
+        "aura": "#8fe2f5"
+      },
+      "currentAsset": "legacy-frames",
+      "frameCount": 5,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "pyromancer",
+      "specification": {
+        "id": "pyromancer",
+        "height": 152,
+        "build": "lean",
+        "skin": "#e7b287",
+        "cloth": "#8c3222",
+        "accent": "#ff8c34",
+        "eye": "#ff8c34",
+        "head": {
+          "shape": "long",
+          "gear": "wizard",
+          "brow": 0.1,
+          "hair": "#c2452a"
+        },
+        "weapon": "staff",
+        "aura": "#ffb066"
+      },
+      "currentAsset": "legacy-frames",
+      "frameCount": 5,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "paladin",
+      "specification": {
+        "id": "paladin",
+        "height": 168,
+        "build": "broad",
+        "skin": "#e3ab7f",
+        "cloth": "#2c3a5e",
+        "metal": "#dfe6f0",
+        "accent": "#f2c14e",
+        "eye": "#4f7ac9",
+        "head": {
+          "shape": "square",
+          "gear": "plume",
+          "brow": -0.3
+        },
+        "weapon": "greatsword",
+        "cape": "#c0392b"
+      },
+      "currentAsset": "legacy-frames",
+      "frameCount": 5,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "monk",
+      "specification": {
+        "id": "monk",
+        "height": 156,
+        "build": "broad",
+        "skin": "#c88a5c",
+        "cloth": "#c9762f",
+        "accent": "#f0d9a8",
+        "eye": "#4a3524",
+        "head": {
+          "shape": "round",
+          "jaw": "beard",
+          "brow": -0.2,
+          "hair": "#3a2a22"
+        },
+        "weapon": "hammer"
+      },
+      "currentAsset": "legacy-frames",
+      "frameCount": 5,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "elf_ranger",
+      "specification": {
+        "id": "elf_ranger",
+        "height": 168,
+        "build": "lean",
+        "skin": "#f0d2b4",
+        "cloth": "#2f5d43",
+        "accent": "#a8e06a",
+        "eye": "#7fd8b0",
+        "head": {
+          "shape": "long",
+          "ears": "pointy",
+          "gear": "none",
+          "brow": -0.35,
+          "hair": "#3b2f28"
+        },
+        "weapon": "bow",
+        "cape": "#274b38"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "elf_spellweaver",
+      "specification": {
+        "id": "elf_spellweaver",
+        "height": 166,
+        "build": "lean",
+        "skin": "#f4d9c0",
+        "cloth": "#3a4f8c",
+        "accent": "#9fd8ff",
+        "eye": "#9fd8ff",
+        "glowEyes": true,
+        "head": {
+          "shape": "long",
+          "ears": "pointy",
+          "gear": "none",
+          "brow": -0.4,
+          "hair": "#e6e2d2"
+        },
+        "weapon": "staff",
+        "offhand": "orb",
+        "aura": "#9fd8ff"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "dwarf_warrior",
+      "specification": {
+        "id": "dwarf_warrior",
+        "height": 128,
+        "build": "broad",
+        "skin": "#e0aa82",
+        "cloth": "#5a3a28",
+        "metal": "#b9c0cc",
+        "accent": "#d9a441",
+        "eye": "#4a3a2a",
+        "head": {
+          "shape": "square",
+          "jaw": "beard",
+          "gear": "full",
+          "brow": 0.3,
+          "hair": "#8a4a22"
+        },
+        "weapon": "axe",
+        "offhand": "shield"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "dwarf_engineer",
+      "specification": {
+        "id": "dwarf_engineer",
+        "height": 126,
+        "build": "broad",
+        "skin": "#e6b48c",
+        "cloth": "#4a4438",
+        "metal": "#8f9aa8",
+        "accent": "#e07a2c",
+        "eye": "#3a2f22",
+        "head": {
+          "shape": "square",
+          "jaw": "beard",
+          "gear": "cap",
+          "brow": 0.2,
+          "hair": "#a05a28"
+        },
+        "weapon": "hammer"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "spearwall",
+      "specification": {
+        "id": "spearwall",
+        "height": 158,
+        "build": "broad",
+        "skin": "#e0b48c",
+        "cloth": "#3c4a6a",
+        "metal": "#9aa4b4",
+        "accent": "#c9a227",
+        "eye": "#4a5a72",
+        "head": {
+          "shape": "square",
+          "gear": "cap",
+          "brow": 0.2
+        },
+        "weapon": "spear",
+        "offhand": "shield"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "watchman",
+      "specification": {
+        "id": "watchman",
+        "height": 152,
+        "build": "lean",
+        "skin": "#dca87e",
+        "cloth": "#4a5a3c",
+        "accent": "#c9a227",
+        "eye": "#5a4a2a",
+        "head": {
+          "shape": "round",
+          "gear": "hood",
+          "brow": 0
+        },
+        "weapon": "bow",
+        "offhand": "lantern"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "runesmith",
+      "specification": {
+        "id": "runesmith",
+        "height": 126,
+        "build": "broad",
+        "skin": "#e0a882",
+        "cloth": "#4a3a52",
+        "metal": "#b9c0cc",
+        "accent": "#f2d34e",
+        "eye": "#7ce0ff",
+        "head": {
+          "shape": "square",
+          "jaw": "beard",
+          "gear": "cap",
+          "brow": 0.1,
+          "hair": "#8a4a22"
+        },
+        "weapon": "hammer",
+        "aura": "#ffe9a8"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "gravewarden",
+      "specification": {
+        "id": "gravewarden",
+        "height": 132,
+        "build": "broad",
+        "skin": "#d8a078",
+        "cloth": "#2f3a4a",
+        "metal": "#8f9aa8",
+        "accent": "#ffe08a",
+        "eye": "#f2d34e",
+        "head": {
+          "shape": "square",
+          "jaw": "beard",
+          "gear": "full",
+          "brow": 0.4,
+          "hair": "#6a3a1a"
+        },
+        "weapon": "hammer",
+        "offhand": "shield",
+        "aura": "#ffe9a8"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "moonblade",
+      "specification": {
+        "id": "moonblade",
+        "height": 168,
+        "build": "lean",
+        "skin": "#f0d8bc",
+        "cloth": "#2f4a6a",
+        "metal": "#dfe6f2",
+        "accent": "#a8e0ff",
+        "eye": "#a8e0ff",
+        "head": {
+          "shape": "long",
+          "ears": "pointy",
+          "brow": -0.3,
+          "hair": "#e8e2d2"
+        },
+        "weapon": "sword"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "treesinger",
+      "specification": {
+        "id": "treesinger",
+        "height": 164,
+        "build": "lean",
+        "skin": "#eed6b8",
+        "cloth": "#3a5a3c",
+        "accent": "#a8e06a",
+        "eye": "#8fd0a0",
+        "glowEyes": true,
+        "head": {
+          "shape": "long",
+          "ears": "pointy",
+          "gear": "hood",
+          "brow": -0.35,
+          "hair": "#5a7a3a"
+        },
+        "weapon": "staff",
+        "aura": "#a8e06a"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "hawkkeeper",
+      "specification": {
+        "id": "hawkkeeper",
+        "height": 162,
+        "build": "lean",
+        "skin": "#f0d2b4",
+        "cloth": "#4a4030",
+        "accent": "#e0a92c",
+        "eye": "#c9a227",
+        "head": {
+          "shape": "long",
+          "ears": "pointy",
+          "brow": -0.2,
+          "hair": "#8a6a3a"
+        },
+        "weapon": "bow",
+        "offhand": "buckler"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "warden",
+      "specification": {
+        "id": "warden",
+        "height": 166,
+        "build": "broad",
+        "skin": "#d6a179",
+        "cloth": "#3a4a2e",
+        "metal": "#7f8a6a",
+        "accent": "#9fc86a",
+        "eye": "#6a8a3a",
+        "head": {
+          "shape": "square",
+          "horns": "antler",
+          "gear": "hood",
+          "brow": 0.3,
+          "hair": "#4a3a20"
+        },
+        "weapon": "greataxe",
+        "cape": "#40502e"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "netcaster",
+      "specification": {
+        "id": "netcaster",
+        "height": 156,
+        "build": "lean",
+        "skin": "#c99a72",
+        "cloth": "#5a4a30",
+        "accent": "#d8c98a",
+        "eye": "#7a6a3a",
+        "head": {
+          "shape": "round",
+          "gear": "cap",
+          "brow": 0.1
+        },
+        "weapon": "spear"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "houndmaster",
+      "specification": {
+        "id": "houndmaster",
+        "height": 160,
+        "build": "broad",
+        "skin": "#cf9c74",
+        "cloth": "#4a3428",
+        "metal": "#8a8272",
+        "accent": "#c04a3a",
+        "eye": "#5a3a22",
+        "head": {
+          "shape": "square",
+          "jaw": "beard",
+          "brow": 0.4,
+          "hair": "#3a2418"
+        },
+        "weapon": "club"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "tidecaller",
+      "specification": {
+        "id": "tidecaller",
+        "height": 160,
+        "build": "lean",
+        "skin": "#bcd8d0",
+        "cloth": "#22506a",
+        "accent": "#7ce0ff",
+        "eye": "#7ce0ff",
+        "glowEyes": true,
+        "head": {
+          "shape": "long",
+          "ears": "pointy",
+          "gear": "hood",
+          "brow": -0.3,
+          "hair": "#2f8a86"
+        },
+        "weapon": "staff",
+        "aura": "#7ce0ff"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "deepwatch",
+      "specification": {
+        "id": "deepwatch",
+        "height": 164,
+        "build": "broad",
+        "skin": "#a8c8c0",
+        "cloth": "#1f4a5a",
+        "metal": "#8fb0c8",
+        "accent": "#c9a227",
+        "eye": "#a8f0e0",
+        "head": {
+          "shape": "square",
+          "ears": "pointy",
+          "gear": "full",
+          "brow": 0.3
+        },
+        "weapon": "spear",
+        "offhand": "shield"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "templar",
+      "specification": {
+        "id": "templar",
+        "height": 172,
+        "build": "broad",
+        "skin": "#e2b48c",
+        "cloth": "#e8e2d2",
+        "metal": "#e8eef7",
+        "accent": "#f5c542",
+        "eye": "#5a7bb5",
+        "head": {
+          "shape": "square",
+          "gear": "full",
+          "brow": 0.2
+        },
+        "weapon": "sword",
+        "offhand": "shield",
+        "cape": "#b8302c",
+        "aura": "#ffe9a8"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "pavise",
+      "specification": {
+        "id": "pavise",
+        "height": 160,
+        "build": "broad",
+        "skin": "#d8a87e",
+        "cloth": "#3a3a48",
+        "metal": "#8a92a0",
+        "accent": "#c9a227",
+        "eye": "#4a4a5a",
+        "head": {
+          "shape": "square",
+          "gear": "cap",
+          "brow": 0.3
+        },
+        "weapon": "crossbow",
+        "offhand": "shield"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "shieldbreaker",
+      "specification": {
+        "id": "shieldbreaker",
+        "height": 170,
+        "build": "huge",
+        "skin": "#cf9a70",
+        "cloth": "#3a2f2a",
+        "metal": "#6a7280",
+        "accent": "#e07a2c",
+        "eye": "#5a3a22",
+        "head": {
+          "shape": "square",
+          "jaw": "beard",
+          "gear": "full",
+          "brow": 0.6
+        },
+        "weapon": "hammer"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "confessor",
+      "specification": {
+        "id": "confessor",
+        "height": 158,
+        "build": "lean",
+        "skin": "#eec9a4",
+        "cloth": "#f0ead8",
+        "accent": "#f2c14e",
+        "eye": "#5a7bb5",
+        "head": {
+          "shape": "long",
+          "gear": "hood",
+          "brow": -0.3,
+          "hair": "#c9a463"
+        },
+        "weapon": "staff",
+        "aura": "#ffe6a3"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "warleader",
+      "specification": {
+        "id": "warleader",
+        "height": 176,
+        "build": "broad",
+        "skin": "#d8a87e",
+        "cloth": "#2a3a5a",
+        "metal": "#dfe6f2",
+        "accent": "#f5c542",
+        "eye": "#4f8ae0",
+        "head": {
+          "shape": "square",
+          "gear": "plume",
+          "brow": -0.2,
+          "hair": "#8a6a3a"
+        },
+        "weapon": "sword",
+        "cape": "#2f6fb5",
+        "aura": "#ffe9a8"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "kingsguard",
+      "specification": {
+        "id": "kingsguard",
+        "height": 182,
+        "build": "huge",
+        "skin": "#cf9c74",
+        "cloth": "#1f2a44",
+        "metal": "#c8d2e2",
+        "accent": "#f5c542",
+        "eye": "#4f8ae0",
+        "head": {
+          "shape": "square",
+          "gear": "full",
+          "brow": 0.4
+        },
+        "weapon": "greatsword",
+        "offhand": "shield",
+        "cape": "#24406e"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "goblin_thief",
+      "specification": {
+        "id": "goblin_thief",
+        "height": 108,
+        "build": "small",
+        "skin": "#8fc24a",
+        "cloth": "#3a2f4a",
+        "accent": "#f2d34e",
+        "eye": "#f2d34e",
+        "head": {
+          "shape": "long",
+          "ears": "big",
+          "jaw": "fangs",
+          "gear": "hood",
+          "brow": 0.4
+        },
+        "weapon": "dagger"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "wolf_rider",
+      "specification": {
+        "id": "wolf_rider",
+        "height": 132,
+        "build": "small",
+        "skin": "#7db83f",
+        "cloth": "#5a4030",
+        "accent": "#b0452c",
+        "eye": "#f2d34e",
+        "head": {
+          "shape": "long",
+          "ears": "pointy",
+          "jaw": "fangs",
+          "gear": "cap",
+          "brow": 0.6
+        },
+        "weapon": "spear"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "goblin_king",
+      "specification": {
+        "id": "goblin_king",
+        "height": 168,
+        "build": "broad",
+        "skin": "#6fae38",
+        "cloth": "#6a1f2a",
+        "metal": "#c9a227",
+        "accent": "#f2d34e",
+        "eye": "#ff7a3d",
+        "head": {
+          "shape": "square",
+          "ears": "big",
+          "jaw": "fangs",
+          "gear": "crown",
+          "brow": 0.7
+        },
+        "weapon": "club",
+        "cape": "#7a2030"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "skeleton",
+      "specification": {
+        "id": "skeleton",
+        "height": 138,
+        "build": "lean",
+        "skin": "#e6e2d2",
+        "cloth": "#4a4438",
+        "accent": "#8f9aa8",
+        "eye": "#63cfe8",
+        "glowEyes": true,
+        "head": {
+          "shape": "skull",
+          "jaw": "fangs",
+          "brow": 0.2
+        },
+        "weapon": "sword"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "skeleton_archer",
+      "specification": {
+        "id": "skeleton_archer",
+        "height": 136,
+        "build": "lean",
+        "skin": "#ded9c6",
+        "cloth": "#3f4a3a",
+        "accent": "#8f9aa8",
+        "eye": "#63cfe8",
+        "glowEyes": true,
+        "head": {
+          "shape": "skull",
+          "brow": 0.1
+        },
+        "weapon": "bow"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "zombie",
+      "specification": {
+        "id": "zombie",
+        "height": 142,
+        "build": "broad",
+        "skin": "#7f9a6a",
+        "cloth": "#4a4034",
+        "accent": "#6a7a4a",
+        "eye": "#c9d86a",
+        "glowEyes": true,
+        "head": {
+          "shape": "round",
+          "jaw": "fangs",
+          "brow": 0.1
+        },
+        "weapon": "none"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "ghoul",
+      "specification": {
+        "id": "ghoul",
+        "height": 130,
+        "build": "lean",
+        "skin": "#9aa88f",
+        "cloth": "#3a3630",
+        "accent": "#c04a3a",
+        "eye": "#ffe08a",
+        "glowEyes": true,
+        "head": {
+          "shape": "long",
+          "ears": "torn",
+          "jaw": "fangs",
+          "brow": 0.8
+        },
+        "weapon": "dagger"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "grave_raven",
+      "specification": {
+        "id": "grave_raven",
+        "height": 96,
+        "build": "small",
+        "skin": "#3a3648",
+        "cloth": "#26222f",
+        "accent": "#8f6fd0",
+        "eye": "#c9a227",
+        "glowEyes": true,
+        "head": {
+          "shape": "long",
+          "jaw": "fangs",
+          "brow": 0.5
+        },
+        "weapon": "none",
+        "wings": "feather"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "vampire",
+      "specification": {
+        "id": "vampire",
+        "height": 158,
+        "build": "lean",
+        "skin": "#e8dfe4",
+        "cloth": "#2a1a2e",
+        "accent": "#c0392b",
+        "eye": "#e8455c",
+        "glowEyes": true,
+        "head": {
+          "shape": "long",
+          "jaw": "fangs",
+          "brow": -0.2,
+          "hair": "#1a1420"
+        },
+        "weapon": "dagger",
+        "cape": "#5a1020"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "bone_golem",
+      "specification": {
+        "id": "bone_golem",
+        "height": 196,
+        "build": "huge",
+        "skin": "#ded9c6",
+        "cloth": "#3a3630",
+        "accent": "#8f9aa8",
+        "eye": "#63cfe8",
+        "glowEyes": true,
+        "head": {
+          "shape": "skull",
+          "horns": "curved",
+          "jaw": "tusks",
+          "brow": 0.6
+        },
+        "weapon": "greatsword"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "lich",
+      "specification": {
+        "id": "lich",
+        "height": 156,
+        "build": "lean",
+        "skin": "#cfd6c8",
+        "cloth": "#2b2440",
+        "accent": "#7ce0ff",
+        "eye": "#7ce0ff",
+        "glowEyes": true,
+        "head": {
+          "shape": "skull",
+          "gear": "crown",
+          "brow": 0.2
+        },
+        "weapon": "staff",
+        "cape": "#3a2f6e",
+        "aura": "#7ce0ff"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "necromancer",
+      "specification": {
+        "id": "necromancer",
+        "height": 176,
+        "build": "lean",
+        "skin": "#c8cfc2",
+        "cloth": "#1f1a2e",
+        "metal": "#6a7280",
+        "accent": "#8f6fd0",
+        "eye": "#a45cf0",
+        "glowEyes": true,
+        "head": {
+          "shape": "skull",
+          "gear": "hood",
+          "horns": "curved",
+          "brow": 0.4
+        },
+        "weapon": "scythe",
+        "cape": "#2a1a3e",
+        "aura": "#a45cf0"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "dire_wolf",
+      "specification": {
+        "id": "dire_wolf",
+        "height": 122,
+        "build": "broad",
+        "skin": "#6a6258",
+        "cloth": "#4a443c",
+        "accent": "#c04a3a",
+        "eye": "#f2d34e",
+        "glowEyes": true,
+        "head": {
+          "shape": "long",
+          "ears": "pointy",
+          "jaw": "fangs",
+          "brow": 0.8
+        },
+        "weapon": "none"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "boar",
+      "specification": {
+        "id": "boar",
+        "height": 118,
+        "build": "huge",
+        "skin": "#6b5140",
+        "cloth": "#54402f",
+        "accent": "#d8cbb0",
+        "eye": "#e8455c",
+        "head": {
+          "shape": "square",
+          "ears": "torn",
+          "jaw": "tusks",
+          "brow": 0.9
+        },
+        "weapon": "none"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "harpy",
+      "specification": {
+        "id": "harpy",
+        "height": 138,
+        "build": "lean",
+        "skin": "#c8a37a",
+        "cloth": "#5a4a6a",
+        "accent": "#e0a92c",
+        "eye": "#f2d34e",
+        "head": {
+          "shape": "long",
+          "ears": "pointy",
+          "jaw": "fangs",
+          "brow": 0.6,
+          "hair": "#3a2a3a"
+        },
+        "weapon": "none",
+        "wings": "feather"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "giant_spider",
+      "specification": {
+        "id": "giant_spider",
+        "height": 126,
+        "build": "broad",
+        "skin": "#3f3646",
+        "cloth": "#2a232e",
+        "accent": "#a45cf0",
+        "eye": "#e8455c",
+        "glowEyes": true,
+        "head": {
+          "shape": "round",
+          "jaw": "fangs",
+          "brow": 0.7
+        },
+        "weapon": "none"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "cave_bear",
+      "specification": {
+        "id": "cave_bear",
+        "height": 186,
+        "build": "huge",
+        "skin": "#5a4736",
+        "cloth": "#463527",
+        "accent": "#d8cbb0",
+        "eye": "#f2a34e",
+        "head": {
+          "shape": "round",
+          "ears": "torn",
+          "jaw": "fangs",
+          "brow": 0.8
+        },
+        "weapon": "none"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "beastlord",
+      "specification": {
+        "id": "beastlord",
+        "height": 200,
+        "build": "huge",
+        "skin": "#7a5c3f",
+        "cloth": "#4a3a26",
+        "metal": "#b9a06a",
+        "accent": "#e07a2c",
+        "eye": "#ffd257",
+        "glowEyes": true,
+        "head": {
+          "shape": "square",
+          "ears": "torn",
+          "horns": "antler",
+          "jaw": "tusks",
+          "brow": 0.9
+        },
+        "weapon": "greataxe",
+        "cape": "#5a4030"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "drowned_sailor",
+      "specification": {
+        "id": "drowned_sailor",
+        "height": 140,
+        "build": "broad",
+        "skin": "#7fa39a",
+        "cloth": "#2f4a55",
+        "accent": "#8fd0c0",
+        "eye": "#a8f0e0",
+        "glowEyes": true,
+        "head": {
+          "shape": "round",
+          "jaw": "fangs",
+          "brow": 0.3,
+          "hair": "#3a4a4a"
+        },
+        "weapon": "club"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "reef_crawler",
+      "specification": {
+        "id": "reef_crawler",
+        "height": 132,
+        "build": "huge",
+        "skin": "#5c7f6a",
+        "cloth": "#3a5a4a",
+        "metal": "#9ab4a8",
+        "accent": "#e0b060",
+        "eye": "#f2d34e",
+        "head": {
+          "shape": "round",
+          "jaw": "tusks",
+          "horns": "small",
+          "brow": 0.7
+        },
+        "weapon": "none",
+        "offhand": "shield"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "siren",
+      "specification": {
+        "id": "siren",
+        "height": 152,
+        "build": "lean",
+        "skin": "#a8d0c8",
+        "cloth": "#2a5a6e",
+        "accent": "#7ce0ff",
+        "eye": "#7ce0ff",
+        "glowEyes": true,
+        "head": {
+          "shape": "long",
+          "ears": "pointy",
+          "brow": -0.2,
+          "hair": "#3aa89a"
+        },
+        "weapon": "staff",
+        "aura": "#7ce0ff"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "tide_raider",
+      "specification": {
+        "id": "tide_raider",
+        "height": 146,
+        "build": "lean",
+        "skin": "#8fb8ac",
+        "cloth": "#35526a",
+        "accent": "#c9a227",
+        "eye": "#d8f0e8",
+        "head": {
+          "shape": "square",
+          "ears": "pointy",
+          "jaw": "fangs",
+          "gear": "cap",
+          "brow": 0.6
+        },
+        "weapon": "axe"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "deep_serpent",
+      "specification": {
+        "id": "deep_serpent",
+        "height": 192,
+        "build": "huge",
+        "skin": "#2f6a68",
+        "cloth": "#1f4a50",
+        "accent": "#8fd0c0",
+        "eye": "#ffe08a",
+        "glowEyes": true,
+        "head": {
+          "shape": "long",
+          "horns": "curved",
+          "jaw": "fangs",
+          "brow": 0.9
+        },
+        "weapon": "none"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "tide_witch",
+      "specification": {
+        "id": "tide_witch",
+        "height": 180,
+        "build": "lean",
+        "skin": "#9fc8c0",
+        "cloth": "#1f3a52",
+        "metal": "#8fb0c8",
+        "accent": "#63cfe8",
+        "eye": "#63cfe8",
+        "glowEyes": true,
+        "head": {
+          "shape": "long",
+          "ears": "pointy",
+          "gear": "crown",
+          "horns": "curved",
+          "brow": 0.3,
+          "hair": "#2f8a86"
+        },
+        "weapon": "staff",
+        "cape": "#1a4a5a",
+        "aura": "#63cfe8"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "cultist",
+      "specification": {
+        "id": "cultist",
+        "height": 150,
+        "build": "lean",
+        "skin": "#d8b48c",
+        "cloth": "#3a2030",
+        "accent": "#c0392b",
+        "eye": "#e8455c",
+        "head": {
+          "shape": "round",
+          "gear": "hood",
+          "brow": 0.4
+        },
+        "weapon": "dagger"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "fallen_crossbow",
+      "specification": {
+        "id": "fallen_crossbow",
+        "height": 156,
+        "build": "lean",
+        "skin": "#c9a179",
+        "cloth": "#2a2a34",
+        "metal": "#6a7280",
+        "accent": "#8f2030",
+        "eye": "#c8d0dc",
+        "head": {
+          "shape": "square",
+          "gear": "cap",
+          "brow": 0.5
+        },
+        "weapon": "crossbow"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "fallen_knight",
+      "specification": {
+        "id": "fallen_knight",
+        "height": 168,
+        "build": "broad",
+        "skin": "#c09a72",
+        "cloth": "#22222c",
+        "metal": "#5f6672",
+        "accent": "#8f2030",
+        "eye": "#e8455c",
+        "glowEyes": true,
+        "head": {
+          "shape": "square",
+          "gear": "full",
+          "brow": 0.7
+        },
+        "weapon": "sword",
+        "offhand": "shield",
+        "cape": "#4a1020"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "black_guard",
+      "specification": {
+        "id": "black_guard",
+        "height": 182,
+        "build": "huge",
+        "skin": "#b8946e",
+        "cloth": "#1a1a22",
+        "metal": "#4a5058",
+        "accent": "#a02030",
+        "eye": "#ff6a5c",
+        "glowEyes": true,
+        "head": {
+          "shape": "square",
+          "gear": "full",
+          "horns": "small",
+          "brow": 0.9
+        },
+        "weapon": "greatsword",
+        "offhand": "shield",
+        "cape": "#3a0a18"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "inquisitor",
+      "specification": {
+        "id": "inquisitor",
+        "height": 164,
+        "build": "lean",
+        "skin": "#d0a87e",
+        "cloth": "#e8e2d2",
+        "metal": "#c9a227",
+        "accent": "#c0392b",
+        "eye": "#f2d34e",
+        "head": {
+          "shape": "long",
+          "gear": "hood",
+          "brow": 0.4
+        },
+        "weapon": "hammer",
+        "cape": "#8f2030",
+        "aura": "#ffe9a8"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "betrayer",
+      "specification": {
+        "id": "betrayer",
+        "height": 196,
+        "build": "huge",
+        "skin": "#a88a68",
+        "cloth": "#16161e",
+        "metal": "#3f454e",
+        "accent": "#c0392b",
+        "eye": "#ff3b30",
+        "glowEyes": true,
+        "head": {
+          "shape": "square",
+          "gear": "full",
+          "horns": "crown",
+          "brow": 1
+        },
+        "weapon": "greatsword",
+        "offhand": "shield",
+        "cape": "#2a0610",
+        "aura": "#ff3b30"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "hellhound",
+      "specification": {
+        "id": "hellhound",
+        "height": 126,
+        "build": "broad",
+        "skin": "#5a2020",
+        "cloth": "#3a1414",
+        "accent": "#ff7a3d",
+        "eye": "#ffb43d",
+        "glowEyes": true,
+        "head": {
+          "shape": "long",
+          "ears": "pointy",
+          "horns": "small",
+          "jaw": "fangs",
+          "brow": 0.9
+        },
+        "weapon": "none",
+        "aura": "#ff7a3d"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "portal_fiend",
+      "specification": {
+        "id": "portal_fiend",
+        "height": 150,
+        "build": "lean",
+        "skin": "#6a3a7a",
+        "cloth": "#2a1a3a",
+        "accent": "#a45cf0",
+        "eye": "#d8a0ff",
+        "glowEyes": true,
+        "head": {
+          "shape": "long",
+          "ears": "pointy",
+          "horns": "curved",
+          "jaw": "fangs",
+          "brow": 0.6
+        },
+        "weapon": "dagger",
+        "aura": "#a45cf0"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "succubus",
+      "specification": {
+        "id": "succubus",
+        "height": 152,
+        "build": "lean",
+        "skin": "#d07a8a",
+        "cloth": "#3a1a2e",
+        "accent": "#e8455c",
+        "eye": "#ff8fa8",
+        "glowEyes": true,
+        "head": {
+          "shape": "long",
+          "horns": "curved",
+          "brow": -0.2,
+          "hair": "#2a1020"
+        },
+        "weapon": "none",
+        "wings": "bat"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "balor",
+      "specification": {
+        "id": "balor",
+        "height": 200,
+        "build": "huge",
+        "skin": "#7a2418",
+        "cloth": "#3a1210",
+        "metal": "#8a3a20",
+        "accent": "#ff7a3d",
+        "eye": "#ffd257",
+        "glowEyes": true,
+        "head": {
+          "shape": "square",
+          "horns": "curved",
+          "jaw": "tusks",
+          "brow": 1
+        },
+        "weapon": "greataxe",
+        "wings": "bat",
+        "aura": "#ff5a2d"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "demon_prince",
+      "specification": {
+        "id": "demon_prince",
+        "height": 210,
+        "build": "huge",
+        "skin": "#5a1420",
+        "cloth": "#2a0a14",
+        "metal": "#c9a227",
+        "accent": "#ff3b30",
+        "eye": "#ffd257",
+        "glowEyes": true,
+        "head": {
+          "shape": "square",
+          "horns": "crown",
+          "jaw": "tusks",
+          "brow": 1
+        },
+        "weapon": "greatsword",
+        "wings": "bat",
+        "cape": "#4a0d1c",
+        "aura": "#ff3b30"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "goblin",
+      "specification": {
+        "id": "goblin",
+        "height": 118,
+        "build": "small",
+        "skin": "#7db83f",
+        "cloth": "#6b4a2e",
+        "accent": "#c0392b",
+        "eye": "#f2d34e",
+        "head": {
+          "shape": "long",
+          "ears": "pointy",
+          "jaw": "fangs",
+          "brow": 0.5
+        },
+        "weapon": "dagger"
+      },
+      "currentAsset": "unit.goblin.sheet.v2.png",
+      "frameCount": 16,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "goblin_runner",
+      "specification": {
+        "id": "goblin_runner",
+        "height": 112,
+        "build": "small",
+        "skin": "#9ccc4e",
+        "cloth": "#8c4a2f",
+        "accent": "#e8a33d",
+        "eye": "#ffd34e",
+        "head": {
+          "shape": "long",
+          "ears": "big",
+          "jaw": "fangs",
+          "brow": 0.6
+        },
+        "weapon": "club"
+      },
+      "currentAsset": "unit.goblin_runner.sheet.png",
+      "frameCount": 8,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "goblin_bomber",
+      "specification": {
+        "id": "goblin_bomber",
+        "height": 116,
+        "build": "small",
+        "skin": "#6fa83a",
+        "cloth": "#4a4a52",
+        "accent": "#ff7a2f",
+        "eye": "#ff7a2f",
+        "head": {
+          "shape": "long",
+          "ears": "torn",
+          "jaw": "fangs",
+          "brow": 0.4
+        },
+        "weapon": "torch",
+        "offhand": "orb"
+      },
+      "currentAsset": "legacy-frames",
+      "frameCount": 5,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "hobgoblin",
+      "specification": {
+        "id": "hobgoblin",
+        "height": 138,
+        "build": "lean",
+        "skin": "#c9743a",
+        "cloth": "#4e3a2c",
+        "metal": "#7f8894",
+        "accent": "#8e2f2f",
+        "eye": "#ffe36b",
+        "head": {
+          "shape": "square",
+          "ears": "pointy",
+          "jaw": "fangs",
+          "gear": "cap",
+          "brow": 0.5
+        },
+        "weapon": "sword",
+        "offhand": "buckler"
+      },
+      "currentAsset": "legacy-frames",
+      "frameCount": 5,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "orc",
+      "specification": {
+        "id": "orc",
+        "height": 168,
+        "build": "broad",
+        "skin": "#5c8f43",
+        "cloth": "#6b4326",
+        "accent": "#b03a2e",
+        "eye": "#ffdc5e",
+        "head": {
+          "shape": "square",
+          "ears": "pointy",
+          "jaw": "tusks",
+          "brow": 0.7
+        },
+        "weapon": "club"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "orc_berserker",
+      "specification": {
+        "id": "orc_berserker",
+        "height": 174,
+        "build": "broad",
+        "skin": "#8a5a3c",
+        "cloth": "#5c2f22",
+        "accent": "#e04b2a",
+        "eye": "#ff6b3d",
+        "head": {
+          "shape": "square",
+          "ears": "pointy",
+          "jaw": "tusks",
+          "brow": 0.9,
+          "hair": "#2c1c14"
+        },
+        "weapon": "greataxe"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "orc_warlord",
+      "specification": {
+        "id": "orc_warlord",
+        "height": 186,
+        "build": "broad",
+        "skin": "#4f7d3c",
+        "cloth": "#3a2b22",
+        "metal": "#6f7885",
+        "accent": "#c9a227",
+        "eye": "#ffe36b",
+        "head": {
+          "shape": "square",
+          "ears": "pointy",
+          "jaw": "tusks",
+          "gear": "full",
+          "horns": "small",
+          "brow": 0.8
+        },
+        "weapon": "greatsword",
+        "cape": "#5c2029"
+      },
+      "currentAsset": "legacy-frames",
+      "frameCount": 5,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "imp",
+      "specification": {
+        "id": "imp",
+        "height": 108,
+        "build": "small",
+        "skin": "#c8402f",
+        "cloth": "#5a1f22",
+        "accent": "#ff9b3d",
+        "eye": "#ffd24e",
+        "glowEyes": true,
+        "head": {
+          "shape": "long",
+          "ears": "pointy",
+          "horns": "small",
+          "jaw": "fangs",
+          "brow": 0.6
+        },
+        "weapon": "none",
+        "wings": "bat"
+      },
+      "currentAsset": "legacy-frames",
+      "frameCount": 5,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "shaman",
+      "specification": {
+        "id": "shaman",
+        "height": 136,
+        "build": "lean",
+        "skin": "#6fa03c",
+        "cloth": "#4a2f5e",
+        "accent": "#a45cf0",
+        "eye": "#c98bff",
+        "glowEyes": true,
+        "head": {
+          "shape": "long",
+          "ears": "big",
+          "horns": "small",
+          "gear": "hood",
+          "brow": 0.3
+        },
+        "weapon": "staff",
+        "aura": "#a45cf0"
+      },
+      "currentAsset": "legacy-frames",
+      "frameCount": 5,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "troll",
+      "specification": {
+        "id": "troll",
+        "height": 196,
+        "build": "huge",
+        "skin": "#6b7f52",
+        "cloth": "#4a3a2a",
+        "accent": "#8a6b3f",
+        "eye": "#f2c14e",
+        "head": {
+          "shape": "square",
+          "ears": "torn",
+          "jaw": "tusks",
+          "horns": "small",
+          "brow": 0.8
+        },
+        "weapon": "club"
+      },
+      "currentAsset": "legacy-frames",
+      "frameCount": 5,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "wraith",
+      "specification": {
+        "id": "wraith",
+        "height": 156,
+        "build": "lean",
+        "skin": "#6a5f86",
+        "cloth": "#2b2340",
+        "accent": "#7d5cf0",
+        "eye": "#b39bff",
+        "glowEyes": true,
+        "head": {
+          "shape": "skull",
+          "gear": "hood",
+          "brow": 0.4
+        },
+        "weapon": "scythe",
+        "cape": "#241d38"
+      },
+      "currentAsset": "legacy-frames",
+      "frameCount": 5,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "demon_knight",
+      "specification": {
+        "id": "demon_knight",
+        "height": 190,
+        "build": "broad",
+        "skin": "#8c3a3a",
+        "cloth": "#2a1c28",
+        "metal": "#4a3f52",
+        "accent": "#ff4d3d",
+        "eye": "#ff5a3d",
+        "glowEyes": true,
+        "head": {
+          "shape": "square",
+          "horns": "curved",
+          "jaw": "fangs",
+          "gear": "full",
+          "brow": 0.9
+        },
+        "weapon": "greatsword",
+        "cape": "#3d1220"
+      },
+      "currentAsset": "legacy-frames",
+      "frameCount": 5,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "shadow_fiend",
+      "specification": {
+        "id": "shadow_fiend",
+        "height": 120,
+        "build": "broad",
+        "skin": "#3f2a33",
+        "cloth": "#2a1a22",
+        "accent": "#ff6a2f",
+        "eye": "#ff8a3d",
+        "glowEyes": true,
+        "head": {
+          "shape": "long",
+          "ears": "pointy",
+          "horns": "small",
+          "jaw": "fangs",
+          "brow": 0.9
+        },
+        "weapon": "none"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "demon_king",
+      "specification": {
+        "id": "demon_king",
+        "height": 260,
+        "build": "huge",
+        "skin": "#8f2436",
+        "cloth": "#1d1220",
+        "metal": "#3b2f44",
+        "accent": "#ff3b30",
+        "eye": "#ffdd55",
+        "glowEyes": true,
+        "head": {
+          "shape": "square",
+          "horns": "crown",
+          "jaw": "fangs",
+          "gear": "crown",
+          "brow": 1
+        },
+        "weapon": "greatsword",
+        "cape": "#4a0d1c",
+        "wings": "bat",
+        "aura": "#ff3b30"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "aldric",
+      "specification": {
+        "id": "aldric",
+        "height": 180,
+        "build": "broad",
+        "skin": "#e6b189",
+        "cloth": "#26365c",
+        "metal": "#e8eef7",
+        "accent": "#f5c542",
+        "eye": "#4f8ae0",
+        "head": {
+          "shape": "square",
+          "gear": "plume",
+          "brow": -0.4,
+          "hair": "#d9c07a"
+        },
+        "weapon": "sword",
+        "offhand": "shield",
+        "cape": "#2f6fb5",
+        "aura": "#ffe9a8"
+      },
+      "currentAsset": "unit.aldric.sheet.png",
+      "frameCount": 8,
+      "replacementStatus": "pending-review"
+    },
+    {
+      "id": "seraphina",
+      "specification": {
+        "id": "seraphina",
+        "height": 170,
+        "build": "lean",
+        "skin": "#f3ceab",
+        "cloth": "#3b2f6e",
+        "accent": "#7ce0ff",
+        "eye": "#8fe6ff",
+        "glowEyes": true,
+        "head": {
+          "shape": "long",
+          "gear": "none",
+          "brow": -0.3,
+          "hair": "#e9edf7"
+        },
+        "weapon": "staff",
+        "cape": "#5a49b5",
+        "wings": "feather",
+        "aura": "#7ce0ff"
+      },
+      "currentAsset": "procedural-parts",
+      "frameCount": 0,
+      "replacementStatus": "pending-review"
+    }
+  ],
+  "environments": [
+    "fields",
+    "barrows",
+    "woods",
+    "highland",
+    "coast",
+    "abyss",
+    "throne"
+  ],
+  "structures": [
+    "tithe",
+    "barricade",
+    "ballista",
+    "bombard",
+    "brazier"
+  ],
+  "castleSkins": [
+    "stone",
+    "ivory",
+    "obsidian",
+    "verdant"
+  ],
+  "reviewRequirements": [
+    "transparent gutters",
+    "consistent body scale",
+    "right-facing source",
+    "distinct walk contacts and passing poses",
+    "attack impact timing",
+    "phone-size readability"
+  ]
+}
