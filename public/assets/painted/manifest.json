@@ -456,116 +456,118 @@
   "unit.orc.wings": "unit.orc.wings.png",
   "unit.seraphina.cape": "unit.seraphina.cape.png",
   "unit.militia.frames": {
-    "sheet": "unit.militia.sheet.png",
-    "count": 8,
+    "sheet": "unit.militia.region1.png",
+    "count": 3,
     "width": 256,
     "height": 256,
-    "names": [],
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
     "animations": {
       "idle": {
         "frames": [
-          0,
-          1
+          0
         ],
-        "fps": 4
+        "fps": 3
       },
       "walk": {
         "frames": [
-          2,
-          3
+          0
         ],
-        "fps": 8
+        "fps": 6
       },
       "attack": {
-        "frames": [
-          4,
-          5
-        ],
-        "fps": 8
-      },
-      "cast": {
-        "frames": [
-          4,
-          5
-        ],
-        "fps": 8
-      },
-      "hurt": {
-        "frames": [
-          6
-        ],
-        "fps": 5
-      },
-      "spawn": {
         "frames": [
           1,
           0
         ],
-        "fps": 5
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
       },
       "die": {
         "frames": [
-          6,
-          7
+          2
         ],
-        "fps": 4
+        "fps": 3
       }
     }
   },
   "unit.aldric.frames": {
-    "sheet": "unit.aldric.sheet.png",
-    "count": 8,
+    "sheet": "unit.aldric.region1.png",
+    "count": 3,
     "width": 256,
     "height": 256,
-    "names": [],
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
     "animations": {
       "idle": {
         "frames": [
-          0,
-          1
+          0
         ],
-        "fps": 4
+        "fps": 3
       },
       "walk": {
         "frames": [
-          2,
-          3
+          0
         ],
-        "fps": 8
+        "fps": 6
       },
       "attack": {
-        "frames": [
-          4,
-          5
-        ],
-        "fps": 8
-      },
-      "cast": {
-        "frames": [
-          4,
-          5
-        ],
-        "fps": 8
-      },
-      "hurt": {
-        "frames": [
-          6
-        ],
-        "fps": 5
-      },
-      "spawn": {
         "frames": [
           1,
           0
         ],
-        "fps": 5
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
       },
       "die": {
         "frames": [
-          6,
-          7
+          2
         ],
-        "fps": 4
+        "fps": 3
       }
     }
   },
@@ -575,71 +577,118 @@
   "unit.arbalest.frame3": "unit.arbalest.frame3.png",
   "unit.arbalest.frame4": "unit.arbalest.frame4.png",
   "unit.arbalest.frames": {
-    "count": 5,
-    "width": 254,
-    "height": 320,
-    "names": [
-      "idle",
-      "walkA",
-      "walkB",
-      "attack",
-      "die"
-    ]
-  },
-  "unit.archer.frames": {
-    "sheet": "unit.archer.sheet.png",
-    "count": 8,
+    "sheet": "unit.arbalest.region1.png",
+    "count": 3,
     "width": 256,
     "height": 256,
-    "names": [],
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
     "animations": {
       "idle": {
         "frames": [
-          0,
-          1
+          0
         ],
-        "fps": 4
+        "fps": 3
       },
       "walk": {
         "frames": [
-          2,
-          3
+          0
         ],
-        "fps": 8
+        "fps": 6
       },
       "attack": {
-        "frames": [
-          4,
-          5
-        ],
-        "fps": 8
-      },
-      "cast": {
-        "frames": [
-          4,
-          5
-        ],
-        "fps": 8
-      },
-      "hurt": {
-        "frames": [
-          6
-        ],
-        "fps": 5
-      },
-      "spawn": {
         "frames": [
           1,
           0
         ],
-        "fps": 5
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
       },
       "die": {
         "frames": [
-          6,
-          7
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.archer.frames": {
+    "sheet": "unit.archer.region1.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 6
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
         ],
         "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
       }
     }
   },
@@ -683,79 +732,121 @@
   "unit.frostmage.frame3": "unit.frostmage.frame3.png",
   "unit.frostmage.frame4": "unit.frostmage.frame4.png",
   "unit.frostmage.frames": {
-    "count": 5,
-    "width": 351,
-    "height": 392,
-    "names": [
-      "idle",
-      "walkA",
-      "walkB",
-      "attack",
-      "die"
-    ]
-  },
-  "unit.goblin.frames": {
-    "sheet": "unit.goblin.sheet.v2.png",
-    "count": 16,
+    "sheet": "unit.frostmage.region1.png",
+    "count": 3,
     "width": 256,
     "height": 256,
-    "groundOffset": 32,
-    "names": [],
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
     "animations": {
       "idle": {
         "frames": [
-          0,
-          1,
-          2,
-          3
+          0
         ],
-        "fps": 5
+        "fps": 3
       },
       "walk": {
         "frames": [
-          4,
-          5,
-          6,
-          7
+          0
         ],
-        "fps": 7
+        "fps": 6
       },
       "attack": {
         "frames": [
-          8,
-          9,
-          10,
-          11
-        ],
-        "fps": 12
-      },
-      "cast": {
-        "frames": [
-          9,
-          10,
-          11
-        ],
-        "fps": 8
-      },
-      "hurt": {
-        "frames": [
-          12
-        ],
-        "fps": 5
-      },
-      "spawn": {
-        "frames": [
-          13,
+          1,
           0
         ],
         "fps": 7
       },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
       "die": {
         "frames": [
-          14,
-          15
+          2
         ],
-        "fps": 5
+        "fps": 3
+      }
+    }
+  },
+  "unit.goblin.frames": {
+    "sheet": "unit.goblin.region1.png",
+    "count": 5,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "walk_a",
+      "walk_b",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          1,
+          2
+        ],
+        "fps": 6
+      },
+      "attack": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          4
+        ],
+        "fps": 3
       }
     }
   },
@@ -765,71 +856,124 @@
   "unit.goblin_bomber.frame3": "unit.goblin_bomber.frame3.png",
   "unit.goblin_bomber.frame4": "unit.goblin_bomber.frame4.png",
   "unit.goblin_bomber.frames": {
+    "sheet": "unit.goblin_bomber.region1.png",
     "count": 5,
-    "width": 332,
-    "height": 386,
-    "names": [
-      "idle",
-      "walkA",
-      "walkB",
-      "attack",
-      "die"
-    ]
-  },
-  "unit.goblin_runner.frames": {
-    "sheet": "unit.goblin_runner.sheet.png",
-    "count": 8,
     "width": 256,
     "height": 256,
-    "names": [],
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "walk_a",
+      "walk_b",
+      "attack",
+      "death"
+    ],
     "animations": {
       "idle": {
         "frames": [
-          0,
-          1
+          0
         ],
-        "fps": 4
+        "fps": 3
       },
       "walk": {
         "frames": [
-          2,
-          3
+          1,
+          2
         ],
-        "fps": 8
+        "fps": 6
       },
       "attack": {
         "frames": [
-          4,
-          5
+          3,
+          0
         ],
-        "fps": 8
+        "fps": 7
       },
       "cast": {
         "frames": [
-          4,
-          5
+          3,
+          0
         ],
-        "fps": 8
+        "fps": 7
       },
       "hurt": {
         "frames": [
-          6
+          0
         ],
-        "fps": 5
+        "fps": 4
       },
       "spawn": {
         "frames": [
-          1,
           0
         ],
-        "fps": 5
+        "fps": 4
       },
       "die": {
         "frames": [
-          6,
-          7
+          4
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.goblin_runner.frames": {
+    "sheet": "unit.goblin_runner.region1.png",
+    "count": 5,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "walk_a",
+      "walk_b",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          1,
+          2
+        ],
+        "fps": 6
+      },
+      "attack": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
         ],
         "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          4
+        ],
+        "fps": 3
       }
     }
   },
@@ -839,16 +983,62 @@
   "unit.guardian.frame3": "unit.guardian.frame3.png",
   "unit.guardian.frame4": "unit.guardian.frame4.png",
   "unit.guardian.frames": {
-    "count": 5,
-    "width": 379,
-    "height": 320,
+    "sheet": "unit.guardian.region1.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
     "names": [
       "idle",
-      "walkA",
-      "walkB",
       "attack",
-      "die"
-    ]
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 6
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
   },
   "unit.hobgoblin.frame0": "unit.hobgoblin.frame0.png",
   "unit.hobgoblin.frame1": "unit.hobgoblin.frame1.png",
@@ -856,16 +1046,65 @@
   "unit.hobgoblin.frame3": "unit.hobgoblin.frame3.png",
   "unit.hobgoblin.frame4": "unit.hobgoblin.frame4.png",
   "unit.hobgoblin.frames": {
+    "sheet": "unit.hobgoblin.region1.png",
     "count": 5,
-    "width": 287,
-    "height": 320,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
     "names": [
       "idle",
-      "walkA",
-      "walkB",
+      "walk_a",
+      "walk_b",
       "attack",
-      "die"
-    ]
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          1,
+          2
+        ],
+        "fps": 6
+      },
+      "attack": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          4
+        ],
+        "fps": 3
+      }
+    }
   },
   "unit.imp.frame0": "unit.imp.frame0.png",
   "unit.imp.frame1": "unit.imp.frame1.png",
@@ -958,16 +1197,65 @@
   "unit.shaman.frame3": "unit.shaman.frame3.png",
   "unit.shaman.frame4": "unit.shaman.frame4.png",
   "unit.shaman.frames": {
+    "sheet": "unit.shaman.region1.png",
     "count": 5,
-    "width": 472,
-    "height": 320,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
     "names": [
       "idle",
-      "walkA",
-      "walkB",
+      "walk_a",
+      "walk_b",
       "attack",
-      "die"
-    ]
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          1,
+          2
+        ],
+        "fps": 6
+      },
+      "attack": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          4
+        ],
+        "fps": 3
+      }
+    }
   },
   "unit.troll.frame0": "unit.troll.frame0.png",
   "unit.troll.frame1": "unit.troll.frame1.png",
@@ -1007,5 +1295,368 @@
   "wall.stone": "wall.stone.v2.png",
   "gate.stone": "gate.stone.v2.png",
   "icon.ember_core": "icon.ember_core.v2.png",
-  "bg.fields": "bg.fields.region1.webp"
+  "bg.fields": "bg.fields.region1.webp",
+  "unit.cutthroat.frames": {
+    "sheet": "unit.cutthroat.region1.png",
+    "count": 5,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "walk_a",
+      "walk_b",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          1,
+          2
+        ],
+        "fps": 6
+      },
+      "attack": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          4
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.dwarf_engineer.frames": {
+    "sheet": "unit.dwarf_engineer.region1.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 6
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.goblin_glider.frames": {
+    "sheet": "unit.goblin_glider.region1.png",
+    "count": 5,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "walk_a",
+      "walk_b",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          1,
+          2
+        ],
+        "fps": 6
+      },
+      "attack": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          4
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.goblin_king.frames": {
+    "sheet": "unit.goblin_king.region1.png",
+    "count": 5,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "walk_a",
+      "walk_b",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          1,
+          2
+        ],
+        "fps": 6
+      },
+      "attack": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          4
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.goblin_thief.frames": {
+    "sheet": "unit.goblin_thief.region1.png",
+    "count": 5,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "walk_a",
+      "walk_b",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          1,
+          2
+        ],
+        "fps": 6
+      },
+      "attack": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          4
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.wolf_rider.frames": {
+    "sheet": "unit.wolf_rider.region1.png",
+    "count": 5,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "walk_a",
+      "walk_b",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          1,
+          2
+        ],
+        "fps": 6
+      },
+      "attack": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          4
+        ],
+        "fps": 3
+      }
+    }
+  }
 }
