@@ -23,6 +23,18 @@ import { COLORS, Counter, TextButton, fitText, showDialog, tappable, textStyle }
 
 const DECK_MAX = 6;
 /** Cards the bench shows at once; the rest pages. */
+/*
+ * Paging arrows.
+ *
+ * Deliberately not '<' and '>': every screen's back button is a '<' in the
+ * top right, and two controls wearing the same label in one screen is a
+ * coin toss for anyone reading it - a player looking for the way out, or a
+ * test looking for the button by its label. Filled triangles read as "turn
+ * the page" and belong to nothing else.
+ */
+const PAGE_BACK = '\u25c0';
+const PAGE_NEXT = '\u25b6';
+
 const BENCH_SLOTS = 14;
 
 export class LoadoutScene extends Phaser.Scene {
@@ -214,7 +226,7 @@ export class LoadoutScene extends Phaser.Scene {
           .setOrigin(0, 0.5),
       );
       this.track(
-        new TextButton(this, 400, 540, '<', {
+        new TextButton(this, 400, 540, PAGE_BACK, {
           width: 72,
           height: 56,
           tone: 'stone',
@@ -225,7 +237,7 @@ export class LoadoutScene extends Phaser.Scene {
         }),
       );
       this.track(
-        new TextButton(this, 490, 540, '>', {
+        new TextButton(this, 490, 540, PAGE_NEXT, {
           width: 72,
           height: 56,
           tone: 'stone',

@@ -23,6 +23,18 @@ const TYPE_LABEL = ['Steel', 'Fire', 'Frost', 'Holy'];
 const KIND_LABEL = ['Living', 'Armoured', 'Undead', 'Demon'];
 
 /** Rows of cards that fit above the bottom of the screen. */
+/*
+ * Paging arrows.
+ *
+ * Deliberately not '<' and '>': every screen's back button is a '<' in the
+ * top right, and two controls wearing the same label in one screen is a
+ * coin toss for anyone reading it - a player looking for the way out, or a
+ * test looking for the button by its label. Filled triangles read as "turn
+ * the page" and belong to nothing else.
+ */
+const PAGE_BACK = '\u25c0';
+const PAGE_NEXT = '\u25b6';
+
 const ROSTER_ROWS = 3;
 /** Where the page controls sit: clear of both the tabs and the grid. */
 const PAGER_X = 1560;
@@ -119,7 +131,7 @@ export class LedgerScene extends Phaser.Scene {
         this.add.text(PAGER_X, PAGER_Y, `${this.page + 1} / ${pages}`, textStyle('tiny', COLORS.gold)).setOrigin(0.5),
       );
       this.track(
-        new TextButton(this, PAGER_X - 120, PAGER_Y, '<', {
+        new TextButton(this, PAGER_X - 120, PAGER_Y, PAGE_BACK, {
           width: 84,
           height: 60,
           tone: 'stone',
@@ -130,7 +142,7 @@ export class LedgerScene extends Phaser.Scene {
         }),
       );
       this.track(
-        new TextButton(this, PAGER_X + 120, PAGER_Y, '>', {
+        new TextButton(this, PAGER_X + 120, PAGER_Y, PAGE_NEXT, {
           width: 84,
           height: 60,
           tone: 'stone',

@@ -18,6 +18,18 @@ import { COLORS, Counter, TextButton, fitText, showDialog, tappable, textStyle }
 type Tab = 'deck' | 'upgrades' | 'hero' | 'castle';
 
 /** Upgrade rows that fit on one page; the rest pages. */
+/*
+ * Paging arrows.
+ *
+ * Deliberately not '<' and '>': every screen's back button is a '<' in the
+ * top right, and two controls wearing the same label in one screen is a
+ * coin toss for anyone reading it - a player looking for the way out, or a
+ * test looking for the button by its label. Filled triangles read as "turn
+ * the page" and belong to nothing else.
+ */
+const PAGE_BACK = '\u25c0';
+const PAGE_NEXT = '\u25b6';
+
 const UPGRADES_PER_PAGE = 10;
 /** Rows of cards that fit above the bottom of the screen. */
 const DECK_GRID_ROWS = 3;
@@ -147,7 +159,7 @@ export class ArmoryScene extends Phaser.Scene {
     if (pages > 1) {
       this.track(this.add.text(PAGER_X, PAGER_Y, `${this.deckPage + 1} / ${pages}`, textStyle('tiny', COLORS.gold)).setOrigin(0.5));
       this.track(
-        new TextButton(this, PAGER_X - 120, PAGER_Y, '<', {
+        new TextButton(this, PAGER_X - 120, PAGER_Y, PAGE_BACK, {
           width: 84,
           height: 60,
           tone: 'stone',
@@ -158,7 +170,7 @@ export class ArmoryScene extends Phaser.Scene {
         }),
       );
       this.track(
-        new TextButton(this, PAGER_X + 120, PAGER_Y, '>', {
+        new TextButton(this, PAGER_X + 120, PAGER_Y, PAGE_NEXT, {
           width: 84,
           height: 60,
           tone: 'stone',
@@ -260,7 +272,7 @@ export class ArmoryScene extends Phaser.Scene {
         this.add.text(PAGER_X, PAGER_Y, `${this.upgradePage + 1} / ${pages}`, textStyle('tiny', COLORS.gold)).setOrigin(0.5),
       );
       this.track(
-        new TextButton(this, PAGER_X - 120, PAGER_Y, '<', {
+        new TextButton(this, PAGER_X - 120, PAGER_Y, PAGE_BACK, {
           width: 84,
           height: 60,
           tone: 'stone',
@@ -271,7 +283,7 @@ export class ArmoryScene extends Phaser.Scene {
         }),
       );
       this.track(
-        new TextButton(this, PAGER_X + 120, PAGER_Y, '>', {
+        new TextButton(this, PAGER_X + 120, PAGER_Y, PAGE_NEXT, {
           width: 84,
           height: 60,
           tone: 'stone',
