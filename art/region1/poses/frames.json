@@ -57,6 +57,21 @@
       "idle": "goblin_bomber/idle.png",
       "attack": "goblin_bomber/attack.png",
       "death": "goblin_bomber/death.png"
+    },
+    "hobgoblin": {
+      "idle": "hobgoblin/idle.png",
+      "attack": "hobgoblin/attack.png",
+      "death": "hobgoblin/death.png"
+    },
+    "goblin_thief": {
+      "idle": "goblin_thief/idle.png",
+      "attack": "goblin_thief/attack.png",
+      "death": "goblin_thief/death.png"
+    },
+    "goblin_king": {
+      "idle": "goblin_king/idle.png",
+      "attack": "goblin_king/attack.png",
+      "death": "goblin_king/death.png"
     }
   }
 }
