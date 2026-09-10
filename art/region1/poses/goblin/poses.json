@@ -1,0 +1,14 @@
+{
+  "character": "goblin",
+  "width": 320,
+  "height": 320,
+  "facing": "right",
+  "poses": {
+    "idle": "idle.png",
+    "attack": "attack.png",
+    "death": "death.png"
+  },
+  "framesPerPose": 1,
+  "walking": "deferred",
+  "deployment": "not integrated"
+}
