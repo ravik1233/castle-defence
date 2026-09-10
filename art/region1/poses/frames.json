@@ -87,6 +87,11 @@
       "idle": "aldric/idle.png",
       "attack": "aldric/attack.png",
       "death": "aldric/death.png"
+    },
+    "wolf_rider": {
+      "idle": "wolf_rider/idle.png",
+      "attack": "wolf_rider/attack.png",
+      "death": "wolf_rider/death.png"
     }
   }
 }
