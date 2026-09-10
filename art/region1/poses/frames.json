@@ -72,6 +72,21 @@
       "idle": "goblin_king/idle.png",
       "attack": "goblin_king/attack.png",
       "death": "goblin_king/death.png"
+    },
+    "goblin_glider": {
+      "idle": "goblin_glider/idle.png",
+      "attack": "goblin_glider/attack.png",
+      "death": "goblin_glider/death.png"
+    },
+    "shaman": {
+      "idle": "shaman/idle.png",
+      "attack": "shaman/attack.png",
+      "death": "shaman/death.png"
+    },
+    "aldric": {
+      "idle": "aldric/idle.png",
+      "attack": "aldric/attack.png",
+      "death": "aldric/death.png"
     }
   }
 }
