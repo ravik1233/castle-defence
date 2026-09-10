@@ -303,6 +303,10 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         commander: Math.round(this.commanderHp()),
         commanderAlive: Boolean(this.commander?.alive),
         reserves: this.reserves,
+        // Geometry, so a driver can ask where the wall is rather than
+        // hardcoding a number that moves when the layout does.
+        wallFaceX: Math.round(WALL_FACE_X),
+        fieldX0: Math.round(FIELD_X0),
       }),
       /** Strikes the commander directly, the way a breached enemy does. */
       strikeCommander: (amount: number): void => this.damageHeart(amount),

@@ -19,3 +19,4 @@ screenshots/
 # the same art lands in public/assets/painted/ at a couple of hundred KB apiece.
 art-in/*
 !art-in/README.md
+dist-qa/

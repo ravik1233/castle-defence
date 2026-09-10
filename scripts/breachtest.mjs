@@ -16,8 +16,16 @@ const fail = (m) => {
   failed = true;
 };
 
-/** Anything left of the wall face has come through rather than stopped at it. */
-const WALL_FACE = 200;
+/**
+ * Anything left of the wall face has come through rather than stopped at it.
+ *
+ * Read from the battle rather than written down here: the wall moved when it
+ * became two tiles of the grid, and a driver holding its own copy of the
+ * geometry starts lying the moment the layout changes.
+ */
+let WALL_FACE = 0;
+/** Where to put an enemy so it is just outside the wall, not inside it. */
+let CLOSE_X = 0;
 
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 page.on('pageerror', (e) => fail(`page error: ${String(e).slice(0, 160)}`));
@@ -45,6 +53,9 @@ const until = async (fn, ms, what) => {
   return false;
 };
 
+({ wallFaceX: WALL_FACE } = await state());
+CLOSE_X = WALL_FACE + 160;
+
 const start = await state();
 if (start.breached !== 0) fail(`a fresh battle starts with ${start.breached} breached sections`);
 if (start.heartHp <= 0) fail('the keep starts with no heart');
@@ -59,7 +70,7 @@ if (opened.breached !== 1) fail(`breaching one lane reported ${opened.breached} 
  * the game clock runs at a fraction of real time and marching the full width
  * of the field would take minutes.
  */
-await page.evaluate(() => globalThis.__battle.spawn('orc', 2, 330));
+await page.evaluate((x) => globalThis.__battle.spawn('orc', 2, x), CLOSE_X);
 // Past the wall face means it went through the gap rather than stopping at it.
 const through = await until(
   (s) => s.enemyDump.some((e) => e.row === 2 && e.x < WALL_FACE),
@@ -91,11 +102,11 @@ if (survived.heartHp <= 0) fail('the keep died to a single enemy coming through'
 else console.log(`keep survived one breach with ${survived.heartHp} left`);
 
 // And a lane that is still standing must still stop things.
-await page.evaluate(() => globalThis.__battle.spawn('orc', 0, 330));
-await until((s) => s.enemyDump.some((e) => e.row === 0 && e.x < 260), 240000, 'an enemy to reach lane 0');
+await page.evaluate((x) => globalThis.__battle.spawn('orc', 0, x), CLOSE_X);
+await until((s) => s.enemyDump.some((e) => e.row === 0 && e.x < WALL_FACE + 60), 240000, 'an enemy to reach lane 0');
 await page.waitForTimeout(8000);
 const held = await state();
-if (held.enemyDump.some((e) => e.row === 0 && e.x < 200)) {
+if (held.enemyDump.some((e) => e.row === 0 && e.x < WALL_FACE)) {
   fail('an enemy walked through a section that had not fallen');
 } else {
   console.log('an intact section still holds the line');
@@ -117,14 +128,15 @@ else console.log(`a rebuilt section closes the breach (lane 2 back to ${repaired
  * that is still held, rather than queueing at the heart - and it has to stay
  * killable there, or it is the unkillable-inside bug wearing a new hat.
  */
-await page.evaluate(() => {
+await page.evaluate((x) => {
   globalThis.__battle.addGold(900);
   globalThis.__battle.breach(4);
-  // Something for it to hunt, in the lane next door.
-  globalThis.__battle.place('militia', 3, 0);
-  globalThis.__battle.place('archer', 3, 1);
-  globalThis.__battle.spawn('cutthroat', 4, 330);
-});
+  // Something for it to hunt, in the lane next door. Placed out in the field
+  // rather than on the parapet, so the flanker has to come to them.
+  globalThis.__battle.place('militia', 3, 3);
+  globalThis.__battle.place('archer', 3, 4);
+  globalThis.__battle.spawn('cutthroat', 4, x);
+}, CLOSE_X);
 const turned = await until(
   (s) => s.enemyDump.some((e) => e.id === 'cutthroat' && e.row === 3),
   240000,
