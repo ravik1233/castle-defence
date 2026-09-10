@@ -1006,5 +1006,6 @@
   "build.tithe": "build.tithe.png",
   "wall.stone": "wall.stone.v2.png",
   "gate.stone": "gate.stone.v2.png",
-  "icon.ember_core": "icon.ember_core.v2.png"
+  "icon.ember_core": "icon.ember_core.v2.png",
+  "bg.fields": "bg.fields.region1.webp"
 }
