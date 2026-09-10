@@ -24,10 +24,15 @@ for name,source,keep,scale in [('idle','idle',range(4),.36),('attack','attack',r
     frames=[]
     for i in keep:
         y0,x0,y1,x1,k=bodies[i]
-        mask=ndi.binary_fill_holes(labels[y0:y1,x0:x1]==k)
+        mask=ndi.binary_closing(labels[y0:y1,x0:x1]==k,iterations=2)
+        mask=ndi.binary_erosion(mask,iterations=1)
         # White gaps between limbs remain transparent; preserve enclosed metal highlights.
         alpha=Image.fromarray((mask*255).astype('uint8')).filter(ImageFilter.GaussianBlur(.45))
-        im=Image.fromarray(a[y0:y1,x0:x1]).convert('RGBA');im.putalpha(alpha)
+        rgb=a[y0:y1,x0:x1].copy()
+        core=ndi.binary_erosion(mask,iterations=2)
+        _,nearest=ndi.distance_transform_edt(~core,return_indices=True)
+        rgb[~core]=rgb[nearest[0][~core],nearest[1][~core]]
+        im=Image.fromarray(rgb).convert('RGBA');im.putalpha(alpha)
         im=im.resize((round(im.width*scale),round(im.height*scale)),Image.Resampling.LANCZOS)
         if im.width>304 or im.height>304:raise ValueError(f'{name} frame too large')
         frame=Image.new('RGBA',(320,320))
