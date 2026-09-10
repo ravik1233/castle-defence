@@ -42,6 +42,21 @@
       "idle": "arbalest/idle.png",
       "attack": "arbalest/attack.png",
       "death": "arbalest/death.png"
+    },
+    "goblin_runner": {
+      "idle": "goblin_runner/idle.png",
+      "attack": "goblin_runner/attack.png",
+      "death": "goblin_runner/death.png"
+    },
+    "cutthroat": {
+      "idle": "cutthroat/idle.png",
+      "attack": "cutthroat/attack.png",
+      "death": "cutthroat/death.png"
+    },
+    "goblin_bomber": {
+      "idle": "goblin_bomber/idle.png",
+      "attack": "goblin_bomber/attack.png",
+      "death": "goblin_bomber/death.png"
     }
   }
 }
