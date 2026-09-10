@@ -326,10 +326,19 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         waves: this.waves.length,
         enemies: this.enemies.filter((e) => e.alive).length,
         reserves: this.reserves,
-        defenders: this.defenders.filter((d) => d.alive).length,
+        defenders: this.defenders.filter((d) => d.alive && d !== this.commander).length,
         defenderDump: this.defenders
           .filter((d) => d.alive)
-          .map((d) => ({ id: d.def.id, row: d.row, x: Math.round(d.x), home: Math.round(d.homeX), sortie: d.sortie })),
+          .map((d) => ({
+            id: d.def.id,
+            row: d.row,
+            x: Math.round(d.x),
+            home: Math.round(d.homeX),
+            sortie: d.sortie,
+            // He shares a row with a lane, and anything looking a unit up by
+            // its row will find him first if it cannot tell them apart.
+            commander: d === this.commander,
+          })),
         kills: this.killCount,
         finished: this.finished,
         enemyDump: this.enemies
@@ -934,6 +943,18 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     haptic(20);
     floatText(this, FIELD_X0 + 40, laneCenterY(row), 'REBUILT', COLORS.good, 'small');
     this.updateHud();
+  }
+
+  /**
+   * Who is holding a lane, not counting the commander.
+   *
+   * He lives in `defenders` so that he fights, blocks, and can be mended by
+   * anything that mends the line - but he is not a lane holder. Counting him
+   * as one meant the centre lane looked held even when it was empty, so it
+   * would never have been sent a reserve.
+   */
+  private holdersOf(row: number): Defender[] {
+    return this.defenders.filter((d) => d.alive && d.row === row && d !== this.commander);
   }
 
   /** What the commander has left. Zero once he is down. */
@@ -1843,7 +1864,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       .map((hp, row) => ({ hp, row }))
       .filter((s) => s.hp > 0);
     if (!standing.length) return;
-    const held = (row: number) => this.defenders.filter((d) => d.alive && d.row === row).length;
+    const held = (row: number) => this.holdersOf(row).length;
     standing.sort((a, b) => held(a.row) - held(b.row) || a.hp - b.hp);
     const target = standing[0]!;
     this.sections[target.row] = Math.max(0, target.hp - BOMBARD_DAMAGE);
@@ -2021,7 +2042,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
          * for a lane the player is still holding, and they are far too few to
          * spend on anything else.
          */
-        if (d !== this.commander && !this.defenders.some((o) => o.alive && o.row === d.row)) {
+        if (d !== this.commander && this.holdersOf(d.row).length === 0) {
           this.callReserve(d.row, d.col);
         }
       }

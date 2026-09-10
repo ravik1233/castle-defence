@@ -31,7 +31,7 @@ await page.waitForTimeout(1500);
 const state = () => page.evaluate(() => globalThis.__battle.state());
 const unitAt = async (row) => {
   const s = await state();
-  return s.defenderDump.find((d) => d.row === row) ?? null;
+  return s.defenderDump.find((d) => d.row === row && !d.commander) ?? null;
 };
 const until = async (fn, ms, what) => {
   const t0 = Date.now();
@@ -58,14 +58,14 @@ if (sent !== 'out') fail(`sending a militia out reported ${sent}`);
 
 const marched = await until(
   (s) => {
-    const d = s.defenderDump.find((u) => u.row === 2 && u.sortie === 'out');
+    const d = s.defenderDump.find((u) => u.row === 2 && !u.commander && u.sortie === 'out');
     return Boolean(d && d.x > d.home + 60);
   },
   120000,
   'the unit to march out past its own cell',
 );
 if (marched) {
-  const out = (await state()).defenderDump.find((u) => u.row === 2);
+  const out = (await state()).defenderDump.find((u) => u.row === 2 && !u.commander);
   console.log(`the militia marched from ${out.home} to ${out.x}`);
 }
 
@@ -85,7 +85,7 @@ const back = await page.evaluate(() => globalThis.__battle.sortie(2, 0));
 if (back !== 'returning') fail(`calling the unit home reported ${back}`);
 const home = await until(
   (s) => {
-    const d = s.defenderDump.find((u) => u.row === 2 && u.id === 'militia');
+    const d = s.defenderDump.find((u) => u.row === 2 && !u.commander && u.id === 'militia');
     return Boolean(d && d.sortie === 'held' && Math.abs(d.x - d.home) < 2);
   },
   180000,
