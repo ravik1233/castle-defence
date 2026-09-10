@@ -1,0 +1,19 @@
+{
+  "sheet": "walk.png",
+  "width": 256,
+  "height": 256,
+  "count": 4,
+  "animations": {
+    "walk": {
+      "frames": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "fps": 7.14
+    }
+  },
+  "facing": "right",
+  "status": "cleaned art; not integrated"
+}
