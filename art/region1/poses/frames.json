@@ -1,0 +1,47 @@
+{
+  "region": 1,
+  "states": [
+    "idle",
+    "attack",
+    "death"
+  ],
+  "walking": "deferred",
+  "integration": "art-only review pass; not wired into runtime",
+  "units": {
+    "goblin": {
+      "idle": "goblin/idle.png",
+      "attack": "goblin/attack.png",
+      "death": "goblin/death.png"
+    },
+    "militia": {
+      "idle": "militia/idle.png",
+      "attack": "militia/attack.png",
+      "death": "militia/death.png"
+    },
+    "archer": {
+      "idle": "archer/idle.png",
+      "attack": "archer/attack.png",
+      "death": "archer/death.png"
+    },
+    "guardian": {
+      "idle": "guardian/idle.png",
+      "attack": "guardian/attack.png",
+      "death": "guardian/death.png"
+    },
+    "dwarf_engineer": {
+      "idle": "dwarf_engineer/idle.png",
+      "attack": "dwarf_engineer/attack.png",
+      "death": "dwarf_engineer/death.png"
+    },
+    "frostmage": {
+      "idle": "frostmage/idle.png",
+      "attack": "frostmage/attack.png",
+      "death": "frostmage/death.png"
+    },
+    "arbalest": {
+      "idle": "arbalest/idle.png",
+      "attack": "arbalest/attack.png",
+      "death": "arbalest/death.png"
+    }
+  }
+}
