@@ -8,7 +8,7 @@ import levelsSrc from '../src/data/levels.ts?raw';
 import entitiesSrc from '../src/battle/entities.ts?raw';
 import { canStandOn, tilesFor } from '../src/data/tiles';
 import { DOCTRINES, doctrinesFor } from '../src/data/doctrines';
-import { GRID } from '../src/core/layout';
+import { FIELD_COL0, GRID } from '../src/core/layout';
 
 describe('rng', () => {
   it('is deterministic for a seed', () => {
@@ -263,14 +263,19 @@ describe('the ground a fort is fought on', () => {
 
   it('keeps the cell nearest the gate clear in every lane', () => {
     for (const l of ALL_LEVELS) {
-      for (const cells of l.modifiers?.tiles ?? []) expect(cells[0]).toBe('plain');
+      // The parapet and the stair behind it are dressed stone, always.
+      for (const cells of l.modifiers?.tiles ?? []) {
+        for (let col = 0; col <= FIELD_COL0; col += 1) expect(cells[col]).toBe('plain');
+      }
     }
   });
 
   it('makes the coast mostly water and the highlands mostly rock', () => {
     const share = (chapter: number, kind: string) => {
       const forts = ALL_LEVELS.filter((l) => l.chapter === chapter && l.modifiers?.tiles);
-      const cells = forts.flatMap((l) => l.modifiers!.tiles!.flat());
+      // Measured over the open field only: the wall columns are stone by
+      // construction and would drag every share down for no reason.
+      const cells = forts.flatMap((l) => l.modifiers!.tiles!.flatMap((r) => r.slice(FIELD_COL0 + 1)));
       return cells.filter((k) => k === kind).length / Math.max(1, cells.length);
     };
     expect(share(5, 'water')).toBeGreaterThan(0.2);

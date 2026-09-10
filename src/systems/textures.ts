@@ -7,7 +7,7 @@
  */
 import type Phaser from 'phaser';
 import { BACKDROP_SCALE, addTexture, ensureBiome } from '../art/registry';
-import { WALL_SKINS, castleGate, castleKeep, castleWall } from '../art/structures';
+import { WALL_SKINS, castleKeep, castleWall } from '../art/structures';
 import type { BiomeId } from '../art/scenery';
 import { DESIGN, FIELD, GRID, WALL } from '../core/layout';
 
@@ -15,7 +15,6 @@ export async function ensureCastleSkin(scene: Phaser.Scene, skinId: string): Pro
   const skin = WALL_SKINS.find((s) => s.id === skinId) ?? WALL_SKINS[0]!;
   if (scene.textures.exists(`wall.${skin.id}`)) return;
   await addTexture(scene, `wall.${skin.id}`, castleWall(skin, WALL.width, FIELD.height + FIELD.horizon).svg, BACKDROP_SCALE);
-  await addTexture(scene, `gate.${skin.id}`, castleGate(skin, WALL.gateWidth, 240).svg);
   await addTexture(scene, `keep.${skin.id}`, castleKeep(skin).svg, 1);
 }
 

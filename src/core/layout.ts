@@ -28,14 +28,40 @@ export const HUD = { y: 0, height: 88 } as const;
  */
 const HORIZON = 88;
 
+/**
+ * The keep, at the far left: where the commander stands and the reserves
+ * wait. Narrow on purpose - it is the last two hundred pixels of the realm,
+ * and it should look like it.
+ */
+export const KEEP_STRIP = { x: 0, width: 200 } as const;
+
+/**
+ * Columns of the grid that are wall rather than open ground.
+ *
+ * The wall used to be a painted strip you could not stand on, with a gate
+ * drawn across it. It is two tiles of the grid now, so it can be built on
+ * like anywhere else: the parapet is a place to put a shooter, not just a
+ * health bar that goes down.
+ */
+export const WALL_COLS = 2;
+
 export const GRID = {
   rows: 5,
-  cols: 8,
-  x0: 230,
+  /** Two of wall, then the open field. */
+  cols: WALL_COLS + 6,
+  x0: KEEP_STRIP.width,
   y0: HUD.height + HORIZON,
   cellW: 200,
   cellH: 150,
 } as const;
+
+/** The first column of open ground; everything left of it is parapet. */
+export const FIELD_COL0 = WALL_COLS;
+
+/** True for the two columns that are the wall itself. */
+export function isWallCol(col: number): boolean {
+  return col >= 0 && col < WALL_COLS;
+}
 
 export const FIELD = {
   x: 0,
@@ -47,7 +73,18 @@ export const FIELD = {
   horizon: HORIZON,
 } as const;
 
-export const WALL = { x: 0, width: GRID.x0, gateWidth: 204 } as const;
+/**
+ * The wall: the keep strip plus the two tiles that can be built on.
+ *
+ * There is no gate. One was drawn across the face, perpendicular to the
+ * wall, and read as a door lying on its side - the lanes run left to right,
+ * so anything standing square to them fights the perspective. A breached
+ * section is a hole in the stonework now, which is what a breach looks like.
+ */
+export const WALL = {
+  x: KEEP_STRIP.width,
+  width: WALL_COLS * GRID.cellW,
+} as const;
 
 /** Bottom strip: the card tray, the sell tool, the hero and their spells. */
 export const TRAY = {
@@ -90,22 +127,40 @@ export function rowFromY(y: number): number {
   return Math.floor((y - GRID.y0) / GRID.cellH);
 }
 
+/** Anywhere a card may be played: the parapet counts, the keep strip does not. */
 export function isInsideField(x: number, y: number): boolean {
   const c = colFromX(x);
   const r = rowFromY(y);
   return c >= 0 && c < GRID.cols && r >= 0 && r < GRID.rows;
 }
 
-/** X of the wall face that enemies attack. */
-export const WALL_FACE_X = GRID.x0 - 6;
+/** X of the wall face that enemies attack: the outer edge of the parapet. */
+export const WALL_FACE_X = WALL.x + WALL.width - 6;
 
 /**
- * The heart of the keep, behind the wall.
+ * Left edge of the open field.
  *
- * A breached lane is not the end of the battle - enemies pour through into
- * the courtyard and come for this instead, and only losing it loses the day.
+ * Distinct from `WALL.width` now, which is only how wide the parapet is. Code
+ * that wants "just inside the fighting ground" wants this.
  */
-export const KEEP = { x: 72, radius: 54 } as const;
+export const FIELD_X0 = WALL.x + WALL.width;
+
+/**
+ * Where the commander stands, and where the reserves wait behind him.
+ *
+ * A breached lane is not the end of the battle - enemies come through the
+ * stonework into the keep, and only cutting down the commander loses the
+ * day. He holds the centre lane; the reserves stack up the strip beside him.
+ */
+export const KEEP = { x: KEEP_STRIP.width / 2, radius: 54 } as const;
+
+/** Where a reserve waits before it is called into a lane. */
+export function reservePost(index: number): { x: number; y: number } {
+  return {
+    x: KEEP_STRIP.width * (index % 2 === 0 ? 0.32 : 0.68),
+    y: laneGroundY(Math.min(GRID.rows - 1, Math.floor(index / 2))),
+  };
+}
 
 /**
  * Meta screens (menu, map, armoury) lay out inside a centred column rather

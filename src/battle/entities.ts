@@ -9,7 +9,7 @@ import Phaser from 'phaser';
 import { characterArt } from '../art/compose';
 import { ALL_CHARACTER_ART } from '../art/cast';
 import type { ProjectileId } from '../art/props';
-import { GRID, KEEP, WALL_FACE_X, cellCenter, laneGroundY } from '../core/layout';
+import { GRID, KEEP, WALL_FACE_X, cellCenter, isWallCol, laneGroundY } from '../core/layout';
 import type { DamageType, DefenderDef, EnemyDef, EnemySpecial, TileKind } from '../data/types';
 import { TILE_EFFECT } from '../data/types';
 import { Rig } from '../objects/Rig';
@@ -498,22 +498,32 @@ export class Defender {
     this.sprite?.setPosition(this.x, this.y + 6);
   }
 
+  /** A shooter posted on the parapet: it can turn on the spot and fire inward. */
+  get facesBothWays(): boolean {
+    return isWallCol(this.col) && (this.def.attack?.range ?? 0) > GRID.cellW;
+  }
+
   private findTarget(range: number, canHitAir: boolean): Enemy | undefined {
     let best: Enemy | undefined;
     for (const e of this.world.enemies) {
       if (!e.alive || e.row !== this.row) continue;
       if (e.flying && !canHitAir) continue;
       /*
-       * Normally a defender looks up its lane and ignores whatever is behind
-       * it. An enemy that came through a breach is behind everything, so with
-       * that rule it could never be shot at all - it would stand in the
-       * courtyard hitting the keep until the keep died. Units turn and fire on
-       * anything that got inside.
+       * A unit in the field looks up its lane. Something that came through a
+       * breach is behind everything, and with only that rule it could never
+       * be shot at all - it would walk to the commander unopposed. So anyone
+       * may swing at what is on top of them, and a shooter on the wall may
+       * turn right around: it has the parapet to stand on and the whole
+       * courtyard in view, which is the reason to post one up there.
        */
-      if (!e.inside && e.x < this.x - 20) continue;
+      const behind = e.x < this.x - 20;
+      if (behind && !this.facesBothWays && Math.abs(e.x - this.x) > GRID.cellW * 0.7) continue;
       if (Math.abs(e.x - this.x) > range) continue;
       if (!best || e.x < best.x) best = e;
     }
+    // Turn to face what is actually being shot at, so a wall archer firing
+    // into the courtyard is not drawn loosing arrows over its own shoulder.
+    if (best) this.rig?.setFacing(best.x < this.x ? -1 : 1);
     return best;
   }
 }

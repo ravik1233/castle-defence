@@ -14,6 +14,10 @@ import {
   HUD,
   SPAWN_X,
   KEEP,
+  KEEP_STRIP,
+  FIELD_X0,
+  isWallCol,
+  reservePost,
   TRAY,
   WALL,
   WALL_FACE_X,
@@ -29,10 +33,11 @@ import { Tutorial, type TutorialHost } from '../battle/tutorial';
 import { quality } from '../systems/quality';
 import { WALL_SKINS } from '../art/structures';
 import { DEFENDERS, defender, upgradedStats } from '../data/defenders';
+import { ALL_CHARACTER_ART } from '../art/cast';
 import { enemy as enemyDef } from '../data/enemies';
 import { hero as heroDef } from '../data/heroes';
 import { CHAPTERS, generateWaves, hashString, level as levelById, levelNumber, type Wave } from '../data/levels';
-import type { LevelDef, SpellDef, TileKind } from '../data/types';
+import type { DefenderDef, LevelDef, SpellDef, TileKind } from '../data/types';
 import { profile } from '../systems/profile';
 import { audio, haptic, type SfxId } from '../systems/audio';
 import { COLORS, Counter, TextButton, fitText, floatText, showDialog, tappable, textStyle } from '../ui/kit';
@@ -54,7 +59,16 @@ import type { KeepState } from '../battle/combat';
  * five separate things, and losing one is a setback rather than the end.
  */
 const SECTION_MAX_HP = 420;
-const HEART_MAX_HP = 1200;
+/** What the commander can take before the fort is lost. */
+const COMMANDER_HP = 1200;
+/**
+ * Militia waiting behind the wall, and what they are worth when they step up.
+ *
+ * A fixed pool that does not come back: the player can watch it drain, and
+ * spending it is a decision rather than a formality. Fort equipment adds to
+ * it; nothing refills it mid-battle.
+ */
+const RESERVE_POOL = 4;
 /** Ember to rebuild a breached section, and the share of it that comes back. */
 const REPAIR_COST = 3;
 const REPAIR_SHARE = 0.6;
@@ -131,7 +145,18 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
   private gold = 0;
   private sections: number[] = [];
-  private heartHp = HEART_MAX_HP;
+  /**
+   * The commander holds the centre lane, and losing him loses the fort.
+   *
+   * The keep used to be an ember core on a health bar: a thing that ticked
+   * down while the player watched. A commander is a body that fights back,
+   * can be healed, and can be defended - so the last line is played rather
+   * than merely lost.
+   */
+  private commander?: Defender;
+  /** Militia waiting in the keep. One steps up when a lane goes empty. */
+  private reserves = 0;
+  private reserveFigures: Phaser.GameObjects.Container[] = [];
   private sectionBars: Phaser.GameObjects.Rectangle[] = [];
   private breachMarks: Phaser.GameObjects.Text[] = [];
   private breachHoles: Phaser.GameObjects.Rectangle[] = [];
@@ -189,7 +214,10 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     if (!import.meta.env.DEV && !__QA_BUILD__) return;
     (globalThis as unknown as { __battle?: unknown }).__battle = {
       place: (id: string, row: number, col: number): boolean => {
-        if (!this.canPlaceAt(row, col)) return false;
+        // Ask about the card being played, not whatever is selected in the
+        // tray: the rules that depend on the card - an economy building on a
+        // parapet, a landbound unit on water - were never being consulted.
+        if (!this.canPlaceAt(row, col, id)) return false;
         this.placeDefender(id, row, col);
         return true;
       },
@@ -258,6 +286,26 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
           shield: e.shield,
           blow: e.blow,
         })),
+      /*
+       * Cuts down a defender, so a driver can watch the keep answer. There is
+       * no public kill on a Defender either - it dies by taking damage - and
+       * a test that wants a hole in the line should make one the way the
+       * horde would.
+       */
+      felled: (row: number, col: number): boolean => {
+        const d = this.occupancy.get(`${row},${col}`);
+        if (!d?.alive) return false;
+        d.takeDamage(d.hp + 1);
+        return true;
+      },
+      /** How the keep stands: the commander, and who is left behind him. */
+      keep: () => ({
+        commander: Math.round(this.commanderHp()),
+        commanderAlive: Boolean(this.commander?.alive),
+        reserves: this.reserves,
+      }),
+      /** Strikes the commander directly, the way a breached enemy does. */
+      strikeCommander: (amount: number): void => this.damageHeart(amount),
       hurt: (index: number, amount: number, type = 'physical', breakShield = false): void => {
         this.enemies[index]?.takeDamage(amount, false, type as never, breakShield);
       },
@@ -267,12 +315,13 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         phase: this.phase,
         musterLeft: Math.max(0, Math.round(this.waveTimer)),
         wallHp: Math.round(this.sections.reduce((a, b) => a + b, 0)),
-        heartHp: Math.round(this.heartHp),
+        heartHp: Math.round(this.commanderHp()),
         breached: this.sections.filter((hp) => hp <= 0).length,
         sections: this.sections.map((hp) => Math.round(hp)),
         wave: this.waveIndex + 1,
         waves: this.waves.length,
         enemies: this.enemies.filter((e) => e.alive).length,
+        reserves: this.reserves,
         defenders: this.defenders.filter((d) => d.alive).length,
         defenderDump: this.defenders
           .filter((d) => d.alive)
@@ -330,7 +379,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     // A breached gate is the fort's opening position, not something that
     // happens to it: the player picks their deck already knowing.
     if (this.doctrines.has('breached')) this.sections[Math.floor(GRID.rows / 2)] = 0;
-    this.heartHp = HEART_MAX_HP;
+    this.reserves = RESERVE_POOL;
     this.killCount = 0;
     this.goldSpent = 0;
     this.rallyFactor = 1;
@@ -411,20 +460,39 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       .setDepth(-1200);
 
     const skin = WALL_SKINS.find((s) => s.id === profile.activeSkin) ?? WALL_SKINS[0]!;
+    /*
+     * The keep, behind the wall. The commander and the reserves stand here,
+     * so it has to read as ground you are holding rather than as more wall -
+     * a flagged courtyard, darker than the field, with the parapet's shadow
+     * falling across it.
+     */
     this.add
-      .image(0, FIELD.y - FIELD.horizon, `wall.${skin.id}`)
+      .rectangle(
+        KEEP_STRIP.x + KEEP_STRIP.width / 2,
+        FIELD.y + FIELD.height / 2,
+        KEEP_STRIP.width,
+        FIELD.height + FIELD.horizon,
+        0x2a2233,
+      )
+      .setDepth(-900);
+    this.add
+      .rectangle(KEEP_STRIP.width - 26, FIELD.y + FIELD.height / 2, 52, FIELD.height + FIELD.horizon, 0x0b0713, 0.35)
+      .setDepth(-880);
+
+    /*
+     * The wall is drawn behind the units now rather than over them: it is two
+     * tiles of the grid, and whatever is posted on the parapet has to be
+     * visible standing on it.
+     */
+    this.add
+      .image(WALL.x, FIELD.y - FIELD.horizon, `wall.${skin.id}`)
       .setOrigin(0, 0)
       .setDisplaySize(WALL.width, FIELD.height + FIELD.horizon)
-      .setDepth(2000);
-    this.add
-      .image(WALL.width * 0.55, FIELD.y + FIELD.height / 2, `gate.${skin.id}`)
-      .setOrigin(0.5, 0.5)
-      .setDisplaySize(WALL.gateWidth, FIELD.height * 0.42)
-      .setDepth(2002);
+      .setDepth(-870);
 
     this.drawGround();
     this.buildSections();
-    this.buildHeart();
+    this.buildKeep();
 
     this.cellMarker = this.add
       .image(0, 0, 'ui.cell')
@@ -434,7 +502,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
     // A soft band under the row being aimed at, so placement reads at a glance.
     this.laneGlow = this.add
-      .rectangle(DESIGN.width / 2, 0, DESIGN.width - WALL.width, GRID.cellH, 0xffe9a8, 0.1)
+      .rectangle(DESIGN.width / 2, 0, DESIGN.width - FIELD_X0, GRID.cellH, 0xffe9a8, 0.1)
       .setVisible(false)
       .setDepth(1500);
 
@@ -548,12 +616,12 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         const y = FIELD.y + row * GRID.cellH;
         if (row % 2 === 1) {
           lanes.fillStyle(0x172e20, 0.13);
-          lanes.fillRect(WALL.width, y, FIELD.width - WALL.width, GRID.cellH);
+          lanes.fillRect(FIELD_X0, y, FIELD.width - FIELD_X0, GRID.cellH);
         }
         lanes.lineStyle(3, 0x203a22, 0.28);
-        lanes.lineBetween(WALL.width, y, FIELD.width, y);
+        lanes.lineBetween(FIELD_X0, y, FIELD.width, y);
         lanes.lineStyle(1, 0xe6e9b2, 0.22);
-        lanes.lineBetween(WALL.width, y + 3, FIELD.width, y + 3);
+        lanes.lineBetween(FIELD_X0, y + 3, FIELD.width, y + 3);
       }
     }
     if (!this.tiles.length) return;
@@ -695,27 +763,84 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
    * It has to be visible even when nothing has broken through, so the player
    * understands what a breach threatens before one happens.
    */
-  private buildHeart(): void {
-    const y = FIELD.y + FIELD.height / 2;
-    this.add.image(KEEP.x, y, 'fx.glow')
-      .setDisplaySize(KEEP.radius * 4, KEEP.radius * 4)
-      .setTint(0xf0b429)
-      .setAlpha(0.35)
-      .setBlendMode(Phaser.BlendModes.ADD)
-      .setDepth(2050);
-    const core = this.add.image(KEEP.x, y, 'icon.ember_core')
-      .setDisplaySize(KEEP.radius * 1.85, KEEP.radius * 1.85)
-      .setDepth(2051);
-    // A slow pulse, so it reads as something alive that is worth protecting.
-    this.tweens.add({
-      targets: core,
-      scaleX: core.scaleX * 1.1,
-      scaleY: core.scaleY * 1.1,
-      duration: 1400,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.inOut',
+  /**
+   * The keep: the commander, and the militia waiting behind him.
+   *
+   * He is a real unit, not a bar - he stands in the centre lane at col -1,
+   * which `cellCenter` puts inside the keep strip, so every rule that already
+   * applies to a defender applies to him. He fights what reaches him, a
+   * cleric can mend him, and a spell that heals the line heals him too.
+   */
+  private buildKeep(): void {
+    const hero = heroDef(this.commanderId());
+    const art = ALL_CHARACTER_ART[hero.art] ? hero.art : 'guardian';
+    const def: DefenderDef = {
+      id: `commander_${hero.id}`,
+      name: hero.name,
+      blurb: hero.title,
+      role: 'melee',
+      art: { kind: 'unit', id: art },
+      cost: 0,
+      recharge: 0,
+      hp: COMMANDER_HP,
+      attack: { damage: 42, rate: 0.9, range: 150 },
+      unlockLevel: 1,
+      upgrade: { hp: 0, damage: 0 },
+    };
+    // Column -1 is the keep strip: behind the parapet, off the buildable grid,
+    // so nothing can be played on top of him and he blocks no placement.
+    this.commander = new Defender(this, def, Math.floor(GRID.rows / 2), -1, {
+      hp: COMMANDER_HP,
+      damage: 42,
     });
+    this.defenders.push(this.commander);
+
+    this.add
+      .image(KEEP.x, laneCenterY(Math.floor(GRID.rows / 2)), 'fx.glow')
+      .setDisplaySize(KEEP.radius * 3.4, KEEP.radius * 3.4)
+      .setTint(0xf0b429)
+      .setAlpha(0.22)
+      .setBlendMode(Phaser.BlendModes.ADD)
+      .setDepth(-860);
+
+    this.drawReserves();
+  }
+
+  /**
+   * The militia in the yard, drawn one figure per body left.
+   *
+   * Shown rather than counted in a corner: the player should be able to
+   * glance at the keep and see how many times the line can still be patched.
+   */
+  private drawReserves(): void {
+    for (const f of this.reserveFigures) f.destroy();
+    this.reserveFigures = [];
+    for (let i = 0; i < this.reserves; i += 1) {
+      const post = reservePost(i);
+      const c = this.add.container(post.x, post.y).setDepth(post.y);
+      const art = this.cardArt('militia', 0, 0, 0.42);
+      c.add(art);
+      c.setAlpha(0.9);
+      this.reserveFigures.push(c);
+    }
+  }
+
+  /**
+   * Call one of the reserves into a lane that just lost its holder.
+   *
+   * They are free, and they are finite. Nothing refills the pool inside a
+   * battle, so a fort where five lanes break is a fort that ends with the
+   * commander swinging on his own.
+   */
+  private callReserve(row: number, col: number): void {
+    if (this.finished || this.reserves <= 0) return;
+    if (!this.canPlaceAt(row, col, 'militia')) return;
+    this.reserves -= 1;
+    this.drawReserves();
+    this.placeDefender('militia', row, col);
+    this.burst(cellCenter(row, col).x, laneCenterY(row), 'heal');
+    floatText(this, cellCenter(row, col).x, laneCenterY(row) - 40, 'RESERVE', COLORS.gold, 'tiny');
+    audio.play('place');
   }
 
   private updateSections(): void {
@@ -737,8 +862,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     return {
       sections: [...this.sections],
       sectionMax: this.sectionMax,
-      heartHp: this.heartHp,
-      heartMax: HEART_MAX_HP,
+      heartHp: this.commanderHp(),
+      heartMax: COMMANDER_HP,
     };
   }
 
@@ -796,24 +921,36 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     if (this.finished || !this.isBreached(row)) return;
     if (this.gold < REPAIR_COST) {
       audio.play('deny');
-      floatText(this, WALL.width + 40, laneCenterY(row), 'NOT ENOUGH EMBER', COLORS.danger, 'small');
+      floatText(this, FIELD_X0 + 40, laneCenterY(row), 'NOT ENOUGH EMBER', COLORS.danger, 'small');
       return;
     }
     this.gold -= REPAIR_COST;
     this.sections[row] = this.sectionMax * REPAIR_SHARE;
     audio.play('place');
     haptic(20);
-    floatText(this, WALL.width + 40, laneCenterY(row), 'REBUILT', COLORS.good, 'small');
+    floatText(this, FIELD_X0 + 40, laneCenterY(row), 'REBUILT', COLORS.good, 'small');
     this.updateHud();
   }
 
+  /** What the commander has left. Zero once he is down. */
+  private commanderHp(): number {
+    return this.commander?.alive ? this.commander.hp : 0;
+  }
+
+  /**
+   * Something inside the keep is cutting at the commander.
+   *
+   * Every breached lane reaches him, not just the centre one: a hole
+   * anywhere in the wall is a road to the only man whose death ends the
+   * fort, which is what keeps five lanes worth holding.
+   */
   damageHeart(amount: number): void {
-    if (this.finished) return;
-    this.heartHp -= amount;
+    if (this.finished || !this.commander?.alive) return;
+    this.commander.takeDamage(amount);
     this.cameras.main.flash(140, 160, 20, 40);
     this.shake(9);
     this.updateHud();
-    if (this.heartHp <= 0) this.endBattle(false);
+    if (!this.commander.alive) this.endBattle(false);
   }
 
   private updateHud(): void {
@@ -826,12 +963,17 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         : `Wave ${Math.min(shown, total)} / ${total}`,
     );
     this.updatePhaseHud();
-    const f = Math.max(0, this.heartHp / HEART_MAX_HP);
+    const hp = this.commanderHp();
+    const f = Math.max(0, hp / COMMANDER_HP);
     if (this.heartBar) {
       this.heartBar.width = 396 * f;
       this.heartBar.fillColor = f > 0.55 ? 0x5fd07a : f > 0.25 ? 0xf0b429 : 0xe8455c;
     }
-    this.heartLabel?.setText(`KEEP ${Math.max(0, Math.ceil(this.heartHp))}`);
+    // The bar names him and counts the reserves beside him, so the two things
+    // that actually end a fort are both readable without looking away.
+    this.heartLabel?.setText(
+      `${heroDef(this.commanderId()).name.toUpperCase()}  ${Math.max(0, Math.ceil(hp))}   RESERVES ${this.reserves}`,
+    );
     this.updateSections();
   }
 
@@ -1147,7 +1289,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
           .filter((e) => e.alive && e.row === row)
           .sort((a, b) => a.x - b.x)
           .slice(0, 6);
-        let prev: { x: number; y: number } = { x: WALL.width, y: laneCenterY(row) };
+        let prev: { x: number; y: number } = { x: FIELD_X0, y: laneCenterY(row) };
         for (const e of hit) {
           const line = this.add
             .line(0, 0, prev.x, prev.y, e.x, e.y - 60, 0x9fe8ff, 1)
@@ -1192,7 +1334,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         this.sfx('upgrade');
         this.rallyFactor = 1.6;
         this.rallyTimer = spell.duration ?? 8;
-        const ring = this.add.image(WALL.width, laneCenterY(2), 'fx.shockwave').setDepth(4000).setScale(0.3);
+        const ring = this.add.image(FIELD_X0, laneCenterY(2), 'fx.shockwave').setDepth(4000).setScale(0.3);
         this.tweens.add({ targets: ring, scale: 8, alpha: 0, duration: 800, onComplete: () => ring.destroy() });
         for (const d of this.defenders) if (d.alive) this.burst(d.x, d.y - 80, 'heal');
         break;
@@ -1250,6 +1392,16 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     // Rock and rubble take nothing at all; water takes only what floats.
     const def = cardId && cardId !== '__sell__' && cardId !== '__sortie__' ? defender(cardId) : undefined;
     if (def?.economy?.requiresSeam && this.tileAt(row, col) !== 'seam') return false;
+    /*
+     * Nothing is mined or grown on a parapet. The wall is for fighting from,
+     * which is the whole reason it is worth the two tiles it costs.
+     *
+     * Tested on the role, not on the presence of an `economy` block: the
+     * Tithe Shrine has the role and no block - it pays out after the battle
+     * rather than during it - so checking the block let it be built on the
+     * wall like any spearman.
+     */
+    if (def?.role === 'economy' && isWallCol(col)) return false;
     return canStandOn(this.tileAt(row, col), Boolean(def?.aquatic));
   }
 
@@ -1363,9 +1515,9 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         if (!e.alive || e.row !== row || !e.atWall) continue;
         e.takeDamage(EQUIPMENT_EFFECT.oil.gateBurn, true, 'fire');
       }
-      this.burst(WALL.width + 20, y - 40, 'explosion');
+      this.burst(FIELD_X0 + 20, y - 40, 'explosion');
     }
-    floatText(this, WALL.width + 20, atY - 80, `-${Math.round(amount)}`, COLORS.danger, 'small');
+    floatText(this, FIELD_X0 + 20, atY - 80, `-${Math.round(amount)}`, COLORS.danger, 'small');
     this.cameras.main.flash(90, 120, 20, 30);
     // A breach is loud. It is the moment the battle changes shape, and the
     // player has to notice it happening in a lane they may not be watching.
@@ -1382,7 +1534,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     const hp = this.sections[row] ?? 0;
     if (hp <= 0 || hp >= this.sectionMax) return;
     this.sections[row] = Math.min(this.sectionMax, hp + amount);
-    floatText(this, WALL.width + 20, laneCenterY(row) - 40, `+${Math.round(amount)}`, COLORS.good, 'tiny');
+    floatText(this, FIELD_X0 + 20, laneCenterY(row) - 40, `+${Math.round(amount)}`, COLORS.good, 'tiny');
     this.updateHud();
   }
 
@@ -1392,7 +1544,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     haptic(40);
     this.shake(16);
     this.cameras.main.flash(220, 200, 40, 40);
-    floatText(this, WALL.width + 60, laneCenterY(row), 'BREACH!', COLORS.danger, 'title');
+    floatText(this, FIELD_X0 + 60, laneCenterY(row), 'BREACH!', COLORS.danger, 'title');
   }
 
   awardGold(amount: number, x: number, y: number): void {
@@ -1586,7 +1738,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       const row = this.sections.findIndex((hp) => hp <= 0);
       this.sections[row] = this.sectionMax * REPAIR_SHARE;
       audio.play('place');
-      floatText(this, WALL.width + 40, laneCenterY(row), 'REBUILT', COLORS.good, 'small');
+      floatText(this, FIELD_X0 + 40, laneCenterY(row), 'REBUILT', COLORS.good, 'small');
     } else {
       this.rallyFactor = 1.6;
       this.rallyTimer = 10;
@@ -1859,6 +2011,15 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       if (!d.alive) {
         this.occupancy.delete(`${d.row},${d.col}`);
         this.defenders.splice(i, 1);
+        /*
+         * A militia from the keep steps into the hole. Only when the lane is
+         * otherwise empty: reserves are for a line that broke, not a top-up
+         * for a lane the player is still holding, and they are far too few to
+         * spend on anything else.
+         */
+        if (d !== this.commander && !this.defenders.some((o) => o.alive && o.row === d.row)) {
+          this.callReserve(d.row, d.col);
+        }
       }
     }
     for (let i = this.enemies.length - 1; i >= 0; i -= 1) {
@@ -1909,7 +2070,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     }
 
     const nearWall = this.enemies.filter((e) => e.alive && e.x < WALL.width + 260).length;
-    audio.setTension(tensionFor({ hp: this.heartHp, max: HEART_MAX_HP }, nearWall));
+    audio.setTension(tensionFor({ hp: this.commanderHp(), max: COMMANDER_HP }, nearWall));
 
     quality.sample(this.game);
   }
@@ -1964,8 +2125,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         stars,
         wave,
         kills: this.killCount,
-        wallHp: Math.max(0, Math.round(this.heartHp)),
-        wallMax: HEART_MAX_HP,
+        wallHp: Math.max(0, Math.round(this.commanderHp())),
+        wallMax: COMMANDER_HP,
         reward: this.levelDef.reward,
         levelNo: levelNumber(this.levelDef.id),
         unlockedBefore,

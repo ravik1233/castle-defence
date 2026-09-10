@@ -11,7 +11,7 @@
  * player on every device, and it leans on the region's country: the moors
  * are wet, the highlands are rock, the coast is mostly sea.
  */
-import { GRID } from '../core/layout';
+import { FIELD_COL0, GRID, WALL_COLS, isWallCol } from '../core/layout';
 import type { BiomeId } from '../art/scenery';
 import type { TileKind } from './types';
 
@@ -54,9 +54,9 @@ const COUNTRY: Record<BiomeId, Partial<Record<TileKind, number>>> = {
 /**
  * The ground for one fort.
  *
- * The column nearest the wall is always left plain: a fort where the player
- * cannot put anything in front of their own gate is not a hard fort, it is
- * a broken one.
+ * The two parapet columns and the one behind them are always left plain: a
+ * fort where the player cannot put anything on their own wall, or in front
+ * of it, is not a hard fort, it is a broken one.
  */
 export function tilesFor(levelId: string, biome: BiomeId, index: number): TileKind[][] {
   const rand = rng(hash(`${levelId}:ground`));
@@ -68,7 +68,10 @@ export function tilesFor(levelId: string, biome: BiomeId, index: number): TileKi
   for (let row = 0; row < GRID.rows; row += 1) {
     const cells: TileKind[] = [];
     for (let col = 0; col < GRID.cols; col += 1) {
-      if (col === 0) {
+      // The parapet is dressed stone and the column behind it is the
+      // stair - neither is marsh, water or a vein of ore, and both have to
+      // take a unit, since the wall is somewhere you post a shooter now.
+      if (isWallCol(col) || col === FIELD_COL0) {
         cells.push('plain');
         continue;
       }
@@ -92,8 +95,11 @@ export function tilesFor(levelId: string, biome: BiomeId, index: number): TileKi
    * second fort, then two exposed choices in the third. Later maps let the
    * seeded terrain generator decide where the veins lie.
    */
-  const taughtVeins: Array<[number, number]> =
-    levelId === 'c1l2' ? [[2, 3]] : levelId === 'c1l3' ? [[1, 2], [3, 4]] : [];
+  // Columns are counted from the keep, so the parapet shifts these right:
+  // they were authored against a grid whose column 0 was open ground.
+  const taughtVeins: Array<[number, number]> = (
+    levelId === 'c1l2' ? [[2, 3]] : levelId === 'c1l3' ? [[1, 2], [3, 4]] : []
+  ).map(([r, c]) => [r, c + WALL_COLS] as [number, number]);
   if (taughtVeins.length) {
     for (const cells of rows) {
       for (let col = 0; col < cells.length; col += 1) {
