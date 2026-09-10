@@ -56,22 +56,48 @@ else console.log('the parapet refuses an economy building');
 
 // Hold one lane with a single unit, then cut it down: the keep should send a
 // militia up to fill the hole, and the pool should drop by exactly one.
-const before = await keep();
-const filled = await page.evaluate(async () => {
-  const b = globalThis.__battle;
-  b.place('militia', 4, 4);
-  b.felled(4, 4);
-  await new Promise((r) => setTimeout(r, 400));
-  return b.state().defenderDump.some((d) => d.row === 4 && d.id === 'militia');
-});
-const after = await keep();
-if (!filled) fail('no reserve stepped into the lane that emptied');
-else console.log('a reserve stepped into the empty lane');
-if (after.reserves !== before.reserves - 1) {
-  fail(`the pool went ${before.reserves} -> ${after.reserves}, expected one spent`);
-} else {
-  console.log(`the pool spent exactly one: ${before.reserves} -> ${after.reserves}`);
+/*
+ * Every lane, and the centre one especially.
+ *
+ * The commander stands in the centre lane and lives in the same list as the
+ * lane defenders. The first version of this test cut a unit down in row 4,
+ * passed, and never noticed that the check for "is this lane still held?"
+ * was counting the commander - so row 2, the one he is in, could never have
+ * been sent anyone.
+ */
+for (const row of [4, 2, 0]) {
+  const before = await keep();
+  const filled = await page.evaluate(async (r) => {
+    const b = globalThis.__battle;
+    b.addGold(500);
+    b.place('militia', r, 5);
+    b.felled(r, 5);
+    await new Promise((res) => setTimeout(res, 600));
+    return b.state().defenderDump.some((d) => d.row === r && !d.commander && d.id === 'militia');
+  }, row);
+  const after = await keep();
+  if (!filled) fail(`no reserve stepped into lane ${row} when it emptied`);
+  else console.log(`lane ${row}: a reserve stepped in`);
+  if (after.reserves !== before.reserves - 1) {
+    fail(`lane ${row}: the pool went ${before.reserves} -> ${after.reserves}, expected one spent`);
+  } else {
+    console.log(`lane ${row}: the pool spent exactly one, ${before.reserves} -> ${after.reserves}`);
+  }
 }
+
+// And when the pool is empty, nothing steps up and nothing goes negative.
+await page.evaluate(async () => {
+  const b = globalThis.__battle;
+  b.addGold(2000);
+  for (const r of [1, 3]) {
+    b.place('militia', r, 5);
+    b.felled(r, 5);
+    await new Promise((res) => setTimeout(res, 600));
+  }
+});
+const drained = await keep();
+if (drained.reserves !== 0) fail(`the pool should be spent, it reads ${drained.reserves}`);
+else console.log('the pool runs out rather than going negative');
 
 /* ------------------------------------------------------- losing the day - */
 
