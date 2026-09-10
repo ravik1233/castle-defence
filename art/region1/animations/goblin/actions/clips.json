@@ -1,0 +1,40 @@
+{
+  "clips": {
+    "idle": {
+      "sheet": "idle.png",
+      "count": 4,
+      "width": 320,
+      "height": 320,
+      "durationMs": [
+        650,
+        180,
+        110,
+        400
+      ]
+    },
+    "attack": {
+      "sheet": "attack.png",
+      "count": 4,
+      "width": 320,
+      "height": 320,
+      "durationMs": [
+        150,
+        100,
+        130,
+        260
+      ]
+    },
+    "death": {
+      "sheet": "death.png",
+      "count": 2,
+      "width": 320,
+      "height": 320,
+      "durationMs": [
+        220,
+        1100
+      ]
+    }
+  },
+  "walking": "deferred by user",
+  "deployment": "not integrated"
+}
