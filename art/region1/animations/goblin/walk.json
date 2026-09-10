@@ -2,18 +2,16 @@
   "sheet": "walk.png",
   "width": 256,
   "height": 256,
-  "count": 4,
+  "count": 2,
   "animations": {
     "walk": {
       "frames": [
         0,
-        1,
-        2,
-        3
+        1
       ],
-      "fps": 7.14
+      "fps": 4.5
     }
   },
   "facing": "right",
-  "status": "cleaned art; not integrated"
+  "status": "two contact poses; not deployed"
 }
