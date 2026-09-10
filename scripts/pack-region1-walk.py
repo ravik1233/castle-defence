@@ -18,11 +18,13 @@ for i, leg in enumerate(('left-forward', 'right-forward')):
     border = np.concatenate((a[:12].reshape(-1,3), a[-12:].reshape(-1,3), a[:,:12].reshape(-1,3), a[:,-12:].reshape(-1,3)))
     bg = np.median(border, axis=0)
     foreground = np.sqrt(((a-bg)**2).sum(axis=2)) > 24
-    labels, _ = ndi.label(~foreground)
-    edge = np.unique(np.concatenate((labels[0], labels[-1], labels[:,0], labels[:,-1])))
-    mask = ~np.isin(labels, edge)
+    # The studio gradient can split the background into many islands. Close
+    # those gaps first, then keep the single large character silhouette.
+    mask = ndi.binary_closing(foreground, iterations=10)
+    labels, _ = ndi.label(mask)
+    sizes = np.bincount(labels.ravel()); sizes[0] = 0
+    mask = labels == sizes.argmax()
     mask = ndi.binary_opening(mask, iterations=1)
-    mask = ndi.binary_closing(mask, iterations=2)
     alpha = Image.fromarray((mask*255).astype('uint8')).filter(ImageFilter.GaussianBlur(.7))
     im = Image.fromarray(a.clip(0,255).astype('uint8')).convert('RGBA')
     im.putalpha(alpha)
