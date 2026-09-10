@@ -26,6 +26,8 @@
     "art:fetch": "node scripts/fetch-drive-art.mjs",
     "art:name": "node scripts/name-art.mjs",
     "art:frames": "node scripts/import-frames.mjs",
+    "art:packed": "node scripts/import-packed-sheet.mjs",
+    "art:test": "node scripts/art-refresh-test.mjs",
     "breachtest": "node scripts/breachtest.mjs",
     "damagetest": "node scripts/damagetest.mjs",
     "siegetest": "node scripts/siegetest.mjs",

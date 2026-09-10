@@ -1,8 +1,8 @@
 /**
  * The defender roster.
  *
- * Costs are tuned around a tithe shrine producing 25 gold every 7s, so an
- * economy-first opening pays for itself in roughly two waves.
+ * Card prices remain authored on the original tuning scale and are converted
+ * to small whole Ember costs at the battle boundary.
  */
 import type { DefenderDef } from './types';
 
@@ -10,14 +10,14 @@ export const DEFENDERS: DefenderDef[] = [
   {
     id: 'tithe',
     name: 'Tithe Shrine',
-    blurb: 'Faithful villagers leave offerings. Your only source of steady gold.',
+    blurb: 'If it survives a victory, its offerings become 20 permanent Gold.',
     role: 'economy',
     art: { kind: 'build', key: 'build.tithe' },
     cost: 50,
     recharge: 6,
     hp: 200,
-    economy: { amount: 25, interval: 7 },
-    unlockLevel: 1,
+    metaGold: 20,
+    unlockLevel: 16,
     upgrade: { hp: 0.12, damage: 0 },
   },
   {
@@ -437,7 +437,8 @@ export const DEFENDERS: DefenderDef[] = [
     recharge: 10,
     hp: 420,
     aquatic: true,
-    economy: { amount: 48, interval: 7 },
+    // A deliberately exceptional late-game economy card, not baseline income.
+    economy: { amount: 2, interval: 7 },
     unlockLevel: 61,
     premium: true,
     upgrade: { hp: 0.14, damage: 0 },
@@ -721,18 +722,17 @@ export const DEFENDERS: DefenderDef[] = [
   },
   {
     id: 'dwarf_engineer',
-    name: 'Dwarf Engineer',
-    blurb: 'Mends the gate while the gate is being hit. Crown Pack.',
-    role: 'support',
+    name: 'Ember Miner',
+    blurb: 'Extracts three finite Ember deposits, but stops work to fight nearby enemies.',
+    role: 'economy',
     art: { kind: 'unit', id: 'dwarf_engineer' },
-    cost: 200,
-    recharge: 18,
-    hp: 620,
-    attack: { damage: 30, rate: 0.7, range: 420, projectile: 'cannonball', splash: 80 },
-    unlockLevel: 16,
-    upgrade: { hp: 0.18, damage: 0.16 },
-    // The only unit that repairs the wall it stands behind.
-    trait: 'mason',
+    cost: 75,
+    recharge: 8,
+    hp: 300,
+    attack: { damage: 14, rate: 0.85, range: 115 },
+    economy: { amount: 2, interval: 4, deposits: 3, requiresSeam: true },
+    unlockLevel: 1,
+    upgrade: { hp: 0.14, damage: 0.14 },
   },
 ];
 

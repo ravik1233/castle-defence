@@ -11,7 +11,7 @@ import { DEFENDERS } from '../data/defenders';
 import { ENEMIES } from '../data/enemies';
 import type { DamageType, EnemyKind } from '../data/types';
 import { damageMultiplier } from '../battle/combat';
-import { portraitFor } from '../art/portraits';
+import { portraitFor, portraitForArt } from '../art/portraits';
 import { showDefenderEntry, showEnemyEntry } from '../ui/ledger';
 import { COLORS, TextButton, fitText, tappable, textStyle } from '../ui/kit';
 
@@ -99,11 +99,7 @@ export class LedgerScene extends Phaser.Scene {
         : ENEMIES.map((e) => ({
             name: e.name,
             open: () => showEnemyEntry(this, e),
-            art: this.textures.exists(`unit.${e.art}.frame0`)
-              ? { key: `unit.${e.art}.frame0`, whole: true }
-              : this.textures.exists(`unit.${e.art}.head`)
-                ? { key: `unit.${e.art}.head`, whole: false }
-                : undefined,
+            art: portraitForArt(this, e.art),
           }));
 
     /*
@@ -152,7 +148,7 @@ export class LedgerScene extends Phaser.Scene {
       const card = this.add.container(x, y);
       card.add(this.add.image(0, 0, 'ui.card').setDisplaySize(226, 190));
       if (entry.art) {
-        const img = this.add.image(0, -18, entry.art.key);
+        const img = this.add.image(0, -18, entry.art.key, entry.art.frame);
         const size = entry.art.whole ? 118 : 96;
         const ratio = img.width / img.height;
         img.setDisplaySize(ratio > 1 ? size : size * ratio, ratio > 1 ? size / ratio : size);

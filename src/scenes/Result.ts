@@ -24,6 +24,8 @@ interface ResultData {
   reward: number;
   levelNo: number;
   unlockedBefore: number;
+  /** Permanent Gold earned by surviving Tithe Shrines. */
+  shrineGold?: number;
 }
 
 export class ResultScene extends Phaser.Scene {
@@ -73,6 +75,7 @@ export class ResultScene extends Phaser.Scene {
       });
       const firstClear = !profile.levelRecord(lvl.id);
       this.payout = profile.recordVictory(lvl.id, this.result.stars, this.result.wave, lvl.reward);
+      if (this.result.shrineGold) profile.addGold(this.result.shrineGold);
       // Salvage is what the field gives up: bodies stripped, gear dragged
       // home. It buys nothing in a battle and everything in the workshop.
       this.salvaged = salvageFor({ kills: this.result.kills, stars: this.result.stars, firstClear });
@@ -87,7 +90,11 @@ export class ResultScene extends Phaser.Scene {
     const stats = [
       `${this.result.kills} slain`,
       victory ? `gate at ${Math.round((this.result.wallHp / this.result.wallMax) * 100)}%` : 'gate destroyed',
-      victory ? `+${this.payout} gold, +${this.salvaged} salvage` : 'no reward',
+      victory
+        ? `+${this.payout + (this.result.shrineGold ?? 0)} gold${
+            this.result.shrineGold ? ` (shrine +${this.result.shrineGold})` : ''
+          }, +${this.salvaged} salvage`
+        : 'no reward',
     ];
     // The three stats read as a row across, not a stack down.
     stats.forEach((line, i) => {

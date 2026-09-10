@@ -90,7 +90,7 @@ const CHAPTER_META: Array<{
     race: 'Men of the Reach',
     commander: 'aldric',
     boss: 'goblin_king',
-    unlocks: ['tithe', 'militia', 'archer', 'barricade', 'guardian', 'frostmage', 'bombard', 'arbalest'],
+    unlocks: ['militia', 'dwarf_engineer', 'archer', 'barricade', 'guardian', 'frostmage', 'bombard', 'arbalest'],
     map: { x: 0.06, y: 0.66 },
     blurb: 'The goblins crossed the river at dawn. Everything east of here is gone.',
     levels: 15,
@@ -108,7 +108,7 @@ const CHAPTER_META: Array<{
     race: 'Dwarves of Kar Duhrn',
     commander: 'bran',
     boss: 'necromancer',
-    unlocks: ['dwarf_warrior', 'dwarf_engineer', 'runesmith', 'gravewarden', 'dwarf_cannon'],
+    unlocks: ['dwarf_warrior', 'tithe', 'runesmith', 'gravewarden', 'dwarf_cannon'],
     map: { x: 0.205, y: 0.28 },
     blurb: 'The dead do not stay down here. The dwarves have held the barrows for eleven winters.',
     levels: 15,
@@ -255,7 +255,8 @@ function buildLevel(
 ): LevelDef {
   const global = CHAPTER_META.slice(0, chapterIdx).reduce((n, c) => n + c.levels, 0) + i + 1;
   const last = i === meta.levels - 1;
-  const waves = 6 + Math.min(7, Math.floor(i * 0.5)) + (last ? 2 : 0);
+  const first = global === 1;
+  const waves = first ? 3 : 6 + Math.min(7, Math.floor(i * 0.5)) + (last ? 2 : 0);
   const tier = chapterIdx;
   return {
     id: `c${meta.id}l${i + 1}`,
@@ -264,15 +265,18 @@ function buildLevel(
     name: meta.names[i] ?? `Wave ${i + 1}`,
     biome: meta.biome,
     waves,
-    budgetStart: 8 + i * 2.2 + tier * 5,
-    budgetGrowth: 1.22 + tier * 0.02,
-    pool: poolFor(meta.family, meta.boss, i, meta.levels),
+    budgetStart: first ? 1.4 : 8 + i * 2.2 + tier * 5,
+    budgetGrowth: first ? 1.12 : 1.22 + tier * 0.02,
+    pool: first ? ['goblin'] : poolFor(meta.family, meta.boss, i, meta.levels),
     boss: last ? meta.boss : undefined,
-    startingGold: 165 + Math.min(90, i * 7) + tier * 18,
+    // Five Ember buys two Militia with one point of breathing room.
+    startingGold: first ? 125 : 165 + Math.min(90, i * 7) + tier * 18,
     reward: 120 + i * 30 + tier * 90 + (last ? 400 : 0),
     premium: meta.premium,
     brief:
-      i === 0
+      first
+        ? 'Goblin Grunts are testing the gate. Every kill releases Ember for reinforcements.'
+        : i === 0
         ? meta.blurb
         : last
           ? 'Their commander is here. If the gate falls, there is nothing behind it.'
@@ -283,8 +287,10 @@ function buildLevel(
      * exception to a rule they have not been told yet.
      */
     modifiers:
-      global === 1
-        ? { fixedDeck: ['tithe', 'militia', 'archer'], goldTrickle: 6 }
+      first
+        ? { fixedDeck: ['militia'], hpScale: 0.7, waitForClear: true }
+        : global === 2
+          ? { fixedDeck: ['militia', 'dwarf_engineer'], tiles: tilesFor('c1l2', meta.biome, i) }
         : {
             tiles: tilesFor(`c${meta.id}l${i + 1}`, meta.biome, i),
             doctrines: doctrinesFor(meta.family, i, meta.id),
@@ -328,6 +334,41 @@ export function levelNumber(id: string): number {
  * a warning banner; the final wave of a chapter adds its boss.
  */
 export function generateWaves(def: LevelDef): Wave[] {
+  /*
+   * First Light is a hand-authored lesson: one familiar enemy, new lanes
+   * revealed one at a time, and enough kills to fund the next Militia. Each
+   * wave clears before the next muster so the lesson cannot silently stack
+   * all of its pressure while the first Grunts are still crossing the field.
+   */
+  if (def.id === 'c1l1') {
+    return [
+      {
+        index: 0,
+        big: false,
+        duration: 12,
+        entries: [
+          { enemyId: 'goblin', row: 2, delay: 1 },
+          { enemyId: 'goblin', row: 1, delay: 5 },
+        ],
+      },
+      {
+        index: 1,
+        big: false,
+        duration: 14,
+        entries: [
+          { enemyId: 'goblin', row: 2, delay: 1 },
+          { enemyId: 'goblin', row: 1, delay: 4.5 },
+          { enemyId: 'goblin', row: 3, delay: 8 },
+        ],
+      },
+      {
+        index: 2,
+        big: false,
+        duration: 16,
+        entries: [1, 2, 3, 2].map((row, i) => ({ enemyId: 'goblin', row, delay: 1 + i * 3.2 })),
+      },
+    ];
+  }
   const rand = mulberry32(hashString(def.id));
   const waves: Wave[] = [];
 

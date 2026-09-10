@@ -18,6 +18,7 @@ import { portraitFor } from '../art/portraits';
 import { profile } from '../systems/profile';
 import { ensureBattleTextures } from '../systems/textures';
 import { audio } from '../systems/audio';
+import { emberCost } from '../battle/economy';
 import { COLORS, Counter, TextButton, fitText, showDialog, tappable, textStyle } from '../ui/kit';
 
 const DECK_MAX = 6;
@@ -27,6 +28,7 @@ const BENCH_SLOTS = 14;
 export class LoadoutScene extends Phaser.Scene {
   private lvl!: LevelDef;
   private deck: string[] = [];
+  private fixedDeck = false;
   private benchPage = 0;
   private body: Phaser.GameObjects.GameObject[] = [];
 
@@ -36,7 +38,8 @@ export class LoadoutScene extends Phaser.Scene {
 
   init(data: { levelId: string }): void {
     this.lvl = levelById(data.levelId ?? 'c1l1');
-    this.deck = profile.effectiveDeck();
+    this.fixedDeck = Boolean(this.lvl.modifiers?.fixedDeck);
+    this.deck = [...(this.lvl.modifiers?.fixedDeck ?? profile.effectiveDeck())];
   }
 
   create(): void {
@@ -132,11 +135,23 @@ export class LoadoutScene extends Phaser.Scene {
 
   private drawDeck(): void {
     this.track(
-      this.add.text(60, 296, `IN HAND  ${this.deck.length} / ${DECK_MAX}`, textStyle('body', COLORS.gold)).setOrigin(0, 0.5),
+      this.add
+        .text(
+          60,
+          296,
+          this.fixedDeck ? `STAGE UNITS  ${this.deck.length}` : `IN HAND  ${this.deck.length} / ${DECK_MAX}`,
+          textStyle('body', COLORS.gold),
+        )
+        .setOrigin(0, 0.5),
     );
     this.track(
       this.add
-        .text(60, 330, 'Tap a card to drop it. Tap one below to take it.', textStyle('tiny', COLORS.muted))
+        .text(
+          60,
+          330,
+          this.fixedDeck ? 'This teaching stage uses a fixed hand.' : 'Tap a card to drop it. Tap one below to take it.',
+          textStyle('tiny', COLORS.muted),
+        )
         .setOrigin(0, 0.5),
     );
 
@@ -146,14 +161,18 @@ export class LoadoutScene extends Phaser.Scene {
       c.add(this.add.image(0, 0, 'ui.card').setDisplaySize(150, 168).setTint(0x9ff0b4));
       const portrait = portraitFor(this, def);
       if (portrait) {
-        const img = this.add.image(0, -22, portrait.key);
+        const img = this.add.image(0, -22, portrait.key, portrait.frame);
         img.setScale(Math.min(78 / img.width, 78 / img.height));
         c.add(img);
       }
       c.add(fitText(this.add.text(0, 42, def.name, textStyle('tiny', COLORS.parchment)).setOrigin(0.5), 130));
-      c.add(this.add.text(0, 68, `${def.cost}g`, textStyle('tiny', COLORS.gold)).setOrigin(0.5));
+      c.add(this.add.text(0, 68, `${emberCost(def.cost)} Ember`, textStyle('tiny', COLORS.gold)).setOrigin(0.5));
       tappable(c, 150, 168);
       c.on('pointerdown', () => {
+        if (this.fixedDeck) {
+          audio.play('deny');
+          return;
+        }
         if (this.deck.length <= 2) {
           audio.play('deny');
           return;
@@ -165,7 +184,7 @@ export class LoadoutScene extends Phaser.Scene {
       });
     });
 
-    this.drawBench();
+    if (!this.fixedDeck) this.drawBench();
   }
 
   /**
@@ -230,13 +249,13 @@ export class LoadoutScene extends Phaser.Scene {
       );
       const portrait = portraitFor(this, def);
       if (portrait) {
-        const img = this.add.image(0, -22, portrait.key);
+        const img = this.add.image(0, -22, portrait.key, portrait.frame);
         img.setScale(Math.min(78 / img.width, 78 / img.height));
         img.setAlpha(full ? 0.5 : 1);
         c.add(img);
       }
       c.add(fitText(this.add.text(0, 42, def.name, textStyle('tiny', COLORS.parchment)).setOrigin(0.5), 130));
-      c.add(this.add.text(0, 68, `${def.cost}g`, textStyle('tiny', COLORS.gold)).setOrigin(0.5));
+      c.add(this.add.text(0, 68, `${emberCost(def.cost)} Ember`, textStyle('tiny', COLORS.gold)).setOrigin(0.5));
       // Raised here, to fight what is here. Worth saying out loud - inside
       // the card, where it cannot run into the card beside it.
       if (home) {
@@ -333,7 +352,7 @@ export class LoadoutScene extends Phaser.Scene {
   /* --------------------------------------------------------------- march */
 
   private async march(): Promise<void> {
-    profile.setDeck(this.deck);
+    if (!this.fixedDeck) profile.setDeck(this.deck);
     const wait = this.add
       .text(DESIGN.width / 2, DESIGN.height - 140, 'mustering...', textStyle('small', COLORS.muted))
       .setOrigin(0.5)

@@ -2,7 +2,7 @@
  * The battle.
  *
  * Five lanes, a wall on the left, and a horde that walks. The player places
- * defenders from a card tray with gold, and casts hero spells by tapping the
+ * defenders from a card tray with Ember, and casts hero spells by tapping the
  * field. If the wall reaches zero, humanity is over.
  */
 import Phaser from 'phaser';
@@ -40,7 +40,7 @@ import { showDefenderEntry } from '../ui/ledger';
 import { Defender, Enemy, Projectile, type BattleWorld, type ProjectileOptions } from '../battle/entities';
 import { portraitFor, portraitForArt } from '../art/portraits';
 import { enemyScaling, starsForKeep, tensionFor } from '../battle/combat';
-import { callBounty, musterPay } from '../battle/economy';
+import { EMBER_DEPOSITS_PER_VEIN, emberBounty, emberCost } from '../battle/economy';
 import { CONSUMABLES, EQUIPMENT_EFFECT, consumable } from '../data/workshop';
 import { TILE_NAME, canStandOn } from '../data/tiles';
 import { DOCTRINES, DOCTRINE_EFFECT, type DoctrineId } from '../data/doctrines';
@@ -55,8 +55,8 @@ import type { KeepState } from '../battle/combat';
  */
 const SECTION_MAX_HP = 420;
 const HEART_MAX_HP = 1200;
-/** Gold to rebuild a breached section, and the share of it that comes back. */
-const REPAIR_COST = 75;
+/** Ember to rebuild a breached section, and the share of it that comes back. */
+const REPAIR_COST = 3;
 const REPAIR_SHARE = 0.6;
 /**
  * Damage a second that the keep's own garrison deals to anything inside it.
@@ -68,25 +68,19 @@ const REPAIR_SHARE = 0.6;
  */
 const GARRISON_DPS = 50;
 const PREP_SECONDS = 10;
+const MUSTER_SECONDS = 5;
 
 /*
  * The fight runs in phases rather than as one long stream of enemies.
  *
- * A muster is the lull: no one on the field, a lump of gold in hand, and a
- * choice - spend the whole lull building, or call the assault on early and
- * be paid for the seconds you gave up. That choice is the thing this game
- * has that a lane defender usually does not: the player sets the pace and
- * is paid for taking the risk.
+ * A muster is a short, readable lull. It pays nothing: Ember comes from
+ * kills and finite veins, so the player stays involved in the battle rather
+ * than waiting for a timer to make the correct play.
  *
  * A siege wave brings engines. They batter a section from out of reach,
  * aiming at whichever lane is thinnest, so a siege is a demand to repair
  * and to spread out rather than to stack one killing lane.
  */
-/*
- * Kills beyond this line pay a salvage bonus. It sits well out in the field,
- * so the bonus is only collectable by units that went out for it.
- */
-const FIELD_BOUNTY_LINE = 1150;
 const BOMBARD_DAMAGE = 34;
 const BOMBARD_EVERY = 5.5;
 
@@ -100,7 +94,7 @@ interface CardView {
   cooldownLeft: number;
   overlay: Phaser.GameObjects.Rectangle;
   costText: Phaser.GameObjects.Text;
-  frame: Phaser.GameObjects.Image;
+  frame: Phaser.GameObjects.Rectangle;
 }
 
 interface SpellView {
@@ -125,6 +119,9 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private fitted = new Set<string>();
   /** The ground this fort is fought on, row by row. */
   private tiles: TileKind[][] = [];
+  /** Deposits belong to the vein, not the Miner standing on it. */
+  private readonly seamDeposits = new Map<string, number>();
+  private readonly seamLabels = new Map<string, Phaser.GameObjects.Text>();
   /** The rules this fort is fought under. */
   private doctrines = new Set<DoctrineId>();
   private sectionMax = SECTION_MAX_HP;
@@ -170,6 +167,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private phaseText!: Phaser.GameObjects.Text;
   private callButton?: TextButton;
   private itemButton?: TextButton;
+  private speedButton?: TextButton;
+  private battleSpeed: 1 | 2 = 1;
 
 
   private paused = false;
@@ -227,6 +226,10 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         this.gold += n;
         this.updateHud();
       },
+      addEmber: (n: number): void => {
+        this.gold += n;
+        this.updateHud();
+      },
       // Calls the assault on early, the same as the button does.
       call: (): number => this.callAssault(),
       /*
@@ -260,6 +263,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       },
       state: () => ({
         gold: Math.round(this.gold),
+        ember: Math.round(this.gold),
         phase: this.phase,
         musterLeft: Math.max(0, Math.round(this.waveTimer)),
         wallHp: Math.round(this.sections.reduce((a, b) => a + b, 0)),
@@ -306,12 +310,22 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
      */
     this.fitted = new Set(profile.equipped);
     this.tiles = this.levelDef.modifiers?.tiles ?? [];
+    this.seamDeposits.clear();
+    this.seamLabels.clear();
+    for (let row = 0; row < GRID.rows; row += 1) {
+      for (let col = 0; col < GRID.cols; col += 1) {
+        if (this.tileAt(row, col) === 'seam') {
+          this.seamDeposits.set(`${row},${col}`, EMBER_DEPOSITS_PER_VEIN);
+        }
+      }
+    }
     this.doctrines = new Set(this.levelDef.modifiers?.doctrines ?? []);
     this.sectionMax = Math.round(
       SECTION_MAX_HP * (this.fitted.has('reinforced') ? EQUIPMENT_EFFECT.reinforced.sectionHp : 1),
     );
     this.gold =
-      this.levelDef.startingGold + (this.fitted.has('cellars') ? EQUIPMENT_EFFECT.cellars.startingGold : 0);
+      emberCost(this.levelDef.startingGold) +
+      (this.fitted.has('cellars') ? emberCost(EQUIPMENT_EFFECT.cellars.startingGold) : 0);
     this.sections = new Array(GRID.rows).fill(this.sectionMax);
     // A breached gate is the fort's opening position, not something that
     // happens to it: the player picks their deck already knowing.
@@ -331,12 +345,16 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     this.cards = [];
     this.spells = [];
     this.paused = false;
+    this.battleSpeed = 1;
     this.tutorial = undefined;
     this.wavesHeld = false;
     this.callButton = undefined;
+    this.speedButton = undefined;
   }
 
   create(): void {
+    this.time.timeScale = this.battleSpeed;
+    this.tweens.timeScale = this.battleSpeed;
     this.buildField();
     this.buildHud();
     this.buildTray();
@@ -428,7 +446,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private buildHud(): void {
     this.add.rectangle(DESIGN.width / 2, HUD.height / 2, DESIGN.width, HUD.height, 0x1b1626, 0.94).setDepth(3000);
 
-    this.goldCounter = new Counter(this, 40, HUD.height / 2, 'icon.coin', this.gold);
+    this.goldCounter = new Counter(this, 40, HUD.height / 2, 'fx.ember', this.gold);
     this.goldCounter.setDepth(3001);
 
     this.waveText = this.add
@@ -458,7 +476,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
     // Right of the keep bar and clear of it: the HUD centre belongs to the
     // heart, and a button over it would hide the one number that matters.
-    this.callButton = new TextButton(this, DESIGN.width - 480, HUD.height / 2, 'CALL THEM ON', {
+    this.callButton = new TextButton(this, DESIGN.width - 480, HUD.height / 2, 'START NOW', {
       width: 320,
       height: 66,
       size: 'tiny',
@@ -466,6 +484,15 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       onClick: () => this.callAssault(),
     });
     this.callButton.setDepth(3002).setVisible(false);
+
+    this.speedButton = new TextButton(this, DESIGN.width - 224, HUD.height / 2, '1x', {
+      width: 128,
+      height: 66,
+      size: 'small',
+      tone: 'blue',
+      onClick: () => this.toggleSpeed(),
+    });
+    this.speedButton.setDepth(3002);
 
     /*
      * The heart of the keep sits centre-top, because it is now the one number
@@ -513,6 +540,22 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
    * grass - rather than as a coloured square with a legend somewhere else.
    */
   private drawGround(): void {
+    // Painted scenery has no baked-in lane geometry. Keep boundaries aligned
+    // with the actual placement grid at every display size.
+    if (this.levelDef.biome === 'fields') {
+      const lanes = this.add.graphics().setDepth(-950);
+      for (let row = 0; row < GRID.rows; row += 1) {
+        const y = FIELD.y + row * GRID.cellH;
+        if (row % 2 === 1) {
+          lanes.fillStyle(0x172e20, 0.13);
+          lanes.fillRect(WALL.width, y, FIELD.width - WALL.width, GRID.cellH);
+        }
+        lanes.lineStyle(3, 0x203a22, 0.28);
+        lanes.lineBetween(WALL.width, y, FIELD.width, y);
+        lanes.lineStyle(1, 0xe6e9b2, 0.22);
+        lanes.lineBetween(WALL.width, y + 3, FIELD.width, y + 3);
+      }
+    }
     if (!this.tiles.length) return;
     const g = this.add.graphics().setDepth(-900);
     const detail = this.add.graphics().setDepth(-880);
@@ -583,12 +626,20 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
           detail.lineStyle(4, 0xffe9a8, 0.65);
           detail.strokeCircle(c.x, c.y, 18);
         } else if (kind === 'seam') {
-          g.fillStyle(0x4a4436, 0.7);
+          g.fillStyle(0x3b2d42, 0.76);
           g.fillRect(x, y, w, h);
-          detail.fillStyle(0xd9b44a, 0.9);
+          detail.fillStyle(0xff8a3d, 0.95);
           for (let i = 0; i < 4; i += 1) {
-            detail.fillCircle(c.x - 30 + i * 20, c.y + Math.sin(i * 2) * 14, 7);
+            const cx = c.x - 34 + i * 22;
+            const cy = c.y + Math.sin(i * 2) * 14;
+            detail.fillTriangle(cx - 8, cy + 10, cx, cy - 16, cx + 8, cy + 10);
           }
+          const key = `${row},${col}`;
+          const label = this.add
+            .text(c.x + w / 2 - 18, c.y - h / 2 + 16, String(EMBER_DEPOSITS_PER_VEIN), textStyle('tiny', '#fff0d0'))
+            .setOrigin(0.5)
+            .setDepth(-870);
+          this.seamLabels.set(key, label);
         }
       }
     }
@@ -652,8 +703,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       .setAlpha(0.35)
       .setBlendMode(Phaser.BlendModes.ADD)
       .setDepth(2050);
-    const core = this.add.image(KEEP.x, y, 'icon.crown')
-      .setDisplaySize(KEEP.radius * 1.6, KEEP.radius * 1.6)
+    const core = this.add.image(KEEP.x, y, 'icon.ember_core')
+      .setDisplaySize(KEEP.radius * 1.85, KEEP.radius * 1.85)
       .setDepth(2051);
     // A slow pulse, so it reads as something alive that is worth protecting.
     this.tweens.add({
@@ -716,7 +767,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     return this.defenders.some((d) => d.alive && d.row === row && d.def.trait === 'ward');
   }
 
-  /** A thief takes gold out of the purse; it cannot take what is not there. */
+  /** A thief takes Ember out of the battle purse; it cannot take what is not there. */
   stealGold(amount: number, x: number, y: number): void {
     if (this.finished || this.gold <= 0) return;
     const taken = Math.min(this.gold, amount);
@@ -740,12 +791,12 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     return (this.sections[row] ?? 0) <= 0;
   }
 
-  /** Rebuilds a fallen section, for gold. The one way back from a breach. */
+  /** Rebuilds a fallen section, for Ember. The one way back from a breach. */
   private repairSection(row: number): void {
     if (this.finished || !this.isBreached(row)) return;
     if (this.gold < REPAIR_COST) {
       audio.play('deny');
-      floatText(this, WALL.width + 40, laneCenterY(row), 'NOT ENOUGH GOLD', COLORS.danger, 'small');
+      floatText(this, WALL.width + 40, laneCenterY(row), 'NOT ENOUGH EMBER', COLORS.danger, 'small');
       return;
     }
     this.gold -= REPAIR_COST;
@@ -817,20 +868,39 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       const y = TRAY.y + TRAY.height / 2;
       const container = this.add.container(x, y).setDepth(3001);
 
-      const frame = this.add.image(0, 0, 'ui.card').setDisplaySize(TRAY.cardW, TRAY.cardH);
+      // A true card-shaped panel: the old 150x200 texture was being stretched
+      // into a near square, which distorted both the summon button and art.
+      const frame = this.add
+        .rectangle(0, 0, TRAY.cardW - 4, TRAY.cardH - 4, 0x302842, 0.98)
+        .setStrokeStyle(4, 0x71608a);
       container.add(frame);
 
-      const art = this.cardArt(id, 0, -10, 0.27);
+      const art = this.cardArt(id, 0, -24, 0.56);
       container.add(art);
 
       // The price this fort actually charges. Thin Supply puts every card up
       // a quarter, and a tray showing the ledger price instead of the one it
       // will take is the rule lying to the player.
+      const stats = upgradedStats(def, profile.upgradeLevel(id));
+      const statY = TRAY.cardH / 2 - 17;
       const costText = this.add
-        .text(10, TRAY.cardH / 2 - 20, String(this.priceOf(def.cost)), textStyle('tiny', COLORS.gold))
+        .text(-42, statY, String(this.priceOf(def.cost)), textStyle('tiny', COLORS.gold, { fontSize: '17px', strokeThickness: 2 }))
         .setOrigin(0.5);
       container.add(costText);
-      container.add(this.add.image(-20, TRAY.cardH / 2 - 20, 'icon.coin').setDisplaySize(24, 24));
+      container.add(this.add.image(-58, statY, 'fx.ember').setDisplaySize(18, 18));
+
+      const hpText = this.add
+        .text(2, statY, String(stats.hp), textStyle('tiny', '#dff7e4', { fontSize: '16px', strokeThickness: 2 }))
+        .setOrigin(0.5);
+      container.add(this.add.image(-15, statY, 'icon.heart').setDisplaySize(17, 17));
+      container.add(hpText);
+
+      const damage = stats.damage || 0;
+      const damageText = this.add
+        .text(49, statY, damage ? String(damage) : '-', textStyle('tiny', '#ffe4d6', { fontSize: '16px', strokeThickness: 2 }))
+        .setOrigin(0.5);
+      container.add(this.add.image(32, statY, 'icon.sword').setDisplaySize(17, 17));
+      container.add(damageText);
 
       const overlay = this.add
         .rectangle(0, 0, TRAY.cardW - 10, TRAY.cardH - 10, 0x0b0713, 0.62)
@@ -870,7 +940,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         id,
         container,
         cost: def.cost,
-        cooldown: def.recharge,
+        cooldown: def.recharge * (this.fitted.has('horn') ? EQUIPMENT_EFFECT.horn.cardRecharge : 1),
         cooldownLeft: 0,
         overlay,
         costText,
@@ -889,7 +959,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     // body squeezed into 150px; structures show the whole building.
     const portrait = portraitFor(this, def);
     if (portrait) {
-      const img = this.add.image(0, portrait.whole ? 46 : 8, portrait.key);
+      const img = this.add.image(0, portrait.whole ? 46 : 8, portrait.key, portrait.frame);
       if (portrait.whole) {
         img.setOrigin(0.5, 1);
         img.setScale(Math.min((scale * 150) / img.width, (scale * 150) / img.height));
@@ -927,7 +997,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
   private refreshCardHighlight(): void {
     for (const card of this.cards) {
-      card.frame.setTint(this.selectedCard === card.id ? 0xffe9a8 : 0xffffff);
+      card.frame.setStrokeStyle(this.selectedCard === card.id ? 7 : 4, this.selectedCard === card.id ? 0xffd257 : 0x71608a);
       card.container.setScale(this.selectedCard === card.id ? 1.07 : 1);
     }
   }
@@ -1179,6 +1249,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     if (blocked?.some(([r, c]) => r === row && c === col)) return false;
     // Rock and rubble take nothing at all; water takes only what floats.
     const def = cardId && cardId !== '__sell__' && cardId !== '__sortie__' ? defender(cardId) : undefined;
+    if (def?.economy?.requiresSeam && this.tileAt(row, col) !== 'seam') return false;
     return canStandOn(this.tileAt(row, col), Boolean(def?.aquatic));
   }
 
@@ -1198,7 +1269,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       }
       const target = this.occupancy.get(`${row},${col}`);
       if (target) {
-        const refund = Math.max(10, Math.round(target.def.cost * 0.5));
+        const refund = Math.max(1, Math.round(this.priceOf(target.def.cost) * 0.5));
         this.gold += refund;
         floatText(this, target.x, target.y - 90, `+${refund}`, COLORS.gold);
         this.occupancy.delete(`${row},${col}`);
@@ -1224,7 +1295,10 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       audio.play('deny');
       // Say why. A card refused with no reason reads as a broken button.
       const kind = this.tileAt(row, col);
-      if (!canStandOn(kind, Boolean(card && defender(card.id).aquatic))) {
+      const chosen = defender(card.id);
+      if (chosen.economy?.requiresSeam && kind !== 'seam') {
+        floatText(this, x, y - 40, 'miners need an Ember vein', COLORS.muted, 'tiny');
+      } else if (!canStandOn(kind, Boolean(chosen.aquatic))) {
         floatText(this, x, y - 40, `cannot build on ${TILE_NAME[kind]}`, COLORS.muted, 'tiny');
       }
       return;
@@ -1236,7 +1310,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     }
     if (this.gold < this.priceOf(card.cost)) {
       audio.play('deny');
-      floatText(this, x, y - 40, 'not enough gold', COLORS.danger, 'tiny');
+      floatText(this, x, y - 40, 'not enough Ember', COLORS.danger, 'tiny');
       return;
     }
 
@@ -1301,7 +1375,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
   /**
    * Patch a section that is still standing. A fallen one is not mended - it
-   * is rebuilt, and rebuilding costs gold or a repair kit.
+   * is rebuilt, and rebuilding costs Ember or a repair kit.
    */
   mendWall(row: number, amount: number): void {
     if (this.finished) return;
@@ -1324,7 +1398,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   awardGold(amount: number, x: number, y: number): void {
     this.gold += amount;
     audio.play('coin');
-    const coin = this.add.image(x, y, 'icon.coin').setDepth(5000).setScale(0.7);
+    const coin = this.add.image(x, y, 'fx.ember').setDepth(5000).setScale(0.7);
     this.tweens.add({
       targets: coin,
       x: 60,
@@ -1337,21 +1411,35 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         this.updateHud();
       },
     });
-    floatText(this, x, y - 20, `+${amount}`, COLORS.gold, 'tiny');
+    floatText(this, x, y - 20, `+${amount} EMBER`, COLORS.gold, 'tiny');
+  }
+
+  /** Takes one finite deposit from the vein under a Miner. */
+  mineEmber(row: number, col: number, amount: number, x: number, y: number): boolean {
+    const key = `${row},${col}`;
+    const remaining = this.seamDeposits.get(key) ?? 0;
+    if (remaining <= 0) return false;
+    const next = remaining - 1;
+    this.seamDeposits.set(key, next);
+    this.seamLabels.get(key)?.setText(String(next)).setVisible(next > 0);
+    this.awardGold(amount, x, y);
+    floatText(
+      this,
+      x,
+      y + 22,
+      next > 0 ? `VEIN ${next}/${EMBER_DEPOSITS_PER_VEIN}` : 'VEIN EMPTY',
+      COLORS.muted,
+      'tiny',
+    );
+    return true;
   }
 
   onEnemyKilled(e: Enemy): void {
     this.killCount += 1;
-    /*
-     * Killing them out in the field pays half again. A body that dies at the
-     * spawn line never reached the wall, never swung at a gate and left its
-     * gear where someone could pick it up - which is the whole argument for
-     * opening the gate and going out to meet them.
-     */
-    const far = e.x > FIELD_BOUNTY_LINE;
-    const bounty = Math.round(e.def.bounty * (1 + (this.chapter - 1) * 0.08) * (far ? 1.5 : 1));
+    if (this.under('noquarter')) return;
+    const bounty = emberBounty(e.def.bounty);
     this.gold += bounty;
-    floatText(this, e.x, e.y - 100, far ? `+${bounty} salvage` : `+${bounty}`, COLORS.gold, 'tiny');
+    floatText(this, e.x, e.y - 100, `+${bounty} EMBER`, COLORS.gold, 'tiny');
     this.updateHud();
   }
 
@@ -1399,7 +1487,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
   /** What a card costs here. Thin supply puts the price up. */
   private priceOf(cost: number): number {
-    return this.under('thinsupply') ? Math.round(cost * DOCTRINE_EFFECT.thinSupplyCost) : cost;
+    const base = emberCost(cost);
+    return this.under('thinsupply') ? Math.ceil(base * DOCTRINE_EFFECT.thinSupplyCost) : base;
   }
 
   /** How far a defender can see. The night takes a quarter of it. */
@@ -1547,18 +1636,13 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     floatText(this, target.x, target.topY, 'SORTIE!', COLORS.gold, 'tiny');
   }
 
-  /**
-   * The phase line and the muster button. Both are read every frame because
-   * the bounty falls as the muster runs down, and a bounty that does not
-   * visibly shrink is not a decision.
-   */
+  /** The phase line and the button that lets the player set the pace. */
   private updatePhaseHud(): void {
     const last = this.waveIndex >= this.waves.length - 1;
     if (this.phase === 'muster' && !last) {
-      const bounty = this.callBounty();
       this.phaseText.setText(`MUSTER  -  ${Math.ceil(Math.max(0, this.waveTimer))}s to the assault`);
       this.phaseText.setColor(COLORS.gold);
-      this.callButton?.setVisible(!this.wavesHeld && !this.finished).setText(`CALL THEM ON  +${bounty}`);
+      this.callButton?.setVisible(!this.wavesHeld && !this.finished).setText('START NOW');
     } else {
       this.phaseText.setText(this.phase === 'siege' ? 'SIEGE  -  the engines are ranging on the wall' : 'ASSAULT');
       this.phaseText.setColor(this.phase === 'siege' ? COLORS.danger : COLORS.parchment);
@@ -1566,48 +1650,31 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     }
   }
 
-  /** What calling the assault on right now would pay. */
-  private callBounty(): number {
-    const base = callBounty(this.waveTimer);
-    return Math.round(base * (1 + (this.fitted.has('horn') ? EQUIPMENT_EFFECT.horn.callBonus : 0)));
+  /** Switch the whole battle between normal time and a readable fast-forward. */
+  private toggleSpeed(): void {
+    this.battleSpeed = this.battleSpeed === 1 ? 2 : 1;
+    this.time.timeScale = this.battleSpeed;
+    this.tweens.timeScale = this.battleSpeed;
+    this.speedButton?.setText(`${this.battleSpeed}x`);
   }
 
-  /**
-   * The lull between waves: everyone is paid, and the player decides how long
-   * it lasts.
-   */
+  /** The short lull between waves; it deliberately pays nothing. */
   private beginMuster(): void {
     if (this.waveIndex >= this.waves.length - 1) return;
     this.phase = 'muster';
-    // The old drip-fed trickle is paid here instead, in one readable lump:
-    // gold you can count is gold you can plan with.
-    if (this.under('noquarter')) {
-      // You eat what you kill: the muster still happens, it simply pays nothing.
-      floatText(this, DESIGN.width / 2, HUD.height + 90, 'NO QUARTER  -  no wage', COLORS.muted, 'small');
-      this.updateHud();
-      return;
-    }
-    const pay = musterPay(this.chapter, this.levelDef.modifiers?.goldTrickle ?? 0);
-    this.gold += pay;
-    audio.play('coin');
-    floatText(this, DESIGN.width / 2, HUD.height + 90, `MUSTER  +${pay}`, COLORS.gold, 'small');
+    this.waveTimer = MUSTER_SECONDS * (this.under('forcedmarch') ? DOCTRINE_EFFECT.forcedMarchMuster : 1);
     this.updateHud();
   }
 
   /**
-   * Bring the next wave on now and take the bounty for the seconds given up.
-   * Returns what it paid, so a test can check the trade rather than the text.
+   * Bring the next wave on now. Returns zero for the legacy test hook.
    */
   private callAssault(): number {
     if (this.phase !== 'muster' || this.finished || this.wavesHeld) return 0;
     if (this.waveIndex >= this.waves.length - 1) return 0;
-    const bounty = this.callBounty();
-    this.gold += bounty;
-    if (bounty > 0) floatText(this, DESIGN.width / 2, HUD.height + 140, `+${bounty}`, COLORS.gold, 'small');
-    audio.play('coin');
     this.waveTimer = 0;
     this.startWave();
-    return bounty;
+    return 0;
   }
 
   /**
@@ -1737,7 +1804,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
   override update(time: number, delta: number): void {
     if (this.paused || this.finished) return;
-    const dt = delta / 1000;
+    const scaledDelta = delta * this.battleSpeed;
+    const dt = scaledDelta / 1000;
     this.elapsed += dt;
 
     this.tutorial?.update();
@@ -1745,12 +1813,13 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
     // Wave pacing
     if (this.waveIndex < this.waves.length - 1) {
-      if (!this.wavesHeld) this.waveTimer -= dt;
+      const waitForClear = this.levelDef.modifiers?.waitForClear === true;
+      if (!this.wavesHeld && (!waitForClear || this.phase === 'muster')) this.waveTimer -= dt;
       // The field going quiet ends the assault and starts the next muster,
       // whatever the clock says: the lull is earned by clearing the wave.
       const clear = this.spawnQueue.length === 0 && this.enemies.every((e) => !e.alive);
       if (this.phase !== 'muster' && clear) this.beginMuster();
-      if (this.waveTimer <= 0) this.startWave();
+      if (this.waveTimer <= 0 && (!waitForClear || this.phase === 'muster')) this.startWave();
       this.updatePhaseHud();
       if (this.waveIndex < 0) this.updateHud();
     } else if (this.waveIndex === this.waves.length - 1) {
@@ -1780,9 +1849,9 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       if (this.rallyTimer <= 0) this.rallyFactor = 1;
     }
 
-    for (const d of this.defenders) d.update(time, delta);
-    for (const e of this.enemies) e.update(time, delta);
-    for (const p of this.projectiles) p.update(time, delta);
+    for (const d of this.defenders) d.update(time, scaledDelta);
+    for (const e of this.enemies) e.update(time, scaledDelta);
+    for (const p of this.projectiles) p.update(time, scaledDelta);
 
     // Reap
     for (let i = this.defenders.length - 1; i >= 0; i -= 1) {
@@ -1812,8 +1881,14 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       const affordable = this.gold >= this.priceOf(card.cost);
       const ready = card.cooldownLeft <= 0;
       card.overlay.setVisible(!ready || !affordable);
-      card.overlay.height = ready ? TRAY.cardH - 10 : (TRAY.cardH - 10) * (card.cooldownLeft / card.cooldown);
-      card.overlay.y = ready ? 0 : -(TRAY.cardH - 10) / 2 + card.overlay.height / 2;
+      const overlayHeight = ready
+        ? TRAY.cardH - 10
+        : (TRAY.cardH - 10) * Phaser.Math.Clamp(card.cooldownLeft / card.cooldown, 0, 1);
+      // Rectangle.height changes only its transform bounds. setSize also
+      // rebuilds the rectangle geometry, keeping the shade inside the card.
+      card.overlay.setSize(TRAY.cardW - 10, overlayHeight);
+      card.overlay.setOrigin(0.5, 0);
+      card.overlay.y = -(TRAY.cardH - 10) / 2;
       card.costText.setColor(affordable ? COLORS.gold : COLORS.danger);
     }
 
@@ -1873,6 +1948,14 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     const stars = victory ? starsForKeep(this.keepState()) : 0;
     const wave = this.waveIndex + 1;
     const unlockedBefore = profile.campaignProgress;
+    const shrineGold = victory
+      ? Math.min(
+          40,
+          this.defenders
+            .filter((d) => d.alive)
+            .reduce((total, d) => total + (d.def.metaGold ?? 0), 0),
+        )
+      : 0;
 
     this.time.delayedCall(700, () => {
       this.scene.start('Result', {
@@ -1886,6 +1969,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         reward: this.levelDef.reward,
         levelNo: levelNumber(this.levelDef.id),
         unlockedBefore,
+        shrineGold,
       });
     });
   }

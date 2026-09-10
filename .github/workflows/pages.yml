@@ -16,6 +16,7 @@ on:
     branches:
       - main
       - claude/mobile-castle-defense-game-rvr0m4
+      - art/complete-sprite-refresh
   workflow_dispatch:
 
 permissions:

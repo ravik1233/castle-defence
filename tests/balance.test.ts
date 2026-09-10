@@ -6,7 +6,7 @@ import { DEFENDERS, DEFENDER_BY_ID } from '../src/data/defenders';
 import { ENEMIES, enemy } from '../src/data/enemies';
 import { dpsPerGold, effectiveDps, outOfBand } from '../src/data/balance';
 import { enemyScaling } from '../src/battle/combat';
-import { musterPay } from '../src/battle/economy';
+import { emberBounty, emberCost } from '../src/battle/economy';
 
 describe('what a card is worth', () => {
   /*
@@ -157,6 +157,42 @@ describe('what a threat point buys', () => {
   });
 });
 
+describe('the opening Ember lessons', () => {
+  const opening = CHAPTERS[0]!;
+
+  it('starts with one defender and one enemy across three gentle waves', () => {
+    const stage = opening.levels[0]!;
+    const waves = generateWaves(stage);
+    expect(stage.pool).toEqual(['goblin']);
+    expect(stage.modifiers?.fixedDeck).toEqual(['militia']);
+    expect(waves).toHaveLength(3);
+    expect(waves.flatMap((wave) => wave.entries).every((entry) => entry.enemyId === 'goblin')).toBe(true);
+    expect(waves.every((wave) => !wave.big)).toBe(true);
+    expect(waves.map((wave) => wave.entries.length)).toEqual([2, 3, 4]);
+    expect(stage.modifiers).toMatchObject({ hpScale: 0.7, waitForClear: true });
+  });
+
+  it('introduces one finite vein in stage 2 and a second in stage 3', () => {
+    const seams = (levelIndex: number) =>
+      opening.levels[levelIndex]!.modifiers?.tiles?.flat().filter((tile) => tile === 'seam').length ?? 0;
+    expect(seams(1)).toBe(1);
+    expect(seams(2)).toBe(2);
+    expect(opening.levels[1]!.modifiers?.fixedDeck).toEqual(['militia', 'dwarf_engineer']);
+  });
+
+  it('makes the Miner an armed finite extractor and delays the Tithe Shrine', () => {
+    const miner = DEFENDER_BY_ID.get('dwarf_engineer')!;
+    const tithe = DEFENDER_BY_ID.get('tithe')!;
+    expect(miner.attack).toBeDefined();
+    expect(miner.economy).toMatchObject({ deposits: 3, requiresSeam: true });
+    expect(tithe.economy).toBeUndefined();
+    expect(tithe.metaGold).toBeGreaterThan(0);
+    expect(opening.unlocks).toContain('dwarf_engineer');
+    expect(opening.unlocks).not.toContain('tithe');
+    expect(CHAPTERS[1]!.unlocks).toContain('tithe');
+  });
+});
+
 describe('the shape of the campaign', () => {
   /** Income against the pressure of the heaviest wave: higher is gentler. */
   function ease(levelId: string): number {
@@ -179,7 +215,14 @@ describe('the shape of the campaign', () => {
       }
       peak = Math.max(peak, hp / Math.max(1, w.duration));
     });
-    const income = l.startingGold + musterPay(l.chapter) * (waves.length - 1) + bounty;
+    // Stage 1 is the first fully migrated Ember battle. Later campaign
+    // stages remain in authored purchasing units until their regional pass.
+    const income =
+      l.id === 'c1l1'
+        ? (emberCost(l.startingGold) +
+            waves.flatMap((wave) => wave.entries).reduce((sum, entry) => sum + emberBounty(enemy(entry.enemyId).bounty), 0)) *
+          25
+        : l.startingGold + bounty;
     return ((income / 100) * best) / Math.max(1, peak);
   }
 

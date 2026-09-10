@@ -54,7 +54,7 @@ export type TileKind =
   | 'marsh'
   /** Old holy ground. Whoever stands here strikes harder. */
   | 'shrine'
-  /** A vein of ore. An economy building here pays half again. */
+  /** A finite Ember vein. Only a Miner can extract its visible deposits. */
   | 'seam'
   /** Rock. Nothing stands on it, but a shooter beside it sees further. */
   | 'highground'
@@ -67,7 +67,6 @@ export type TileKind =
 export const TILE_EFFECT = {
   marshSlow: 0.35,
   shrineDamage: 1.25,
-  seamGold: 1.5,
   highgroundRange: 1.3,
   grassCover: 0.7,
 } as const;
@@ -111,7 +110,10 @@ export interface DefenderDef {
   hp: number;
   attack?: AttackDef;
   aura?: AuraDef;
-  economy?: { amount: number; interval: number };
+  /** Optional battle income. Vein miners have a finite, seam-bound supply. */
+  economy?: { amount: number; interval: number; deposits?: number; requiresSeam?: boolean };
+  /** Permanent Gold carried home only if this structure survives a victory. */
+  metaGold?: number;
   /** Can be placed on open water. Sael builds on piles; nobody else does. */
   aquatic?: boolean;
   /** Campaign level (1-based) that unlocks this card. */
@@ -199,7 +201,7 @@ export interface EnemyDef {
   /** What it is made of, for damage type multipliers. Defaults to living. */
   kind?: EnemyKind;
   flying?: boolean;
-  /** Gold awarded on death. */
+  /** Legacy bounty value converted to whole Ember when this enemy dies. */
   bounty: number;
   /** Cost against a wave's budget; drives the wave generator. */
   threat: number;
@@ -267,8 +269,8 @@ export interface LevelModifiers {
   tiles?: TileKind[][];
   /** Multiplier on all enemy hp for this level. */
   hpScale?: number;
-  /** Extra gold trickle per second (used on tutorial levels). */
-  goldTrickle?: number;
+  /** Do not begin the next wave until every enemy in the current wave is gone. */
+  waitForClear?: boolean;
   /** Cards the player may not use, e.g. a "no economy" challenge. */
   bannedCards?: string[];
   /** Only these cards are available. */
@@ -289,6 +291,7 @@ export interface LevelDef {
   budgetGrowth: number;
   pool: string[];
   boss?: string;
+  /** Legacy starting purse converted to whole Ember when battle begins. */
   startingGold: number;
   reward: number;
   premium?: boolean;

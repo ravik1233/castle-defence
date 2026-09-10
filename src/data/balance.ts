@@ -43,10 +43,12 @@ export function hpPerGold(def: DefenderDef): number {
   return (def.hp / def.cost) * 100;
 }
 
-/** Seconds before an economy building has paid for itself. */
+/** Seconds before an Ember-producing card has paid its battle cost back. */
 export function payback(def: DefenderDef): number {
+  if (def.metaGold) return 0;
   if (!def.economy) return Infinity;
-  return (def.cost / def.economy.amount) * def.economy.interval;
+  const emberCost = Math.max(1, Math.round(def.cost / 25));
+  return (emberCost / def.economy.amount) * def.economy.interval;
 }
 
 /**

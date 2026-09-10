@@ -33,7 +33,10 @@ export interface TextureSpec {
   scale: number;
 }
 
-export const PAINTED_MANIFEST_URL = 'assets/painted/manifest.json';
+// The query is intentional. Painted files are stable public URLs rather than
+// Vite-hashed imports, so a version here guarantees that a deployed art pass
+// cannot be hidden behind an older service-worker entry.
+export const PAINTED_MANIFEST_URL = 'assets/painted/manifest.json?v=region1-art-1';
 
 function specs(): TextureSpec[] {
   const out: TextureSpec[] = [];
@@ -199,6 +202,11 @@ export interface PaintedFrames {
   width: number;
   height: number;
   names: string[];
+  /** Optional packed sheet; frame indices run left-to-right then top-to-bottom. */
+  sheet?: string;
+  /** Transparent pixels below the shared ground line in each authored cell. */
+  groundOffset?: number;
+  animations?: Partial<Record<string, { frames: number[]; fps: number }>>;
 }
 
 /** Assemblies by unit art id, filled in as the manifest is read. */
@@ -253,6 +261,18 @@ export async function buildTextures(
 ): Promise<void> {
   const all = [...specs(), ...extra];
   const overrides = await paintedOverrides();
+  // One image upload per character instead of one upload per animation frame.
+  for (const [id, strip] of paintedFrames) {
+    if (!strip.sheet) continue;
+    try {
+      const img = await loadImage(`assets/painted/${strip.sheet}`);
+      scene.textures.addSpriteSheet(`unit.${id}.sheet`, img, {
+        frameWidth: strip.width, frameHeight: strip.height, endFrame: strip.count - 1,
+      });
+    } catch {
+      // Keep legacy frames and generated parts available if the sheet fails.
+    }
+  }
 
   // Painted packs may add keys the generator never produces - a whole-body
   // sprite (`unit.orc.full`) instead of parts, say - so anything in the

@@ -8,7 +8,8 @@
 import Phaser from 'phaser';
 import type { DamageType, DefenderDef, EnemyDef, EnemyKind } from '../data/types';
 import { damageMultiplier } from '../battle/combat';
-import { portraitFor } from '../art/portraits';
+import { emberBounty, emberCost } from '../battle/economy';
+import { portraitFor, portraitForArt } from '../art/portraits';
 import { COLORS, showDialog, textStyle } from './kit';
 
 const TYPE_LABEL: Record<DamageType, string> = {
@@ -58,15 +59,21 @@ function statLine(label: string, value: string): string {
 export function showDefenderEntry(scene: Phaser.Scene, def: DefenderDef, onClose?: () => void): void {
   const attack = def.attack;
   const type = attack?.damageType ?? 'physical';
+  const income = def.economy?.requiresSeam
+    ? `${def.economy.amount} x ${def.economy.deposits ?? 0} from a vein`
+    : def.economy
+      ? `${def.economy.amount} Ember every ${def.economy.interval}s`
+      : '';
   const lines = [
-    statLine('Cost', `${def.cost} gold`),
+    statLine('Cost', `${emberCost(def.cost)} Ember`),
     statLine('Health', String(def.hp)),
     attack ? statLine('Damage', `${attack.damage}  ${TYPE_LABEL[type]}`) : statLine('Damage', '-'),
     attack ? statLine('Rate', `${attack.rate}/s`) : '',
     attack ? statLine('Reach', attack.range >= 700 ? 'Down the lane' : `${Math.round(attack.range)}`) : '',
     attack?.splash ? statLine('Splash', `${attack.splash}`) : '',
     attack?.pierce ? statLine('Pierce', `${attack.pierce} targets`) : '',
-    def.economy ? statLine('Income', `${def.economy.amount} every ${def.economy.interval}s`) : '',
+    income ? statLine('Income', income) : '',
+    def.metaGold ? statLine('Victory', `+${def.metaGold} permanent Gold`) : '',
     statLine('Recharge', `${def.recharge}s`),
   ].filter(Boolean);
 
@@ -79,7 +86,7 @@ export function showDefenderEntry(scene: Phaser.Scene, def: DefenderDef, onClose
     build: (group, w, h) => {
       const art = portraitFor(scene, def);
       if (art) {
-        const img = scene.add.image(-w / 2 + 130, -h / 2 + 210, art.key);
+        const img = scene.add.image(-w / 2 + 130, -h / 2 + 210, art.key, art.frame);
         const size = art.whole ? 190 : 150;
         const ratio = img.width / img.height;
         img.setDisplaySize(ratio > 1 ? size : size * ratio, ratio > 1 ? size / ratio : size);
@@ -142,7 +149,7 @@ export function showEnemyEntry(scene: Phaser.Scene, def: EnemyDef, onClose?: () 
     statLine('Rate', `${def.rate}/s`),
     statLine('Speed', def.speed >= 80 ? 'Fast' : def.speed >= 55 ? 'Steady' : 'Slow'),
     statLine('Armour', def.armor > 0 ? `${def.armor} off every hit` : 'None'),
-    statLine('Bounty', `${def.bounty} gold`),
+    statLine('Bounty', `${emberBounty(def.bounty)} Ember`),
     def.flying ? statLine('Flying', 'Walks over the line') : '',
   ].filter(Boolean);
 
@@ -153,11 +160,9 @@ export function showEnemyEntry(scene: Phaser.Scene, def: EnemyDef, onClose?: () 
     dismissable: false,
     buttons: [{ text: 'CLOSE', tone: 'stone', onClick: onClose }],
     build: (group, w, h) => {
-      const key = scene.textures.exists(`unit.${def.art}.frame0`)
-        ? `unit.${def.art}.frame0`
-        : `unit.${def.art}.head`;
-      if (scene.textures.exists(key)) {
-        const img = scene.add.image(-w / 2 + 130, -h / 2 + 200, key);
+      const portrait = portraitForArt(scene, def.art);
+      if (portrait) {
+        const img = scene.add.image(-w / 2 + 130, -h / 2 + 200, portrait.key, portrait.frame);
         const ratio = img.width / img.height;
         img.setDisplaySize(ratio > 1 ? 180 : 180 * ratio, ratio > 1 ? 180 / ratio : 180);
         group.add(img);

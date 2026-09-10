@@ -12,6 +12,7 @@ import { profile, PREMIUM_SKINS } from '../systems/profile';
 import { ensureAllCastleSkins } from '../systems/textures';
 import { portraitFor, portraitForArt } from '../art/portraits';
 import { audio } from '../systems/audio';
+import { emberCost } from '../battle/economy';
 import { COLORS, Counter, TextButton, fitText, showDialog, tappable, textStyle } from '../ui/kit';
 
 type Tab = 'deck' | 'upgrades' | 'hero' | 'castle';
@@ -182,7 +183,7 @@ export class ArmoryScene extends Phaser.Scene {
 
       const portrait = portraitFor(this, def);
       if (portrait) {
-        const img = this.add.image(0, -22, portrait.key);
+        const img = this.add.image(0, -22, portrait.key, portrait.frame);
         // Fit the art into a fixed box so units and buildings line up.
         const box = portrait.whole ? 104 : 92;
         img.setScale(Math.min(box / img.width, box / img.height));
@@ -191,7 +192,7 @@ export class ArmoryScene extends Phaser.Scene {
       c.add(fitText(this.add.text(0, 48, def.name, textStyle('tiny', COLORS.parchment)).setOrigin(0.5), 180));
       c.add(
         this.add
-          .text(0, 76, unlocked ? `${def.cost}g` : def.premium ? 'Crown Pack' : `Lv ${def.unlockLevel}`, textStyle('tiny', unlocked ? COLORS.gold : COLORS.danger))
+          .text(0, 76, unlocked ? `${emberCost(def.cost)} Ember` : def.premium ? 'Crown Pack' : `Lv ${def.unlockLevel}`, textStyle('tiny', unlocked ? COLORS.gold : COLORS.danger))
           .setOrigin(0.5),
       );
 
@@ -294,7 +295,7 @@ export class ArmoryScene extends Phaser.Scene {
       this.track(this.add.rectangle(cx, y, colW - 60, 128, 0x2a2338, 0.85).setStrokeStyle(3, 0x4a4060));
       const portrait = portraitFor(this, def);
       if (portrait) {
-        const img = this.add.image(cx - colW / 2 + 70, y, portrait.key);
+        const img = this.add.image(cx - colW / 2 + 70, y, portrait.key, portrait.frame);
         img.setScale(Math.min(90 / img.width, 90 / img.height));
         this.track(img);
       }
@@ -369,7 +370,7 @@ export class ArmoryScene extends Phaser.Scene {
 
       const face = portraitForArt(this, h.art);
       if (face) {
-        const img = this.add.image(cx, y - 140, face.key);
+        const img = this.add.image(cx, y - 140, face.key, face.frame);
         img.setScale(Math.min(88 / img.width, 88 / img.height));
         img.setAlpha(owned ? 1 : 0.35);
         this.track(img);

@@ -39,7 +39,7 @@ export interface BattleWorld {
   defenderAt(row: number, col: number): Defender | undefined;
   spawnProjectile(opts: ProjectileOptions): void;
   damageWall(amount: number, atY: number): void;
-  /** Mend a standing gate section. Rebuilding a fallen one costs gold. */
+  /** Mend a standing gate section. Rebuilding a fallen one costs Ember. */
   mendWall(row: number, amount: number): void;
   /** True once this lane's gate section has fallen and the way is open. */
   isBreached(row: number): boolean;
@@ -57,9 +57,11 @@ export interface BattleWorld {
   tileUnder(row: number, x: number): TileKind;
   /** Damage the heart of the keep, which only breached enemies can reach. */
   damageHeart(amount: number): void;
-  /** A goblin thief lifts gold straight out of the purse. */
+  /** A goblin thief lifts Ember straight out of the battle purse. */
   stealGold(amount: number, x: number, y: number): void;
   awardGold(amount: number, x: number, y: number): void;
+  /** Mine one finite deposit from a specific Ember vein. */
+  mineEmber(row: number, col: number, amount: number, x: number, y: number): boolean;
   onEnemyKilled(enemy: Enemy): void;
   burst(x: number, y: number, kind: 'hit' | 'blood' | 'magic' | 'explosion' | 'coin' | 'heal'): void;
   shake(intensity: number): void;
@@ -72,6 +74,7 @@ export interface BattleWorld {
 class HealthBar {
   private readonly back: Phaser.GameObjects.Image;
   private readonly fill: Phaser.GameObjects.Image;
+  private readonly label: Phaser.GameObjects.Text;
   private readonly width: number;
 
   constructor(scene: Phaser.Scene, width: number, tone: 'green' | 'red' | 'gold') {
@@ -82,25 +85,41 @@ class HealthBar {
       .setOrigin(0, 0.5)
       .setDisplaySize(width - 6, width * 0.175 - 6)
       .setDepth(2);
+    this.label = scene.add
+      .text(0, 0, '', {
+        fontFamily: '"Fredoka", "Trebuchet MS", sans-serif',
+        fontSize: `${Math.max(13, Math.round(width * 0.15))}px`,
+        fontStyle: '700',
+        color: '#ffffff',
+        stroke: '#120c1c',
+        strokeThickness: 3,
+      })
+      .setOrigin(0.5)
+      .setDepth(3);
     this.setVisible(false);
   }
 
-  update(x: number, y: number, fraction: number, depth: number): void {
-    const f = Math.max(0, Math.min(1, fraction));
+  update(x: number, y: number, current: number, max: number, depth: number): void {
+    const f = Math.max(0, Math.min(1, current / max));
     this.back.setPosition(x, y).setDepth(depth + 2);
     this.fill.setPosition(x - (this.width - 6) / 2, y).setDepth(depth + 3);
     this.fill.setDisplaySize((this.width - 6) * f, this.width * 0.175 - 6);
-    this.setVisible(f < 0.999);
+    this.label.setPosition(x, y - 1).setDepth(depth + 4).setText(`${Math.max(0, Math.ceil(current))}`);
+    // Explicit numbers make health behave like Ember: a visible, countable
+    // value instead of a colour strip whose meaning has to be guessed.
+    this.setVisible(true);
   }
 
   setVisible(v: boolean): void {
     this.back.setVisible(v);
     this.fill.setVisible(v);
+    this.label.setVisible(v);
   }
 
   destroy(): void {
     this.back.destroy();
     this.fill.destroy();
+    this.label.destroy();
   }
 }
 
@@ -159,7 +178,7 @@ export class Defender {
     this.economyTimer = def.economy ? def.economy.interval : 0;
     /*
      * The ground a unit is put on is part of the decision to put it there:
-     * an old shrine sharpens a blade, an ore seam pays a tithe more, and
+     * an old shrine sharpens a blade, an Ember vein can be mined, and
      * tall grass keeps an archer alive long enough to matter.
      */
     this.ground = world.tileAt(row, col);
@@ -250,18 +269,25 @@ export class Defender {
     if (!this.alive) return;
     const dt = delta / 1000;
     this.rig?.update(time, delta);
-    this.bar.update(this.x, this.topY - 16, this.hp / this.maxHp, this.y);
+    this.bar.update(this.x, this.topY - 16, this.hp, this.maxHp, this.y);
     if (this.sortie !== 'held') this.march(dt);
 
-    if (this.def.economy) {
-      this.economyTimer -= dt;
-      if (this.economyTimer <= 0) {
-        this.economyTimer = this.def.economy.interval;
-        // A tithe raised over an ore seam is worth half as much again, and
-        // nothing at all where the ground is frozen.
-        if (this.world.under('frozenground')) return;
-        const seam = this.ground === 'seam' ? TILE_EFFECT.seamGold : 1;
-        this.world.awardGold(Math.round(this.def.economy.amount * seam), this.x, this.topY);
+    if (this.def.economy && this.sortie === 'held') {
+      const threatened =
+        this.def.economy.requiresSeam &&
+        this.world.enemies.some((e) => e.alive && e.row === this.row && Math.abs(e.x - this.x) <= 260);
+      // A Miner drops the pick and uses their weapon when danger closes in.
+      // Frozen ground also pauses extraction without preventing combat.
+      if (!threatened && !this.world.under('frozenground')) {
+        this.economyTimer -= dt;
+        if (this.economyTimer <= 0) {
+          this.economyTimer = this.def.economy.interval;
+          if (this.def.economy.requiresSeam) {
+            this.world.mineEmber(this.row, this.col, this.def.economy.amount, this.x, this.topY);
+          } else {
+            this.world.awardGold(this.def.economy.amount, this.x, this.topY);
+          }
+        }
       }
     }
 
@@ -516,7 +542,7 @@ const PACK_RADIUS = 260;
 /** How far a demon steps through its portal, and how long the step takes. */
 const STEP_DISTANCE = 260;
 /** What a thief lifts per hit. */
-const THIEF_TAKE = 12;
+const THIEF_TAKE = 1;
 /** What the answering traits are worth, in seconds and in share of a blow. */
 const ROOT_SECONDS = 1.6;
 const BLEED_SHARE = 0.5;
@@ -1055,7 +1081,7 @@ export class Enemy {
     const hover = this.flying ? Math.sin(this.hoverPhase + performance.now() / 420) * 10 : 0;
     this.rig.setPosition(this.x, this.y + hover);
     this.rig.setDepth(this.y + (this.flying ? 200 : 0));
-    this.bar.update(this.x, this.topY - 18, this.hp / this.maxHp, this.y + (this.flying ? 200 : 0));
+    this.bar.update(this.x, this.topY - 18, this.hp, this.maxHp, this.y + (this.flying ? 200 : 0));
   }
 }
 
