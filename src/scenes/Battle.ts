@@ -540,6 +540,22 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
    * grass - rather than as a coloured square with a legend somewhere else.
    */
   private drawGround(): void {
+    // Painted scenery has no baked-in lane geometry. Keep boundaries aligned
+    // with the actual placement grid at every display size.
+    if (this.levelDef.biome === 'fields') {
+      const lanes = this.add.graphics().setDepth(-950);
+      for (let row = 0; row < GRID.rows; row += 1) {
+        const y = FIELD.y + row * GRID.cellH;
+        if (row % 2 === 1) {
+          lanes.fillStyle(0x172e20, 0.13);
+          lanes.fillRect(WALL.width, y, FIELD.width - WALL.width, GRID.cellH);
+        }
+        lanes.lineStyle(3, 0x203a22, 0.28);
+        lanes.lineBetween(WALL.width, y, FIELD.width, y);
+        lanes.lineStyle(1, 0xe6e9b2, 0.22);
+        lanes.lineBetween(WALL.width, y + 3, FIELD.width, y + 3);
+      }
+    }
     if (!this.tiles.length) return;
     const g = this.add.graphics().setDepth(-900);
     const detail = this.add.graphics().setDepth(-880);
