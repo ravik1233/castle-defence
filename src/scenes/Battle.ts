@@ -302,7 +302,10 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       felled: (row: number, col: number): boolean => {
         const d = this.occupancy.get(`${row},${col}`);
         if (!d?.alive) return false;
-        d.takeDamage(d.hp + 1);
+        // Enough to go through cover and any ward: a blow of exactly hp+1
+        // is not lethal to a unit standing in tall grass, which takes a
+        // third off everything, and a driver asking for a death wants one.
+        d.takeDamage(d.maxHp * 20);
         return true;
       },
       /** How the keep stands: the commander, and who is left behind him. */
@@ -315,6 +318,18 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         wallFaceX: Math.round(WALL_FACE_X),
         fieldX0: Math.round(FIELD_X0),
       }),
+      /** Why a cell will not take a card, for when a driver needs to know. */
+      whyNot: (row: number, col: number, id: string): string => {
+        if (row < 0 || row >= GRID.rows || col < 0 || col >= GRID.cols) return 'out of bounds';
+        if (this.occupancy.has(`${row},${col}`)) return `occupied by ${this.occupancy.get(`${row},${col}`)!.def.id}`;
+        const blocked = this.levelDef.modifiers?.blockedCells;
+        if (blocked?.some(([r, c]) => r === row && c === col)) return 'blocked cell';
+        const d = defender(id);
+        if (d.economy?.requiresSeam && this.tileAt(row, col) !== 'seam') return 'needs a seam';
+        if (d.role === 'economy' && isWallCol(col)) return 'economy on the parapet';
+        if (!canStandOn(this.tileAt(row, col), Boolean(d.aquatic))) return `ground is ${this.tileAt(row, col)}`;
+        return 'ok';
+      },
       /** Strikes the commander directly, the way a breached enemy does. */
       strikeCommander: (amount: number): void => this.damageHeart(amount),
       hurt: (index: number, amount: number, type = 'physical', breakShield = false): void => {
@@ -339,6 +354,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
           .map((d) => ({
             id: d.def.id,
             row: d.row,
+            col: d.col,
             x: Math.round(d.x),
             home: Math.round(d.homeX),
             sortie: d.sortie,

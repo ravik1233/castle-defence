@@ -64,15 +64,19 @@ else console.log('the parapet refuses an economy building');
  * passed, and never noticed that the check for "is this lane still held?"
  * was counting the commander - so row 2, the one he is in, could never have
  * been sent anyone.
+ *
+ * Lanes 0 and 1 are skipped here because the parapet section above left an
+ * archer and a spearman in them, and a lane with someone still in it is not
+ * supposed to call anyone up. That rule gets its own check below.
  */
-for (const row of [4, 2, 0]) {
+for (const row of [4, 2, 3]) {
   const before = await keep();
   const filled = await page.evaluate(async (r) => {
     const b = globalThis.__battle;
     b.addGold(500);
     b.place('militia', r, 5);
     b.felled(r, 5);
-    await new Promise((res) => setTimeout(res, 600));
+    await new Promise((res) => setTimeout(res, 900));
     return b.state().defenderDump.some((d) => d.row === r && !d.commander && d.id === 'militia');
   }, row);
   const after = await keep();
@@ -85,16 +89,43 @@ for (const row of [4, 2, 0]) {
   }
 }
 
-// And when the pool is empty, nothing steps up and nothing goes negative.
+/*
+ * A lane that still has someone in it does not get a reserve. They are for a
+ * line that broke, not a top-up, and there are far too few to spend
+ * otherwise. Lane 0 still holds the archer posted on the parapet earlier.
+ */
+const heldBefore = await keep();
 await page.evaluate(async () => {
   const b = globalThis.__battle;
-  b.addGold(2000);
-  for (const r of [1, 3]) {
-    b.place('militia', r, 5);
-    b.felled(r, 5);
-    await new Promise((res) => setTimeout(res, 600));
-  }
+  b.addGold(500);
+  b.place('militia', 0, 5);
+  b.felled(0, 5);
+  await new Promise((res) => setTimeout(res, 900));
 });
+const heldAfter = await keep();
+if (heldAfter.reserves !== heldBefore.reserves) {
+  fail(`a lane that was still held spent a reserve anyway (${heldBefore.reserves} -> ${heldAfter.reserves})`);
+} else {
+  console.log('a lane that is still held calls nobody up');
+}
+
+/*
+ * And when the pool is empty, nothing steps up and nothing goes negative.
+ *
+ * The whole lane has to be cleared each time, not just one cell: the earlier
+ * rounds left reserves standing in these lanes, and a lane with someone in
+ * it is not supposed to call anyone up.
+ */
+const left = (await keep()).reserves;
+for (let i = 0; i < left + 2; i += 1) {
+  await page.evaluate(async () => {
+    const b = globalThis.__battle;
+    for (const d of b.state().defenderDump) {
+      if (!d.commander) b.felled(d.row, d.col);
+    }
+    await new Promise((res) => setTimeout(res, 900));
+  });
+}
 const drained = await keep();
 if (drained.reserves !== 0) fail(`the pool should be spent, it reads ${drained.reserves}`);
 else console.log('the pool runs out rather than going negative');
