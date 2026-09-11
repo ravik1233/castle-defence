@@ -313,10 +313,6 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         commander: Math.round(this.commanderHp()),
         commanderAlive: Boolean(this.commander?.alive),
         reserves: this.reserves,
-        // Geometry, so a driver can ask where the wall is rather than
-        // hardcoding a number that moves when the layout does.
-        wallFaceX: Math.round(WALL_FACE_X),
-        fieldX0: Math.round(FIELD_X0),
       }),
       /** Why a cell will not take a card, for when a driver needs to know. */
       whyNot: (row: number, col: number, id: string): string => {
@@ -348,6 +344,10 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         waves: this.waves.length,
         enemies: this.enemies.filter((e) => e.alive).length,
         reserves: this.reserves,
+        // Geometry, so a driver can ask where the wall is rather than
+        // hardcoding a number that moves when the layout does.
+        wallFaceX: Math.round(WALL_FACE_X),
+        fieldX0: Math.round(FIELD_X0),
         defenders: this.defenders.filter((d) => d.alive && d !== this.commander).length,
         defenderDump: this.defenders
           .filter((d) => d.alive)

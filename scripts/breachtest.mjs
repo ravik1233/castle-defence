@@ -54,6 +54,18 @@ const until = async (fn, ms, what) => {
 };
 
 ({ wallFaceX: WALL_FACE } = await state());
+/*
+ * Stop here rather than run on a missing number. When this was read from the
+ * wrong hook and came back undefined, every `e.x < WALL_FACE` was false and
+ * the run reported five separate failures - a breach nothing walked through,
+ * a keep that took no damage, a flanker that never turned - none of which
+ * was true. A driver that cannot locate the wall has nothing to say.
+ */
+if (typeof WALL_FACE !== 'number' || !Number.isFinite(WALL_FACE)) {
+  console.error(`FAIL: the battle did not report where its wall is (${WALL_FACE})`);
+  await browser.close();
+  process.exit(1);
+}
 CLOSE_X = WALL_FACE + 160;
 
 const start = await state();
