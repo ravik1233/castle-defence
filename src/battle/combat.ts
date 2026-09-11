@@ -69,46 +69,86 @@ export function starsForKeep(keep: KeepState): number {
 /* ------------------------------------------------------------- damage ---- */
 
 /**
- * What each damage type does to each kind of enemy.
+ * How much armour each kind of enemy wears against each kind of blow.
  *
- * Sixteen numbers, chosen to be learnable rather than exhaustive. Steel is
- * the honest baseline that is never terrible and never exciting; everything
- * else is good against something and bad against something, so bringing the
- * wrong deck into a chapter is a mistake the player can understand and fix.
+ * This used to be sixteen multipliers - fire did 1.3x to the living, holy
+ * 1.7x to the dead. Multipliers stop being readable the moment the numbers
+ * they multiply are small: 1.3 times a blow of 3 is 3.9, and the player is
+ * left doing arithmetic they cannot check.
  *
- * There is no randomness anywhere in here on purpose. Every blow in this game
- * is a number the player could have worked out in advance.
+ * Points instead, in the same units as everything else, subtracted the same
+ * way ordinary armour is. A negative value is the other way round - it is
+ * not armour but a weakness, and the blow lands harder. So a corpse carries
+ * one point against frost and takes two extra from holy, and a demon shrugs
+ * a point off fire and takes two from holy.
+ *
+ * Steel remains the honest baseline: no bonus anywhere, and one point of
+ * armour on anything already armoured.
+ *
+ * There is no randomness anywhere in here on purpose. Every blow in this
+ * game is a number the player could have worked out in advance.
  */
-const TYPE_TABLE: Record<DamageType, Record<EnemyKind, number>> = {
+const KIND_ARMOUR: Record<DamageType, Record<EnemyKind, number>> = {
   //          living  armoured  undead  demon
-  physical: { living: 1, armoured: 0.7, undead: 1, demon: 1 },
-  // Burns flesh, does little to something that lives in fire.
-  fire: { living: 1.3, armoured: 1, undead: 1.1, demon: 0.6 },
-  // Bites hardest into things that run hot; a corpse does not feel the cold.
-  frost: { living: 1, armoured: 1, undead: 0.7, demon: 1.4 },
+  physical: { living: 0, armoured: 1, undead: 0, demon: 0 },
+  // Burns flesh; does little to something that lives in fire.
+  fire: { living: -1, armoured: 0, undead: 0, demon: 1 },
+  // Bites hardest into what runs hot; a corpse does not feel the cold.
+  frost: { living: 0, armoured: 0, undead: 1, demon: -1 },
   // The answer to what should not exist, and no better than steel on a man.
-  holy: { living: 1, armoured: 0.9, undead: 1.7, demon: 1.5 },
+  holy: { living: 0, armoured: 0, undead: -2, demon: -2 },
 };
 
-/** The multiplier for a blow of this type against this kind of enemy. */
-export function damageMultiplier(type: DamageType = 'physical', kind: EnemyKind = 'living'): number {
-  return TYPE_TABLE[type][kind];
+/**
+ * Armour this body has against this kind of blow, in points.
+ *
+ * A unit may state its own with `ward`, the way it states its plate: a demon
+ * bred in a forge can be more fireproof than demons generally are. Saying so
+ * replaces its kind's figure rather than adding to it, so the number written
+ * on a unit is the number that applies, and nobody has to add two tables
+ * together to know what a pyromancer does to it.
+ */
+export function kindArmour(
+  type: DamageType = 'physical',
+  kind: EnemyKind = 'living',
+  ward?: Partial<Record<DamageType, number>>,
+): number {
+  return ward?.[type] ?? KIND_ARMOUR[type][kind];
 }
 
 /**
- * What a blow actually takes off, in the order it happens: the type matchup
- * scales the blow, then armour comes off the top under the usual floor.
+ * The same figure the other way round: what this matchup does to a blow.
  *
- * One armour rule for the whole game, so a resisted hit and a plain hit are
- * still governed by the same arithmetic.
+ * Armour subtracts, so a demon's point of fire armour reads as one damage
+ * off, and the undead's two points of weakness to holy read as two damage
+ * on. Everything shown to a player goes through here, so the sign is decided
+ * in one place rather than in each table that prints it.
+ */
+export function kindDamageShift(
+  type: DamageType = 'physical',
+  kind: EnemyKind = 'living',
+  ward?: Partial<Record<DamageType, number>>,
+): number {
+  return -kindArmour(type, kind, ward);
+}
+
+/**
+ * What a blow actually takes off.
+ *
+ * One rule for the whole game: the armour a body wears and the armour its
+ * kind has against this sort of blow are added together and come off the
+ * top, under the usual floor. A pyromancer hitting a demon subtracts the
+ * demon's plate and its one point of fire armour; hitting a man it subtracts
+ * the plate and gives a point back.
  */
 export function damageDealt(
   raw: number,
   type: DamageType | undefined,
   kind: EnemyKind | undefined,
   armor: number,
+  ward?: Partial<Record<DamageType, number>>,
 ): number {
-  return damageAfterArmor(raw * damageMultiplier(type, kind), armor);
+  return damageAfterArmor(raw, armor + kindArmour(type, kind, ward));
 }
 
 /**

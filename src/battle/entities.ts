@@ -17,7 +17,7 @@ import {
   FAMILY,
   applyDamage,
   damageDealt,
-  damageMultiplier,
+  kindDamageShift,
   packSpeed,
   pickBlocker,
   rageBlow,
@@ -678,7 +678,7 @@ export class Enemy {
   takeDamage(amount: number, ignoreArmor = false, type: DamageType = 'physical', breakShield = false): void {
     if (!this.alive) return;
     const armor = ignoreArmor ? 0 : this.def.armor;
-    let dealt = damageDealt(amount, type, this.def.kind, armor);
+    let dealt = damageDealt(amount, type, this.def.kind, armor, this.def.ward);
 
     /*
      * A shield eats what lands on it before the body feels anything. A
@@ -701,8 +701,11 @@ export class Enemy {
     }
 
     this.hp -= dealt;
-    const multiplier = damageMultiplier(type, this.def.kind);
-    this.rig.flash(multiplier > 1.05 ? 0xfff0a0 : multiplier < 0.95 ? 0x7080a0 : 0xffffff, 70);
+    // Gold when the blow beat this body's armour against it, cold blue when
+    // the armour beat the blow, plain white when the two had nothing to say
+    // to each other. The flash is the only telling of the matchup mid-fight.
+    const shift = kindDamageShift(type, this.def.kind, this.def.ward);
+    this.rig.flash(shift > 0 ? 0xfff0a0 : shift < 0 ? 0x7080a0 : 0xffffff, 70);
     if (this.hp <= 0) this.die(type);
   }
 

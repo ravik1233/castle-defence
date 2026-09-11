@@ -198,8 +198,15 @@ export interface EnemyDef {
   range: number;
   /** Flat damage reduction per hit. */
   armor: number;
-  /** What it is made of, for damage type multipliers. Defaults to living. */
+  /** What it is made of, which sets its armour against each sort of blow. */
   kind?: EnemyKind;
+  /**
+   * Armour against a particular sort of blow, in the same points as `armor`:
+   * `ward: { fire: 3 }` is three fire armour, three off every pyromancer's
+   * bolt. Absent means this body is armoured as its kind is, so most units
+   * never state one.
+   */
+  ward?: Partial<Record<DamageType, number>>;
   flying?: boolean;
   /** Legacy bounty value converted to whole Ember when this enemy dies. */
   bounty: number;

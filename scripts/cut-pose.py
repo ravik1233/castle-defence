@@ -1,17 +1,17 @@
 """Cut a studio-background character pose out onto transparency.
 
-The first cutter thresholded every pixel against the backdrop colour and
-removed whatever matched. That works until the character itself is pale: a
-grey wolf, silver plate, a linen sleeve all sit inside the tolerance, so the
-mask ate the character and left a handful of shadow fragments. Thirteen of
-Region 1's fifty-one poses came out that way - an inverted cutout.
+Used on the handful of poses whose shipped cut came out inverted - the mask
+ate the subject and left a few fragments of shadow. Everything else keeps the
+cut it already has, which is good, and this tool should not be pointed at it.
 
-This one only removes backdrop that is *connected to the border*, then fills
-the holes that leaves. A pale sleeve enclosed by the character's outline is
-an interior hole and survives; the backdrop behind it does not touch the
-border either, so it goes. The tolerance is chosen per image rather than
-fixed: it sweeps upward and keeps the first mask whose coverage looks like a
-character rather than a speck or the whole frame.
+The rule here is deliberately timid: remove only backdrop that is connected
+to the border of the frame, and never remove anything enclosed by the
+character. An earlier version of this file was cleverer - it also dropped
+large enclosed pockets matching the backdrop colour, so the daylight inside a
+drawn bow came out transparent - and that cleverness punched holes straight
+through helmets, chest plates and faces, because bare steel and lit skin sit
+well inside the tolerance a grey wolf needs. A little backdrop left inside a
+bow is a far smaller fault than a hole in someone's face.
 
     python3 scripts/cut-pose.py in.png out.png
 """
@@ -22,8 +22,8 @@ import numpy as np
 from PIL import Image, ImageFilter
 from scipy import ndimage as ndi
 
-# What fraction of the frame a real character occupies. Below the floor the
-# mask has eaten the subject; above the ceiling it has kept the backdrop.
+#: What fraction of the frame a real character occupies. Below the floor the
+#: mask has eaten the subject; above the ceiling it has kept the backdrop.
 MIN_COVER, MAX_COVER = 0.05, 0.72
 
 
@@ -36,33 +36,11 @@ def cut(rgb: np.ndarray, tol: float) -> np.ndarray:
     bg = np.median(border, axis=0)
     near = np.sqrt(((rgb - bg) ** 2).sum(axis=2)) < tol
 
-    # Backdrop is only what reaches the edge of the frame.
+    # Backdrop is only what reaches the edge of the frame. Anything the
+    # character encloses stays, whatever colour it is.
     labels, _ = ndi.label(near)
     edge = np.unique(np.concatenate((labels[0], labels[-1], labels[:, 0], labels[:, -1])))
     backdrop = np.isin(labels, edge[edge != 0])
-
-    # Backdrop also shows through gaps that never reach the border: inside a
-    # drawn bow, or the daylight between an arm and a body. Those are large
-    # and backdrop-coloured, so drop them too - leaving them in turned the
-    # archer's bow into a solid white paddle.
-    #
-    # But "backdrop-coloured" cannot mean "pale". A first attempt removed any
-    # large enclosed region near the backdrop colour and punched holes clean
-    # through the militia's helmet and face: bare steel and lit skin are both
-    # inside the tolerance a grey wolf needed. A studio backdrop is flat, and
-    # a painted character is not - so a pocket is only dropped when it is both
-    # the backdrop's colour and as smooth as the backdrop is.
-    enclosed = near & ~backdrop
-    parts, n = ndi.label(enclosed)
-    if n:
-        sizes = np.bincount(parts.ravel())
-        for part in np.flatnonzero(sizes > 0.0016 * near.size):
-            if part == 0:
-                continue
-            pocket = parts == part
-            pixels = rgb[pocket]
-            if np.abs(pixels.mean(axis=0) - bg).max() < 10 and pixels.std(axis=0).max() < 9:
-                backdrop = backdrop | pocket
 
     mask = ndi.binary_opening(~backdrop, iterations=2)
     if not mask.any():
@@ -84,8 +62,8 @@ def main() -> None:
         cover = mask.mean()
         if MIN_COVER <= cover <= MAX_COVER:
             best = mask
-            # Keep widening: a bigger tolerance removes more backdrop haze,
-            # and coverage stays in band while it is only eating backdrop.
+            # Keep widening while coverage stays plausible: a larger tolerance
+            # clears more of the backdrop haze around the silhouette.
             continue
         if best is not None and cover < MIN_COVER:
             break

@@ -7,7 +7,7 @@
  */
 import Phaser from 'phaser';
 import type { DamageType, DefenderDef, EnemyDef, EnemyKind } from '../data/types';
-import { damageMultiplier } from '../battle/combat';
+import { kindArmour, kindDamageShift } from '../battle/combat';
 import { emberBounty, emberCost } from '../battle/economy';
 import { portraitFor, portraitForArt } from '../art/portraits';
 import { COLORS, showDialog, textStyle } from './kit';
@@ -40,14 +40,27 @@ const TRAIT_TEXT: Record<string, string> = {
 };
 
 /** Colour for a multiplier, so the table reads at a glance. */
-function tone(mult: number): string {
-  if (mult > 1.05) return COLORS.good;
-  if (mult < 0.95) return COLORS.danger;
+function tone(shift: number): string {
+  if (shift > 0) return COLORS.good;
+  if (shift < 0) return COLORS.danger;
   return COLORS.muted;
 }
 
+/**
+ * A matchup as a player reads it: damage added or taken off the blow.
+ *
+ * These used to be multipliers - "1.30x" - which asked the player to
+ * multiply a blow of three by 1.3 and stopped being readable the moment the
+ * numbers got small enough to count. A dash rather than "+0" where the
+ * matchup does nothing, so the squares that matter stand out of the table.
+ */
+function shiftText(shift: number): string {
+  if (shift === 0) return '-';
+  return `${shift > 0 ? '+' : '-'}${Math.abs(shift)} dmg`;
+}
+
 function statLine(label: string, value: string): string {
-  return `${label.padEnd(11, ' ')}${value}`;
+  return `${label.padEnd(14, ' ')}${value}`;
 }
 
 /**
@@ -123,13 +136,13 @@ export function showDefenderEntry(scene: Phaser.Scene, def: DefenderDef, onClose
             .setOrigin(0, 0),
         );
         KINDS.forEach((kind, i) => {
-          const m = damageMultiplier(type, kind);
+          const m = kindDamageShift(type, kind);
           group.add(
             scene.add
               .text(
                 -w / 2 + 60 + i * 200,
                 h / 2 - 140,
-                `${KIND_LABEL[kind]}\n${m.toFixed(2)}x`,
+                `${KIND_LABEL[kind]}\n${shiftText(m)}`,
                 textStyle('small', tone(m)),
               )
               .setOrigin(0, 0),
@@ -149,6 +162,13 @@ export function showEnemyEntry(scene: Phaser.Scene, def: EnemyDef, onClose?: () 
     statLine('Rate', `${def.rate}/s`),
     statLine('Speed', def.speed >= 80 ? 'Fast' : def.speed >= 55 ? 'Steady' : 'Slow'),
     statLine('Armour', def.armor > 0 ? `${def.armor} off every hit` : 'None'),
+    // Armour against a sort of blow, stated the same way plate is: a demon
+    // with one point of it takes one less from every pyromancer. Only what
+    // this body actually resists is listed - the weaknesses are in the table
+    // underneath, where a player is looking for what to bring.
+    ...TYPES.filter((t) => t !== 'physical' && kindArmour(t, kind, def.ward) > 0).map((t) =>
+      statLine(`${TYPE_LABEL[t]} armour`, `${kindArmour(t, kind, def.ward)} off every hit`),
+    ),
     statLine('Bounty', `${emberBounty(def.bounty)} Ember`),
     def.flying ? statLine('Flying', 'Walks over the line') : '',
   ].filter(Boolean);
@@ -190,13 +210,13 @@ export function showEnemyEntry(scene: Phaser.Scene, def: EnemyDef, onClose?: () 
           .setOrigin(0, 0),
       );
       TYPES.forEach((type, i) => {
-        const m = damageMultiplier(type, kind);
+        const m = kindDamageShift(type, kind, def.ward);
         group.add(
           scene.add
             .text(
               -w / 2 + 60 + i * 200,
               h / 2 - 210,
-              `${TYPE_LABEL[type]}\n${m.toFixed(2)}x`,
+              `${TYPE_LABEL[type]}\n${shiftText(m)}`,
               textStyle('small', tone(m)),
             )
             .setOrigin(0, 0),

@@ -6,7 +6,8 @@ import {
   pickTarget,
   sellValue,
   damageDealt,
-  damageMultiplier,
+  kindArmour,
+  kindDamageShift,
   starsForKeep,
   starsForWall,
   tensionFor,
@@ -138,35 +139,55 @@ describe('starsForKeep', () => {
 
 describe('damage types', () => {
   it('leaves steel as the honest baseline against flesh', () => {
-    expect(damageMultiplier('physical', 'living')).toBe(1);
+    expect(kindArmour('physical', 'living')).toBe(0);
   });
 
   it('makes armour the answer to steel and holy the answer to armour being the answer', () => {
-    expect(damageMultiplier('physical', 'armoured')).toBeLessThan(1);
-    expect(damageMultiplier('holy', 'undead')).toBeGreaterThan(1.5);
+    expect(kindArmour('physical', 'armoured')).toBeGreaterThan(0);
+    expect(kindArmour('holy', 'undead')).toBeLessThanOrEqual(-2);
   });
 
   it('gives every type something it is bad against', () => {
     for (const type of ['physical', 'fire', 'frost', 'holy'] as const) {
       const kinds = ['living', 'armoured', 'undead', 'demon'] as const;
-      const worst = Math.min(...kinds.map((k) => damageMultiplier(type, k)));
-      expect(worst).toBeLessThanOrEqual(1);
+      // Somewhere in the row, a body that armours itself against this blow.
+      const best = Math.max(...kinds.map((k) => kindArmour(type, k)));
+      expect(best).toBeGreaterThanOrEqual(0);
     }
   });
 
   it('does not let fire be the answer to demons', () => {
-    expect(damageMultiplier('fire', 'demon')).toBeLessThan(1);
-    expect(damageMultiplier('frost', 'demon')).toBeGreaterThan(1);
+    expect(kindArmour('fire', 'demon')).toBeGreaterThan(0);
+    expect(kindArmour('frost', 'demon')).toBeLessThan(0);
   });
 
   it('defaults to physical against living, so old data keeps working', () => {
-    expect(damageMultiplier()).toBe(1);
+    expect(kindArmour()).toBe(0);
     expect(damageDealt(100, undefined, undefined, 0)).toBe(100);
   });
 
-  it('applies the matchup before armour, under the usual floor', () => {
-    // Holy against undead: 100 * 1.7 = 170, less 20 armour.
-    expect(damageDealt(100, 'holy', 'undead', 20)).toBe(150);
+  it('reads a matchup out to a player as damage on the blow, not armour on the body', () => {
+    // The table a player sees is the negative of the armour behind it: two
+    // points of weakness to holy is "+2 dmg", a point of fire armour "-1".
+    expect(kindDamageShift('holy', 'undead')).toBe(-kindArmour('holy', 'undead'));
+    expect(kindDamageShift('holy', 'undead')).toBeGreaterThan(0);
+    expect(kindDamageShift('fire', 'demon')).toBeLessThan(0);
+  });
+
+  it('lets a body state its own fire armour instead of taking its kind figure', () => {
+    // A demon is one point fireproof by kind; a forge-born one says three.
+    expect(kindArmour('fire', 'demon', { fire: 3 })).toBe(3);
+    // What it does not state, it takes from its kind as before.
+    expect(kindArmour('frost', 'demon', { fire: 3 })).toBe(kindArmour('frost', 'demon'));
+    expect(damageDealt(10, 'fire', 'demon', 0, { fire: 3 })).toBe(7);
+  });
+
+  it('adds the matchup to the body armour, under the usual floor', () => {
+    // Holy against undead: two points of weakness, so twenty armour behaves
+    // like eighteen and a blow of 100 lands for 82.
+    expect(damageDealt(100, 'holy', 'undead', 20)).toBe(82);
+    // Armoured and hit with steel: its point of plate on top of its own.
+    expect(damageDealt(10, 'physical', 'armoured', 2)).toBe(7);
     // Resisted and heavily armoured still scratches rather than doing nothing.
     expect(damageDealt(10, 'physical', 'armoured', 999)).toBeGreaterThan(0);
   });

@@ -10,7 +10,7 @@ import { DESIGN } from '../core/layout';
 import { DEFENDERS } from '../data/defenders';
 import { ENEMIES } from '../data/enemies';
 import type { DamageType, EnemyKind } from '../data/types';
-import { damageMultiplier } from '../battle/combat';
+import { kindDamageShift } from '../battle/combat';
 import { portraitFor, portraitForArt } from '../art/portraits';
 import { showDefenderEntry, showEnemyEntry } from '../ui/ledger';
 import { COLORS, TextButton, fitText, tappable, textStyle } from '../ui/kit';
@@ -195,10 +195,14 @@ export class LedgerScene extends Phaser.Scene {
           .setOrigin(0.5),
       );
       KINDS.forEach((kind, c) => {
-        const m = damageMultiplier(type, kind);
-        const colour = m > 1.05 ? COLORS.good : m < 0.95 ? COLORS.danger : COLORS.muted;
+        // Damage added or taken off the blow, not a multiplier: the numbers
+        // being multiplied are small enough to count now, and "1.30x" of a
+        // blow of three was arithmetic no player could check mid-fight.
+        const shift = kindDamageShift(type, kind);
+        const colour = shift > 0 ? COLORS.good : shift < 0 ? COLORS.danger : COLORS.muted;
+        const cell = shift === 0 ? '-' : `${shift > 0 ? '+' : '-'}${Math.abs(shift)}`;
         this.body.push(
-          this.add.text(x0 + c * cw, y0 + r * ch, `${m.toFixed(2)}x`, textStyle('body', colour)).setOrigin(0.5),
+          this.add.text(x0 + c * cw, y0 + r * ch, cell, textStyle('body', colour)).setOrigin(0.5),
         );
       });
     });
@@ -208,7 +212,7 @@ export class LedgerScene extends Phaser.Scene {
         .text(
           DESIGN.width / 2,
           y0 + 4 * ch + 40,
-          'Steel is never wrong and never right. Everything else is one or the other.',
+          'Damage added to or taken off each blow. Steel is plain everywhere but against plate.',
           textStyle('small', COLORS.muted),
         )
         .setOrigin(0.5),
