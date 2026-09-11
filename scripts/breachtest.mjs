@@ -101,6 +101,12 @@ if (through) console.log('enemy came through the breach');
  * wait - the keep was struck, just after the driver had given up on it, and
  * the run reported a failure for something that had happened.
  */
+// Clear the one that walked in first: the point below is whether the keep
+// can put down a body that gets inside, and leaving two in there tests
+// whether the commander can fight a crowd single-handed, which is a
+// different question and not one this file is asking.
+await page.evaluate(() => globalThis.__battle.clearField(Infinity));
+await page.waitForTimeout(500);
 await page.evaluate((x) => globalThis.__battle.spawn('orc', 2, x), Math.round(WALL_FACE * 0.45));
 if (await until((s) => s.heartHp < opened.heartHp, 300000, 'the keep to take damage')) {
   console.log('the keep took damage from inside');
