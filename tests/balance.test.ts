@@ -34,7 +34,7 @@ describe('what a card is worth', () => {
     let previousBest = 0;
     for (const ch of CHAPTERS) {
       const best = Math.max(...ch.unlocks.map((id) => dpsPerGold(DEFENDER_BY_ID.get(id)!)));
-      expect(best, `${ch.name} musters nothing worth a slot`).toBeGreaterThan(12);
+      expect(best, `${ch.name} musters nothing worth a slot`).toBeGreaterThan(1);
       previousBest = Math.max(previousBest, best);
     }
     expect(previousBest).toBeGreaterThan(0);
@@ -57,8 +57,8 @@ describe('what a threat point buys', () => {
       return { f, hp: list.reduce((n, e) => n + e.hp / e.threat, 0) / list.length };
     });
     for (const { f, hp } of perFamily) {
-      expect(hp, `${f} buys ${hp.toFixed(0)} hp per threat`).toBeGreaterThan(75);
-      expect(hp, `${f} buys ${hp.toFixed(0)} hp per threat`).toBeLessThan(120);
+      expect(hp, `${f} buys ${hp.toFixed(2)} hp per threat`).toBeGreaterThan(1.9);
+      expect(hp, `${f} buys ${hp.toFixed(2)} hp per threat`).toBeLessThan(3);
     }
   });
 
@@ -151,8 +151,8 @@ describe('what a threat point buys', () => {
     for (const f of families) {
       const list = rank(f);
       const hpPerGold = list.reduce((n, e) => n + e.hp / e.bounty, 0) / list.length;
-      expect(hpPerGold, `${f} pays every ${hpPerGold.toFixed(0)} hp`).toBeGreaterThan(14);
-      expect(hpPerGold, `${f} pays every ${hpPerGold.toFixed(0)} hp`).toBeLessThan(24);
+      expect(hpPerGold, `${f} pays every ${hpPerGold.toFixed(2)} hp`).toBeGreaterThan(0.35);
+      expect(hpPerGold, `${f} pays every ${hpPerGold.toFixed(2)} hp`).toBeLessThan(0.6);
     }
   });
 });

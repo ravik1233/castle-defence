@@ -29,6 +29,8 @@ OUT = ROOT / 'public/assets/painted'
 CELL = 256
 #: Transparent pixels kept below the feet, so a unit is not flush to the edge.
 GROUND = 10
+#: Clear pixels at each side of a cell, so no frame bleeds into its neighbour.
+GUTTER = 6
 #: The tallest frame fills this much of the cell above the ground line.
 FILL = 0.88
 
@@ -107,14 +109,46 @@ def pack(unit: str) -> dict | None:
     for i, (frame, arr, box, name) in enumerate(keep):
         scale = walk_scale if name.startswith('walk') else pose_scale
         x0, y0, x1, y1 = box
-        w, h = int(round((x1 - x0) * scale)), int(round((y1 - y0) * scale))
-        # A death sprawls wider than it is tall; keep it inside the cell.
-        if w > CELL * 0.98:
-            scale *= (CELL * 0.98) / w
-            w, h = int(round((x1 - x0) * scale)), int(round((y1 - y0) * scale))
-        cropped = frame.crop(box).resize((max(1, w), max(1, h)), Image.LANCZOS)
+        inner = CELL - 2 * GUTTER
+
+        def sized(s: float) -> tuple[int, int]:
+            return max(1, int(round((x1 - x0) * s))), max(1, int(round((y1 - y0) * s)))
+
+        w, h = sized(scale)
+        # A death sprawls wider than it is tall; shrink it to fit rather than
+        # let it run over its neighbour.
+        if w > inner:
+            scale *= inner / w
+            w, h = sized(scale)
+        if h > CELL - GROUND - GUTTER:
+            scale *= (CELL - GROUND - GUTTER) / h
+            w, h = sized(scale)
+
+        cropped = frame.crop(box).resize((w, h), Image.LANCZOS)
         anchor = (feet_x(arr, box) - x0) * scale
-        sheet.paste(cropped, (i * CELL + int(round(CELL / 2 - anchor)), CELL - GROUND - h), cropped)
+        left = int(round(CELL / 2 - anchor))
+        # Centred on the feet, but never outside its own cell. Without this a
+        # prone death - whose feet are at one end of a sprawl - was pushed far
+        # enough sideways that its head was cut off at the cell edge and the
+        # frame beside it picked up the remains.
+        left = max(GUTTER, min(CELL - GUTTER - w, left))
+        sheet.paste(cropped, (i * CELL + left, CELL - GROUND - h), cropped)
+
+    # Nothing may touch a cell edge. A frame that does bleeds into the one
+    # beside it and comes back cut: the militia shipped with its face sliced
+    # off at the seam because a sprawled death ran over the boundary.
+    packed = np.array(sheet)
+    for i, (_, _, _, name) in enumerate(keep):
+        cell = packed[:, i * CELL:(i + 1) * CELL, 3] > 12
+        if not cell.any():
+            raise SystemExit(f'{unit}/{name}: packed to nothing')
+        xs = np.nonzero(cell.any(axis=0))[0]
+        ys = np.nonzero(cell.any(axis=1))[0]
+        if xs.min() < 1 or xs.max() > CELL - 2 or ys.min() < 1:
+            raise SystemExit(
+                f'{unit}/{name}: touches its cell edge '
+                f'(x {xs.min()}-{xs.max()}, top {ys.min()}) - it would bleed into its neighbour'
+            )
 
     OUT.mkdir(parents=True, exist_ok=True)
     sheet.save(OUT / f'unit.{unit}.region1.png', optimize=True)

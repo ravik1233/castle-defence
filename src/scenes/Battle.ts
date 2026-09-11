@@ -13,6 +13,7 @@ import {
   HERO_BAR,
   HUD,
   SPAWN_X,
+  WORLD_ART_SCALE,
   KEEP,
   KEEP_STRIP,
   FIELD_COL0,
@@ -59,7 +60,7 @@ import type { KeepState } from '../battle/combat';
  * enemy only ever chews on its own lane's - what the player defends now is
  * five separate things, and losing one is a setback rather than the end.
  */
-const SECTION_MAX_HP = 420;
+const SECTION_MAX_HP = 11;
 /*
  * Kills beyond this line pay a salvage bonus. It sits well out in the field,
  * so the bonus is only collectable by something that went out for it.
@@ -68,7 +69,7 @@ const FIELD_BOUNTY_LINE = 1150;
 const FIELD_BOUNTY_BONUS = 1.5;
 
 /** What the commander can take before the fort is lost. */
-const COMMANDER_HP = 1200;
+const COMMANDER_HP = 30;
 /**
  * Militia waiting behind the wall, and what they are worth when they step up.
  *
@@ -500,34 +501,64 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
     const skin = WALL_SKINS.find((s) => s.id === profile.activeSkin) ?? WALL_SKINS[0]!;
     /*
-     * The keep, behind the wall. The commander and the reserves stand here,
-     * so it has to read as ground you are holding rather than as more wall -
-     * a flagged courtyard, darker than the field, with the parapet's shadow
-     * falling across it.
+     * The keep, behind the wall: the courtyard the commander holds.
+     *
+     * A flat dark rectangle here read as a hole in the screen - the man
+     * standing on it looked like he was standing on nothing. It is flagged
+     * stone now, lit from the field side and ruled into the same lanes as
+     * everything else, so it is ground rather than absence.
      */
+    const keepStone = 0x6a6472;
     this.add
       .rectangle(
         KEEP_STRIP.x + KEEP_STRIP.width / 2,
         FIELD.y + FIELD.height / 2,
         KEEP_STRIP.width,
         FIELD.height + FIELD.horizon,
-        0x2a2233,
+        keepStone,
       )
       .setDepth(-900);
+    const flags = this.add.graphics().setDepth(-895);
+    for (let row = 0; row < GRID.rows; row += 1) {
+      const top = GRID.y0 + row * GRID.cellH;
+      // Two slabs to a lane, offset row by row so it reads as laid stone.
+      for (let i = 0; i < 2; i += 1) {
+        flags.fillStyle(i === row % 2 ? 0x746d7d : 0x5f5968, 1);
+        flags.fillRect(6 + i * (KEEP_STRIP.width / 2 - 4), top + 5, KEEP_STRIP.width / 2 - 14, GRID.cellH - 10);
+      }
+      flags.lineStyle(2, 0x4a4553, 0.7);
+      flags.lineBetween(0, top, KEEP_STRIP.width, top);
+    }
+    // The parapet throws a shadow back across the yard.
     this.add
-      .rectangle(KEEP_STRIP.width - 26, FIELD.y + FIELD.height / 2, 52, FIELD.height + FIELD.horizon, 0x0b0713, 0.35)
-      .setDepth(-880);
+      .rectangle(KEEP_STRIP.width - 22, FIELD.y + FIELD.height / 2, 44, FIELD.height + FIELD.horizon, 0x0b0713, 0.3)
+      .setDepth(-890);
 
     /*
-     * The wall is drawn behind the units now rather than over them: it is two
-     * tiles of the grid, and whatever is posted on the parapet has to be
-     * visible standing on it.
+     * The parapet itself, exactly over the lanes so its walkway lines up with
+     * the ground. Drawn behind the units rather than over them: it is two
+     * tiles of the grid and whatever is posted up there has to be seen
+     * standing on it.
      */
     this.add
-      .image(WALL.x, FIELD.y - FIELD.horizon, `wall.${skin.id}`)
+      .image(WALL.x, FIELD.y, `wall.${skin.id}`)
       .setOrigin(0, 0)
-      .setDisplaySize(WALL.width, FIELD.height + FIELD.horizon)
+      .setDisplaySize(WALL.width, FIELD.height)
       .setDepth(-870);
+    // Skyline above the lanes: the merlons off the top of the painted wall,
+    // so the parapet is capped by battlements rather than a grey block.
+    const capKey = `wall.${skin.id}.cap`;
+    if (this.textures.exists(capKey)) {
+      this.add
+        .image(WALL.x, FIELD.y - FIELD.horizon, capKey)
+        .setOrigin(0, 0)
+        .setDisplaySize(WALL.width, FIELD.horizon)
+        .setDepth(-872);
+    } else {
+      this.add
+        .rectangle(WALL.x + WALL.width / 2, FIELD.y - FIELD.horizon / 2, WALL.width, FIELD.horizon, 0x5e5866)
+        .setDepth(-872);
+    }
 
     this.drawGround();
     this.buildSections();
@@ -752,21 +783,32 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     }
   }
 
+  /**
+   * The state of each section of wall.
+   *
+   * There used to be a tall green bar standing at the face of every lane -
+   * five of them down the screen, brighter than anything else on it. They
+   * told the player how the wall was doing and shouted while they did it.
+   *
+   * The wall says it itself now: a section darkens and cracks as it is
+   * battered, and shows an open breach when it falls. The only thing drawn
+   * over it is REBUILD, and only on a section that actually needs one.
+   */
   private buildSections(): void {
     this.sectionBars = [];
     this.breachMarks = [];
     for (let row = 0; row < GRID.rows; row += 1) {
       const y = laneCenterY(row);
-      const h = GRID.cellH * 0.5;
-      this.add
-        .rectangle(WALL_FACE_X - 15, y, 22, h, 0x1a1526, 0.85)
-        .setStrokeStyle(3, 0x0f0c1a)
-        .setDepth(2100);
-      const bar = this.add
-        .rectangle(WALL_FACE_X - 15, y + h / 2 - 2, 16, h - 4, 0x5fd07a)
-        .setOrigin(0.5, 1)
-        .setDepth(2101);
-      this.sectionBars.push(bar);
+
+      /*
+       * Damage, painted onto the stonework rather than beside it. It is a
+       * dark wash over that lane's span of wall which deepens as the section
+       * is worn down, so the wall itself is the health bar.
+       */
+      const wear = this.add
+        .rectangle(WALL.x + WALL.width / 2, y, WALL.width, GRID.cellH, 0x1a0f14, 0)
+        .setDepth(-865);
+      this.sectionBars.push(wear);
 
       /*
        * A hole punched through the wall art. Without it a fallen section
@@ -774,24 +816,23 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
        * solid stone, which reads as a bug rather than a breach.
        */
       const hole = this.add
-        .rectangle(WALL.width / 2, y, WALL.width, GRID.cellH * 0.78, 0x0b0713)
-        .setDepth(2010)
+        .rectangle(WALL.x + WALL.width / 2, y, WALL.width, GRID.cellH * 0.74, 0x120c1c)
+        .setDepth(-860)
         .setVisible(false);
       this.breachHoles.push(hole);
 
       const mark = this.add
-        .text(WALL_FACE_X - 15, y, 'REBUILD', textStyle('tiny', COLORS.gold))
+        .text(WALL.x + WALL.width / 2, y, 'REBUILD', textStyle('small', COLORS.gold))
         .setOrigin(0.5)
         .setDepth(2102)
         .setVisible(false);
-      mark.setAngle(-90);
       this.breachMarks.push(mark);
 
-      // The whole section strip is the repair button, so it is easy to hit.
+      // The section is its own repair button, so it is easy to hit.
       const hit = this.add
-        .rectangle(WALL_FACE_X - 15, y, 64, h, 0xffffff, 0)
+        .rectangle(WALL.x + WALL.width / 2, y, WALL.width, GRID.cellH * 0.8, 0xffffff, 0)
         .setDepth(2103);
-      tappable(hit as unknown as Phaser.GameObjects.Container, 64, h);
+      tappable(hit as unknown as Phaser.GameObjects.Container, WALL.width, GRID.cellH * 0.8);
       hit.on('pointerdown', () => this.repairSection(row));
     }
   }
@@ -822,7 +863,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       cost: 0,
       recharge: 0,
       hp: COMMANDER_HP,
-      attack: { damage: 42, rate: 0.9, range: 150 },
+      attack: { damage: 2, rate: 0.9, range: 150 },
       unlockLevel: 1,
       upgrade: { hp: 0, damage: 0 },
     };
@@ -830,7 +871,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     // so nothing can be played on top of him and he blocks no placement.
     this.commander = new Defender(this, def, Math.floor(GRID.rows / 2), -1, {
       hp: COMMANDER_HP,
-      damage: 42,
+      damage: 2,
     });
     this.defenders.push(this.commander);
 
@@ -854,12 +895,20 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private drawReserves(): void {
     for (const f of this.reserveFigures) f.destroy();
     this.reserveFigures = [];
+    /*
+     * One figure per body left, each standing in a lane of the courtyard at
+     * the size everything else on the field is.
+     *
+     * They used to be drawn at two fifths scale, two to a row, which put four
+     * doll-sized militia in a heap at the top of the yard - standing in no
+     * lane, matching nothing else on screen, and reading as a mistake rather
+     * than as the last four men in the fort.
+     */
     for (let i = 0; i < this.reserves; i += 1) {
       const post = reservePost(i);
       const c = this.add.container(post.x, post.y).setDepth(post.y);
-      const art = this.cardArt('militia', 0, 0, 0.42);
-      c.add(art);
-      c.setAlpha(0.9);
+      c.add(this.cardArt('militia', 0, 0, WORLD_ART_SCALE * 0.8));
+      c.setAlpha(0.85);
       this.reserveFigures.push(c);
     }
   }
@@ -886,11 +935,11 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     for (let row = 0; row < this.sectionBars.length; row += 1) {
       const hp = this.sections[row] ?? 0;
       const f = Math.max(0, hp / this.sectionMax);
-      const bar = this.sectionBars[row]!;
-      const full = GRID.cellH * 0.5 - 4;
-      bar.height = Math.max(0, full * f);
-      bar.fillColor = f > 0.55 ? 0x5fd07a : f > 0.25 ? 0xf0b429 : 0xe8455c;
-      bar.setVisible(hp > 0);
+      // The darker the wash, the worse that span of wall is doing. Full
+      // health is clear stone; a section about to fall is nearly black.
+      const wear = this.sectionBars[row]!;
+      wear.setAlpha(hp > 0 ? (1 - f) * 0.72 : 0);
+      wear.setVisible(hp > 0);
       this.breachHoles[row]?.setVisible(hp <= 0);
       this.breachMarks[row]?.setVisible(hp <= 0 && !this.finished);
     }

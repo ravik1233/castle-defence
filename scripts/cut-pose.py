@@ -44,14 +44,25 @@ def cut(rgb: np.ndarray, tol: float) -> np.ndarray:
     # Backdrop also shows through gaps that never reach the border: inside a
     # drawn bow, or the daylight between an arm and a body. Those are large
     # and backdrop-coloured, so drop them too - leaving them in turned the
-    # archer's bow into a solid white paddle. Pinholes from anti-aliasing are
-    # small, and get kept so the silhouette does not come out speckled.
+    # archer's bow into a solid white paddle.
+    #
+    # But "backdrop-coloured" cannot mean "pale". A first attempt removed any
+    # large enclosed region near the backdrop colour and punched holes clean
+    # through the militia's helmet and face: bare steel and lit skin are both
+    # inside the tolerance a grey wolf needed. A studio backdrop is flat, and
+    # a painted character is not - so a pocket is only dropped when it is both
+    # the backdrop's colour and as smooth as the backdrop is.
     enclosed = near & ~backdrop
     parts, n = ndi.label(enclosed)
     if n:
         sizes = np.bincount(parts.ravel())
-        big = np.flatnonzero(sizes > 0.0016 * near.size)
-        backdrop = backdrop | np.isin(parts, big[big != 0])
+        for part in np.flatnonzero(sizes > 0.0016 * near.size):
+            if part == 0:
+                continue
+            pocket = parts == part
+            pixels = rgb[pocket]
+            if np.abs(pixels.mean(axis=0) - bg).max() < 10 and pixels.std(axis=0).max() < 9:
+                backdrop = backdrop | pocket
 
     mask = ndi.binary_opening(~backdrop, iterations=2)
     if not mask.any():

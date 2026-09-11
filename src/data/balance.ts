@@ -59,12 +59,22 @@ export function payback(def: DefenderDef): number {
  * Nothing is allowed to lead both bands at once - that is what makes a card
  * an auto-include rather than a choice.
  */
+/*
+ * The bands, in the counting numbers the game now uses.
+ *
+ * Health came down by forty and a blow by twelve, so a goblin has three
+ * health and a militia hits for one - numbers a player can hold in their head
+ * and count a fight out in. These are the old bands carried across by those
+ * divisors and then widened a little, because rounding to whole numbers moves
+ * a cheap card further than an expensive one: what a card is allowed to be
+ * worth has not changed, only what it is written in.
+ */
 export const BANDS: Record<DefenderRole, { dps?: [number, number]; hp?: [number, number]; payback?: number }> = {
-  melee: { dps: [14, 30], hp: [300, 560] },
-  ranged: { dps: [24, 40], hp: [90, 260] },
-  aoe: { dps: [28, 52], hp: [100, 260] },
-  support: { dps: [0, 26], hp: [100, 320] },
-  wall: { dps: [0, 0], hp: [700, 1400] },
+  melee: { dps: [1.1, 2.9], hp: [7, 15] },
+  ranged: { dps: [1.9, 3.6], hp: [2.2, 7] },
+  aoe: { dps: [2.2, 4.4], hp: [2.4, 7] },
+  support: { dps: [0, 2.2], hp: [2.4, 8.2] },
+  wall: { dps: [0, 0], hp: [17, 36] },
   economy: { payback: 26 },
 };
 

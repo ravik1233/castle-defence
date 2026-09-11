@@ -154,12 +154,21 @@ export const FIELD_X0 = WALL.x + WALL.width;
  */
 export const KEEP = { x: KEEP_STRIP.width / 2, radius: 54 } as const;
 
-/** Where a reserve waits before it is called into a lane. */
+/**
+ * Where a reserve waits before it is called into a lane.
+ *
+ * One to a lane, standing on the courtyard's ground line like everything
+ * else. They used to be stacked two to a row at a fraction of the size,
+ * which put them in no lane at all and made them look like a mistake.
+ *
+ * The commander holds the middle lane, so the reserves fill outward from the
+ * edges and leave it to him.
+ */
 export function reservePost(index: number): { x: number; y: number } {
-  return {
-    x: KEEP_STRIP.width * (index % 2 === 0 ? 0.32 : 0.68),
-    y: laneGroundY(Math.min(GRID.rows - 1, Math.floor(index / 2))),
-  };
+  const middle = Math.floor(GRID.rows / 2);
+  const order = [0, GRID.rows - 1, 1, GRID.rows - 2, middle];
+  const row = order[index % order.length] ?? 0;
+  return { x: KEEP_STRIP.width / 2, y: laneGroundY(row) };
 }
 
 /**

@@ -184,51 +184,75 @@ export const WALL_SKINS: WallSkin[] = [
  * The wall strip that runs down the left edge of the battlefield.
  * Drawn once at full battlefield height so it can scroll as one piece.
  */
-export function castleWall(skin: WallSkin, width: number, height: number): StructureArt {
+/**
+ * The wall: two tiles of parapet the player builds on.
+ *
+ * It used to be a backdrop - a tall castle facade with banners hanging down
+ * it, painted behind a strip nobody could stand in. Now units are posted up
+ * here, so it has to read as a surface they are standing *on*: a stone
+ * walkway ruled into the same lanes as the field, with the merlons along its
+ * outer edge where the horde arrives, and nothing hanging over the middle of
+ * it for a militia to be drawn in front of.
+ *
+ * `lanes` is how many rows the walkway is divided into, so the courses line
+ * up with the ground the rest of the fight happens on.
+ */
+export function castleWall(skin: WallSkin, width: number, height: number, lanes = 5): StructureArt {
   const svg = draw(width, height, (s) => {
     const stone = skin.stone;
-    s.rect(-10, -10, width + 4, height + 20, 0, stone, { width: 0, depth: 0.7 });
-    // vertical light falloff toward the battlefield
-    const fade = s.vGradient([
-      [0, withAlpha('#000000', 0)],
-      [1, withAlpha('#1a1420', 0.45)],
-    ]);
+    s.rect(-10, -10, width + 20, height + 20, 0, stone, { width: 0, depth: 0.7 });
+
+    // Light falls from the field side, so the keep side of the walk is darker.
+    // 90 degrees: across the walk, not down it.
+    const fade = s.gradient(
+      [
+        [0, withAlpha('#1a1420', 0.5)],
+        [0.55, withAlpha('#000000', 0)],
+      ],
+      90,
+    );
     s.raw(`<rect x="0" y="0" width="${width}" height="${height}" fill="${fade}"/>`);
 
-    // masonry courses
-    const courseH = 46;
-    for (let y = 0, row = 0; y < height; y += courseH, row += 1) {
-      const offset = row % 2 === 0 ? 0 : width * 0.28;
-      s.flat(`M 0 ${y} L ${width} ${y}`, 'none', { width: 3, color: withAlpha(darken(stone, 0.45), 0.55) });
-      for (let x = offset; x < width; x += width * 0.56) {
-        s.flat(`M ${x} ${y} L ${x} ${y + courseH}`, 'none', { width: 3, color: withAlpha(darken(stone, 0.45), 0.4) });
+    // The walkway, ruled into lanes. Each band gets a lighter tread and a
+    // shadowed joint, so a unit standing on one reads as standing on stone.
+    const band = height / lanes;
+    for (let i = 0; i < lanes; i += 1) {
+      const y = i * band;
+      s.rect(6, y + band * 0.12, width - 34, band * 0.76, 6, lighten(stone, 0.06), { width: 0 });
+      s.flat(`M 0 ${y} L ${width - 26} ${y}`, 'none', { width: 3, color: withAlpha(darken(stone, 0.5), 0.6) });
+      // A few slabs across the tread, offset per lane so it is not a grid.
+      for (let x = 40 + (i % 2) * 52; x < width - 40; x += 104) {
+        s.flat(`M ${x} ${y + band * 0.14} L ${x} ${y + band * 0.86}`, 'none', {
+          width: 2,
+          color: withAlpha(darken(stone, 0.45), 0.35),
+        });
       }
     }
 
-    // battlement edge facing the field
-    s.rect(width - 20, -6, 26, height + 12, 0, darken(stone, 0.18), { width: 0 });
-    for (let y = 8; y < height; y += 78) {
-      s.rect(width - 30, y, 22, 34, 5, lighten(stone, 0.14), { width: 4 });
+    // Merlons along the field edge: the teeth the horde swings at.
+    s.rect(width - 26, -6, 30, height + 12, 0, darken(stone, 0.16), { width: 0 });
+    for (let y = 6; y < height; y += band / 2) {
+      s.rect(width - 30, y, 24, band * 0.26, 5, lighten(stone, 0.16), { width: 4 });
     }
 
-    // torches
-    for (let y = 60; y < height; y += 168) {
-      s.rect(width - 44, y, 9, 26, 4, '#6a4a2e', { width: 3 });
-      s.glow(width - 40, y - 6, 26, '#ffab3d', 0.7);
-      s.path(`M ${width - 40} ${y - 22} Q ${width - 30} ${y - 8} ${width - 40} ${y + 2} Q ${width - 50} ${y - 8} ${width - 40} ${y - 22} Z`, '#ffb545', {
-        width: 3,
-        color: '#c04a12',
-      });
-    }
-
-    // hanging banners
-    for (let y = 130; y < height; y += 210) {
+    // Torches on the parapet edge, one every other lane, low enough that they
+    // light the walk rather than hanging over whoever is standing on it.
+    for (let i = 1; i < lanes; i += 2) {
+      const y = i * band + band * 0.3;
+      s.rect(width - 48, y, 8, 22, 4, '#6a4a2e', { width: 3 });
+      s.glow(width - 44, y - 6, 22, '#ffab3d', 0.55);
       s.path(
-        `M ${width - 78} ${y} L ${width - 34} ${y} L ${width - 34} ${y + 74} L ${width - 56} ${y + 60} L ${width - 78} ${y + 74} Z`,
-        skin.banner,
-        { width: 4 },
+        `M ${width - 44} ${y - 20} Q ${width - 35} ${y - 7} ${width - 44} ${y + 2} Q ${width - 53} ${y - 7} ${width - 44} ${y - 20} Z`,
+        '#ffb545',
+        { width: 3, color: '#c04a12' },
       );
-      s.path(`M ${width - 66} ${y + 18} L ${width - 46} ${y + 18} L ${width - 56} ${y + 44} Z`, skin.trim, { width: 3 });
+    }
+
+    // Pennants, small, pinned flat against the keep-side edge where nothing
+    // stands. The old banners hung from poles across the middle of the wall.
+    for (let i = 0; i < lanes; i += 2) {
+      const y = i * band + band * 0.24;
+      s.path(`M 4 ${y} L 26 ${y} L 26 ${y + 34} L 15 ${y + 26} L 4 ${y + 34} Z`, skin.banner, { width: 3 });
     }
   });
   return { svg, originX: 0, originY: 0 };
