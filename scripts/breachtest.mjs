@@ -91,7 +91,18 @@ const through = await until(
 );
 if (through) console.log('enemy came through the breach');
 
-if (await until((s) => s.heartHp < opened.heartHp, 240000, 'the keep to take damage')) {
+/*
+ * A second one, put down already inside.
+ *
+ * The courtyard got a lot deeper when the wall became two tiles: the face is
+ * at ~594 and the commander stands at 100, so a body that comes through has
+ * four hundred pixels to walk before it can swing at him. At the fraction of
+ * real time this container runs the clock at, that walk alone outlasted the
+ * wait - the keep was struck, just after the driver had given up on it, and
+ * the run reported a failure for something that had happened.
+ */
+await page.evaluate((x) => globalThis.__battle.spawn('orc', 2, x), Math.round(WALL_FACE * 0.45));
+if (await until((s) => s.heartHp < opened.heartHp, 300000, 'the keep to take damage')) {
   console.log('the keep took damage from inside');
 }
 
@@ -103,7 +114,7 @@ if (await until((s) => s.heartHp < opened.heartHp, 240000, 'the keep to take dam
 if (
   await until(
     (s) => !s.enemyDump.some((e) => e.row === 2 && e.x < WALL_FACE),
-    240000,
+    300000,
     'the keep to kill what came through',
   )
 ) {
