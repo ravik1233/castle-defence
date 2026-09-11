@@ -87,7 +87,7 @@ console.log('mid-combat:', JSON.stringify({ kills: mid.kills, gold: mid.gold, wa
 if (mid.gold <= placed.gold - 5000) fail('kills paid no gold');
 // Every section still at full: the defenders are holding the whole line.
 if (mid.breached !== 0) fail(`${mid.breached} sections were breached with the line holding`);
-if (mid.sections.some((hp) => hp < 420)) fail('the wall took damage it should not have');
+if (mid.sections.some((hp) => hp < mid.sectionMax)) fail('the wall took damage it should not have');
 await page.screenshot({ path: 'screenshots/smoke-battle.png' });
 
 await page.evaluate(() => globalThis.__battle.castAt(0, 700, 700));
@@ -134,9 +134,17 @@ const untilOn = async (target, fn, what, timeoutMs = 300000) => {
   return false;
 };
 
+// Read what a full section is worth rather than typing it here. Both of
+// smoke's gate checks used to compare against 420, which a section has not
+// been worth since the rescale: this one passed the instant it was reached,
+// without ever waiting for a goblin to touch the wall, and then printed an
+// untouched gate under the heading "gate under attack".
 await untilOn(
   lose,
-  () => globalThis.__battle.state().sections.some((hp) => hp < 420),
+  () => {
+    const s = globalThis.__battle.state();
+    return s.sections.some((hp) => hp < s.sectionMax);
+  },
   'the gate to take damage',
 );
 console.log(

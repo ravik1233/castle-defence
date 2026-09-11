@@ -342,6 +342,13 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         heartHp: Math.round(this.commanderHp()),
         breached: this.sections.filter((hp) => hp <= 0).length,
         sections: this.sections.map((hp) => Math.round(hp)),
+        // What a full section is worth. A driver asking "is the wall
+        // untouched?" needs this rather than a number typed into the test:
+        // the rescale took a section from 420 to 11, and both halves of
+        // smoke's gate check were still comparing against 420 - one failing
+        // on a wall at full health, the other passing instantly without ever
+        // waiting for the gate to be hit.
+        sectionMax: Math.round(this.sectionMax),
         wave: this.waveIndex + 1,
         waves: this.waves.length,
         enemies: this.enemies.filter((e) => e.alive).length,
