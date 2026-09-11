@@ -46,14 +46,25 @@ await page.waitForFunction(() => globalThis.__battle !== undefined, { timeout: 1
 console.log('battle scene booted');
 
 await page.evaluate(() => globalThis.__battle.addGold(5000));
+/*
+ * Out in the field, where a player would put a line.
+ *
+ * Columns 0 and 1 are the parapet now. Building the whole line up there left
+ * the spearmen unable to reach anything until it arrived at the wall, so the
+ * horde walked the length of the field untouched and the battle took longer
+ * to resolve than this driver was willing to wait - which read as a game
+ * that would not finish.
+ */
+const { fieldCol0 } = await state();
+if (typeof fieldCol0 !== 'number') fail('the battle did not report where its field starts');
 for (let row = 0; row < 5; row += 1) {
   const ok = await page.evaluate(
-    ([r]) => globalThis.__battle.place('militia', r, 1) && globalThis.__battle.place('archer', r, 0),
-    [row],
+    ([r, c]) => globalThis.__battle.place('militia', r, c + 1) && globalThis.__battle.place('archer', r, c),
+    [row, fieldCol0],
   );
   if (!ok) fail(`could not place defenders in row ${row}`);
 }
-if (await page.evaluate(() => globalThis.__battle.place('militia', 0, 1))) {
+if (await page.evaluate((c) => globalThis.__battle.place('militia', 0, c + 1), fieldCol0)) {
   fail('placed two defenders in the same cell');
 }
 

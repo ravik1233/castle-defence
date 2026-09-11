@@ -15,6 +15,7 @@ import {
   SPAWN_X,
   KEEP,
   KEEP_STRIP,
+  FIELD_COL0,
   FIELD_X0,
   isWallCol,
   reservePost,
@@ -348,6 +349,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         // hardcoding a number that moves when the layout does.
         wallFaceX: Math.round(WALL_FACE_X),
         fieldX0: Math.round(FIELD_X0),
+        /** First column of open ground. Columns left of it are parapet. */
+        fieldCol0: FIELD_COL0,
         defenders: this.defenders.filter((d) => d.alive && d !== this.commander).length,
         defenderDump: this.defenders
           .filter((d) => d.alive)
