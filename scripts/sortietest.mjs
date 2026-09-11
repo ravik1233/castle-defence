@@ -104,7 +104,12 @@ await page.waitForTimeout(600);
 const farPaid = (await state()).gold - goldBefore;
 
 const goldMid = (await state()).gold;
-await page.evaluate(() => globalThis.__battle.spawn('goblin', 4, 400));
+// Just outside the wall face, read from the battle: x=400 used to be open
+// ground and is now inside the parapet itself.
+await page.evaluate(
+  (x) => globalThis.__battle.spawn('goblin', 4, x),
+  (await state()).wallFaceX + 80,
+);
 await page.waitForTimeout(600);
 await page.evaluate(() => globalThis.__battle.clearField(Infinity));
 await page.waitForTimeout(600);

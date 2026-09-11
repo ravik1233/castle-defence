@@ -59,6 +59,13 @@ import type { KeepState } from '../battle/combat';
  * five separate things, and losing one is a setback rather than the end.
  */
 const SECTION_MAX_HP = 420;
+/*
+ * Kills beyond this line pay a salvage bonus. It sits well out in the field,
+ * so the bonus is only collectable by something that went out for it.
+ */
+const FIELD_BOUNTY_LINE = 1150;
+const FIELD_BOUNTY_BONUS = 1.5;
+
 /** What the commander can take before the fort is lost. */
 const COMMANDER_HP = 1200;
 /**
@@ -1614,9 +1621,27 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   onEnemyKilled(e: Enemy): void {
     this.killCount += 1;
     if (this.under('noquarter')) return;
-    const bounty = emberBounty(e.def.bounty);
+    /*
+     * Killing them out in the field pays half again. A body that dies at the
+     * spawn line never reached the wall, never swung at the stonework and
+     * left its gear where someone could pick it up - which is the whole
+     * argument for opening the gate and going out to meet them.
+     *
+     * The Ember rewrite dropped this and paid a flat rate wherever a body
+     * fell, which left the sortie as pure risk: march a unit out, take the
+     * losses, collect exactly what standing still would have paid.
+     */
+    const far = e.x > FIELD_BOUNTY_LINE;
+    const bounty = Math.max(1, Math.round(emberBounty(e.def.bounty) * (far ? FIELD_BOUNTY_BONUS : 1)));
     this.gold += bounty;
-    floatText(this, e.x, e.y - 100, `+${bounty} EMBER`, COLORS.gold, 'tiny');
+    floatText(
+      this,
+      e.x,
+      e.y - 100,
+      far ? `+${bounty} EMBER salvage` : `+${bounty} EMBER`,
+      COLORS.gold,
+      'tiny',
+    );
     this.updateHud();
   }
 
