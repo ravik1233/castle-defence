@@ -757,6 +757,28 @@ export class Enemy {
     this.bar.destroy();
   }
 
+  /**
+   * Removed outright rather than killed - for a driver clearing the field
+   * between test phases, not for anything that happens in a real siege.
+   *
+   * `takeDamage(hp + 1)` was tried here first and looked like a kill, but it
+   * is not one: it is still a blow, so a shield or a kind's armour can eat
+   * enough of it that the body is left standing on real health, and an
+   * undead body still checks whether it gets back up. A field "cleared" this
+   * way could leave a wounded Fallen Knight in it, or turn a cleared
+   * skeleton into a risen one - both still very much `alive`, and both
+   * exactly what the next phase of a driver is about to spawn into.
+   *
+   * This skips combat entirely: no armour, no shield, no rising, no bounty,
+   * no death sound. It only marks the body gone and lets the ordinary reap
+   * loop take it from there, the same as any other death.
+   */
+  despawn(): void {
+    if (!this.alive) return;
+    this.alive = false;
+    this.bar.destroy();
+  }
+
   update(time: number, delta: number): void {
     if (!this.alive) {
       this.rig.update(time, delta);

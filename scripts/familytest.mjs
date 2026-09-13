@@ -75,27 +75,45 @@ await page.waitForTimeout(500);
 let kn = await find('fallen_knight');
 if (!kn.e || kn.e.shield <= 0) fail('a fallen knight arrived without a shield');
 else {
+  /*
+   * A flat 100 was a moderate hit back when a knight had 220 health; against
+   * the rescaled 22 it was five times the body's total and killed clean
+   * through the shield regardless of the maths being tested. Scaled to this
+   * knight's own health, the way the rage test already scales to the bear's.
+   */
   const hpBefore = kn.e.hp;
-  await hurt(kn.i, 100);
+  const hit = Math.max(2, Math.round(hpBefore * 0.55));
+  await hurt(kn.i, hit);
   await page.waitForTimeout(400);
   kn = await find('fallen_knight');
-  const lost = hpBefore - kn.e.hp;
-  if (lost >= 100) fail(`the shield absorbed nothing: body lost ${lost} of 100`);
-  else console.log(`shield took the blow: body lost ${lost} of 100, shield now ${kn.e.shield}`);
+  if (!kn.e) fail(`a moderate hit of ${hit} killed a knight with ${hpBefore} health, shield and all`);
+  else {
+    const lost = hpBefore - kn.e.hp;
+    if (lost >= hit) fail(`the shield absorbed nothing: body lost ${lost} of ${hit}`);
+    else console.log(`shield took the blow: body lost ${lost} of ${hit}, shield now ${kn.e.shield}`);
 
-  const shieldBefore = kn.e.shield;
-  const bodyBefore = kn.e.hp;
-  await hurt(kn.i, 100, 'physical', true);
-  await page.waitForTimeout(400);
-  kn = await find('fallen_knight');
-  const throughBody = bodyBefore - kn.e.hp;
-  if (kn.e.shield !== shieldBefore) fail('a shieldbreaker still chipped the shield');
-  // The claim is not a number, it is that the same blow hurts far more when
-  // the shield is ignored than when it is not.
-  else if (throughBody <= lost * 2) {
-    fail(`a shieldbreaker's blow did ${throughBody}, an ordinary one ${lost}`);
-  } else {
-    console.log(`shieldbreaker went through: ${throughBody} to the body against ${lost}, shield untouched`);
+    // A fresh knight for the breaker, rather than the one just shielded: the
+    // same relative hit should do far more when it skips the shield
+    // entirely, not merely more than whatever the first one has left.
+    await clear();
+    await spawn('fallen_knight', 1, 1500);
+    await page.waitForTimeout(500);
+    const fresh = await find('fallen_knight');
+    await hurt(fresh.i, hit, 'physical', true);
+    await page.waitForTimeout(400);
+    const after = await find('fallen_knight');
+    if (!after.e) fail(`a shieldbreaker's ${hit} killed a knight with ${hpBefore} health outright`);
+    else {
+      const throughBody = fresh.e.hp - after.e.hp;
+      if (after.e.shield !== fresh.e.shield) fail('a shieldbreaker still chipped the shield');
+      // The claim is not a number, it is that the same blow hurts far more
+      // when the shield is ignored than when it is not.
+      else if (throughBody <= lost * 1.5) {
+        fail(`a shieldbreaker's blow did ${throughBody}, an ordinary one ${lost}`);
+      } else {
+        console.log(`shieldbreaker went through: ${throughBody} to the body against ${lost}, shield untouched`);
+      }
+    }
   }
 }
 

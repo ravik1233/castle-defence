@@ -95,11 +95,27 @@ if (home) console.log('the militia came home and holds its cell again');
 
 /* --------------------------------------------- salvage out in the field */
 
+/*
+ * This has to actually kill the goblin through combat, not clearField:
+ * clearField despawns rather than kills on purpose now (a debug "wipe the
+ * board" should not pay bounty, or let a shield eat the blow and leave the
+ * body standing - see despawn() on Enemy), so it pays nothing here either
+ * way and would make every salvage check read as "0 against 0".
+ */
+const findGoblin = async () => {
+  const list = await page.evaluate(() => globalThis.__battle.enemyState());
+  return list.findIndex((e) => e.id === 'goblin' && e.alive);
+};
+const kill = async () => {
+  const i = await findGoblin();
+  await page.evaluate((idx) => globalThis.__battle.hurt(idx, 9999), i);
+};
+
 const goldBefore = (await state()).gold;
 // A body killed far out is worth half again; one at the wall is not.
 await page.evaluate(() => globalThis.__battle.spawn('goblin', 4, 1400));
 await page.waitForTimeout(600);
-await page.evaluate(() => globalThis.__battle.clearField(Infinity));
+await kill();
 await page.waitForTimeout(600);
 const farPaid = (await state()).gold - goldBefore;
 
@@ -111,7 +127,7 @@ await page.evaluate(
   (await state()).wallFaceX + 80,
 );
 await page.waitForTimeout(600);
-await page.evaluate(() => globalThis.__battle.clearField(Infinity));
+await kill();
 await page.waitForTimeout(600);
 const nearPaid = (await state()).gold - goldMid;
 

@@ -169,15 +169,30 @@ The gap between battles is a real part of the game now.
 ### The wall can break
 
 40. In a battle, let one lane's gate section fall. That lane's bar empties,
-    the section is gone, and enemies walk **into the keep**.
-41. Defenders inside the keep still shoot them, and the keep's own garrison
-    fires as well — a breach is survivable, not instant death.
-42. The **Keep Heart** bar (top centre) only drops once something is inside
-    hitting it. Lose the heart and the run ends.
-43. **REPAIR** rebuilds a fallen section for 3 Ember at 60% health. Costly
+    the section is gone, and enemies walk through it into the courtyard.
+41. The moment that lane has no living holder left (the commander does not
+    count as one), a unit steps up from the **reserve pool** — four of them,
+    shared across all five lanes — to fight there. A lane that still has a
+    holder calls nobody up; the pool is not spent faster than the wall
+    actually needs it.
+42. The keep's own garrison also chips away at anything past the wall, so a
+    breach with nobody covering it yet is not an instant loss either. Look
+    for its damage ticking in even before a reserve arrives.
+43. **The commander** stands behind the centre lane and is the true loss
+    condition now — there is no separate Keep Heart bar. Their health is
+    shown at top centre. Lose the commander and the run ends, however many
+    sections are still standing.
+44. **REPAIR** rebuilds a fallen section for 3 Ember at 60% health. Costly
     on purpose: it should hurt to rebuild mid-fight.
-44. Finishing with any section breached caps you at **one star**, even on a
+45. Finishing with any section breached caps you at **one star**, even on a
     clean-looking win.
+46. The wall is two tiles wide now, not one: the outer tile is the parapet,
+    the inner is the field's first column. Only a fighting unit — never an
+    Ember Miner or a Tithe Shrine — can be placed on the parapet.
+47. A **ranged** defender posted on the parapet fires both outward at the
+    approaching horde and back inward at anything that has already breached
+    into the courtyard — it has the wall to stand on and the whole courtyard
+    in view. A melee unit on the parapet only fights whatever reaches it.
 
 ### Sorties
 

@@ -87,9 +87,18 @@ const REPAIR_SHARE = 0.6;
  * Without this a breach is a certain loss on a timer: a lane held only by
  * melee has nothing that can reach the courtyard, so whatever got in would
  * hit the heart forever. The garrison makes a breach a race the player can
- * win by killing what came through - or lose by letting more follow.
+ * win by killing what came through - or lose by letting more follow, and the
+ * reserve that comes running from the pool is meant to be racing it too.
+ *
+ * This was 50 when a hobgoblin held a few hundred health and the fight lasted
+ * a dozen seconds. Health is divided by 40 now (`rescale-numbers.py`) and
+ * this constant lives outside that script's reach, so it was still 50 the
+ * whole time everything it damages got smaller by the same factor - a
+ * breach stopped being a race and became instant, over before a reserve or
+ * a player could do anything about it. Divided by the same 40 it holds the
+ * pacing it was actually tuned for.
  */
-const GARRISON_DPS = 50;
+const GARRISON_DPS = 50 / 40;
 const PREP_SECONDS = 10;
 const MUSTER_SECONDS = 5;
 
@@ -278,7 +287,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         let killed = 0;
         for (const e of this.enemies) {
           if (!e.alive || e.x > keepBeyond) continue;
-          e.takeDamage(e.hp + 1, true);
+          e.despawn();
           killed += 1;
         }
         return killed;
