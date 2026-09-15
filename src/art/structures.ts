@@ -180,6 +180,19 @@ export const WALL_SKINS: WallSkin[] = [
   { id: 'verdant', name: 'Verdant Watch', stone: '#7c8b74', roof: '#3f7a4e', banner: '#4fae6a', trim: '#d9e2c4' },
 ];
 
+/** Campaign walls belong to their country; shop skins remain menu cosmetics. */
+export const REGION_WALL_SKINS: Record<string, WallSkin> = {
+  fields: { id: 'region-fields', name: 'Broken Fields', stone: '#9b927f', roof: '#684334', banner: '#315f96', trim: '#d8c898' },
+  barrows: { id: 'region-barrows', name: 'Barrow Hold', stone: '#68737a', roof: '#343b43', banner: '#436f72', trim: '#9bc5bd' },
+  woods: { id: 'region-woods', name: 'Ashen Watch', stone: '#625b55', roof: '#392d31', banner: '#7e3b2d', trim: '#c17c45' },
+  highland: { id: 'region-highland', name: 'Iron Highland', stone: '#8b8575', roof: '#4c5660', banner: '#315b49', trim: '#c8b77e' },
+  coast: { id: 'region-coast', name: 'Tidewall', stone: '#55777a', roof: '#31545d', banner: '#277f88', trim: '#d0b985' },
+  abyss: { id: 'region-abyss', name: 'March Bastion', stone: '#514650', roof: '#2d222b', banner: '#8c3137', trim: '#d78243' },
+  throne: { id: 'region-throne', name: 'Last Bastion', stone: '#3c3445', roof: '#221925', banner: '#9c2638', trim: '#e0a43c' },
+};
+
+export const ALL_CASTLE_SKINS = [...WALL_SKINS, ...Object.values(REGION_WALL_SKINS)];
+
 /**
  * The wall strip that runs down the left edge of the battlefield.
  * Drawn once at full battlefield height so it can scroll as one piece.

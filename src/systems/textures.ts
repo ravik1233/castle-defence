@@ -7,17 +7,18 @@
  */
 import type Phaser from 'phaser';
 import { BACKDROP_SCALE, addTexture, ensureBiome } from '../art/registry';
-import { WALL_SKINS, castleKeep, castleWall } from '../art/structures';
+import { ALL_CASTLE_SKINS, REGION_WALL_SKINS, WALL_SKINS, castleGate, castleKeep, castleWall } from '../art/structures';
 import type { BiomeId } from '../art/scenery';
 import { DESIGN, FIELD, GRID, WALL } from '../core/layout';
 
 export async function ensureCastleSkin(scene: Phaser.Scene, skinId: string): Promise<void> {
-  const skin = WALL_SKINS.find((s) => s.id === skinId) ?? WALL_SKINS[0]!;
+  const skin = ALL_CASTLE_SKINS.find((s) => s.id === skinId) ?? WALL_SKINS[0]!;
   if (scene.textures.exists(`wall.${skin.id}`)) return;
   // Exactly the lanes, so the walkway's courses line up with the ground the
   // rest of the fight happens on. The strip of wall above the lanes is drawn
   // separately - it is skyline, not somewhere anything stands.
   await addTexture(scene, `wall.${skin.id}`, castleWall(skin, WALL.width, FIELD.height, GRID.rows).svg, BACKDROP_SCALE);
+  await addTexture(scene, `gate.${skin.id}`, castleGate(skin, WALL.width - 18, GRID.cellH * 0.82).svg, 1);
   await addTexture(scene, `keep.${skin.id}`, castleKeep(skin).svg, 1);
 }
 
@@ -28,7 +29,7 @@ export async function ensureBattleTextures(
   skinId: string,
 ): Promise<void> {
   await ensureBiome(scene, biome, DESIGN.width, FIELD.height + FIELD.horizon, GRID.rows, FIELD.horizon);
-  await ensureCastleSkin(scene, skinId);
+  await ensureCastleSkin(scene, REGION_WALL_SKINS[biome]?.id ?? skinId);
 }
 
 /** All four keeps, for the castle-skin picker. */

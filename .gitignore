@@ -20,3 +20,4 @@ screenshots/
 art-in/*
 !art-in/README.md
 dist-qa/
+.art-library/

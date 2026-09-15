@@ -33,7 +33,7 @@ import { BIOMES } from '../art/scenery';
 import { Atmosphere } from '../battle/atmosphere';
 import { Tutorial, type TutorialHost } from '../battle/tutorial';
 import { quality } from '../systems/quality';
-import { WALL_SKINS } from '../art/structures';
+import { REGION_WALL_SKINS, WALL_SKINS } from '../art/structures';
 import { DEFENDERS, defender, upgradedStats } from '../data/defenders';
 import { ALL_CHARACTER_ART } from '../art/cast';
 import { enemy as enemyDef } from '../data/enemies';
@@ -67,6 +67,16 @@ const SECTION_MAX_HP = 11;
  */
 const FIELD_BOUNTY_LINE = 1150;
 const FIELD_BOUNTY_BONUS = 1.5;
+
+const REGION_UI: Record<string, { hud: number; tray: number; card: number; edge: number; keep: number; lane: number }> = {
+  fields: { hud: 0x1b2130, tray: 0x20283a, card: 0x2d3b53, edge: 0xc9ad67, keep: 0x756d61, lane: 0x304e35 },
+  barrows: { hud: 0x17252b, tray: 0x1d3034, card: 0x294247, edge: 0x91b9ae, keep: 0x56666a, lane: 0x29463f },
+  woods: { hud: 0x271b25, tray: 0x31222a, card: 0x49302f, edge: 0xc17443, keep: 0x5c514a, lane: 0x3f342e },
+  highland: { hud: 0x202832, tray: 0x29333d, card: 0x384853, edge: 0xc7b579, keep: 0x716c60, lane: 0x485148 },
+  coast: { hud: 0x132a35, tray: 0x173744, card: 0x235361, edge: 0x67c4c8, keep: 0x4f6d70, lane: 0x255a66 },
+  abyss: { hud: 0x271821, tray: 0x331d28, card: 0x4b2933, edge: 0xe07843, keep: 0x51444d, lane: 0x4a2934 },
+  throne: { hud: 0x1b1220, tray: 0x27152a, card: 0x3b203d, edge: 0xe1a23a, keep: 0x403746, lane: 0x402038 },
+};
 
 /** What the commander can take before the fort is lost. */
 const COMMANDER_HP = 30;
@@ -497,6 +507,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
   private buildField(): void {
     const biome = BIOMES[this.levelDef.biome];
+    const regionUi = REGION_UI[biome.id] ?? REGION_UI.fields!;
     this.add
       .image(DESIGN.width / 2, FIELD.y - FIELD.horizon, `bg.${biome.id}`)
       .setOrigin(0.5, 0)
@@ -515,7 +526,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       )
       .setDepth(-1200);
 
-    const skin = WALL_SKINS.find((s) => s.id === profile.activeSkin) ?? WALL_SKINS[0]!;
+    const skin = REGION_WALL_SKINS[biome.id] ?? WALL_SKINS.find((s) => s.id === profile.activeSkin) ?? WALL_SKINS[0]!;
     /*
      * The keep, behind the wall: the courtyard the commander holds.
      *
@@ -524,7 +535,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
      * stone now, lit from the field side and ruled into the same lanes as
      * everything else, so it is ground rather than absence.
      */
-    const keepStone = 0x6a6472;
+    const keepStone = regionUi.keep;
     this.add
       .rectangle(
         KEEP_STRIP.x + KEEP_STRIP.width / 2,
@@ -539,7 +550,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       const top = GRID.y0 + row * GRID.cellH;
       // Two slabs to a lane, offset row by row so it reads as laid stone.
       for (let i = 0; i < 2; i += 1) {
-        flags.fillStyle(i === row % 2 ? 0x746d7d : 0x5f5968, 1);
+        flags.fillStyle(i === row % 2 ? regionUi.keep : Phaser.Display.Color.ValueToColor(regionUi.keep).darken(14).color, 1);
         flags.fillRect(6 + i * (KEEP_STRIP.width / 2 - 4), top + 5, KEEP_STRIP.width / 2 - 14, GRID.cellH - 10);
       }
       flags.lineStyle(2, 0x4a4553, 0.7);
@@ -561,6 +572,13 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       .setOrigin(0, 0)
       .setDisplaySize(WALL.width, FIELD.height)
       .setDepth(-870);
+    // The central sally gate is now a real regional asset rather than an
+    // invisible lane in a repeated wall texture.
+    this.add
+      .image(WALL.x + 9, laneCenterY(Math.floor(GRID.rows / 2)) - GRID.cellH * 0.41, `gate.${skin.id}`)
+      .setOrigin(0, 0)
+      .setDisplaySize(WALL.width - 18, GRID.cellH * 0.82)
+      .setDepth(-868);
     // Skyline above the lanes: the merlons off the top of the painted wall,
     // so the parapet is capped by battlements rather than a grey block.
     const capKey = `wall.${skin.id}.cap`;
@@ -598,7 +616,9 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   /* ----------------------------------------------------------------- hud - */
 
   private buildHud(): void {
-    this.add.rectangle(DESIGN.width / 2, HUD.height / 2, DESIGN.width, HUD.height, 0x1b1626, 0.94).setDepth(3000);
+    const ui = REGION_UI[this.levelDef.biome] ?? REGION_UI.fields!;
+    this.add.rectangle(DESIGN.width / 2, HUD.height / 2, DESIGN.width, HUD.height, ui.hud, 0.97).setDepth(3000);
+    this.add.rectangle(DESIGN.width / 2, HUD.height - 3, DESIGN.width, 6, ui.edge, 0.9).setDepth(3001);
 
     this.goldCounter = new Counter(this, 40, HUD.height / 2, 'fx.ember', this.gold);
     this.goldCounter.setDepth(3001);
@@ -694,19 +714,20 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
    * grass - rather than as a coloured square with a legend somewhere else.
    */
   private drawGround(): void {
+    const ui = REGION_UI[this.levelDef.biome] ?? REGION_UI.fields!;
     // Painted scenery has no baked-in lane geometry. Keep boundaries aligned
     // with the actual placement grid at every display size.
-    if (this.levelDef.biome === 'fields') {
+    {
       const lanes = this.add.graphics().setDepth(-950);
       for (let row = 0; row < GRID.rows; row += 1) {
         const y = FIELD.y + row * GRID.cellH;
         if (row % 2 === 1) {
-          lanes.fillStyle(0x172e20, 0.13);
+          lanes.fillStyle(ui.lane, 0.1);
           lanes.fillRect(FIELD_X0, y, FIELD.width - FIELD_X0, GRID.cellH);
         }
-        lanes.lineStyle(3, 0x203a22, 0.28);
+        lanes.lineStyle(3, ui.edge, 0.2);
         lanes.lineBetween(FIELD_X0, y, FIELD.width, y);
-        lanes.lineStyle(1, 0xe6e9b2, 0.22);
+        lanes.lineStyle(1, 0xffffff, 0.11);
         lanes.lineBetween(FIELD_X0, y + 3, FIELD.width, y + 3);
       }
     }
@@ -725,8 +746,10 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         const y = c.y - h / 2;
 
         if (kind === 'water') {
-          g.fillStyle(0x2f6a84, 0.72);
-          g.fillRect(x, y, w, h);
+          g.fillStyle(0x214f68, 0.76);
+          g.fillRoundedRect(x + 8, y + 15, w - 16, h - 28, 30);
+          g.fillStyle(0x397e93, 0.46);
+          g.fillEllipse(c.x - 18, c.y - 8, w * 0.72, h * 0.42);
           detail.lineStyle(3, 0x7fd0e8, 0.5);
           for (let i = 0; i < 3; i += 1) {
             const yy = y + h * (0.3 + i * 0.22);
@@ -738,22 +761,21 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
             detail.strokePath();
           }
         } else if (kind === 'marsh') {
-          g.fillStyle(0x3f5240, 0.6);
-          g.fillRect(x, y, w, h);
+          g.fillStyle(0x293d35, 0.7);
+          g.fillEllipse(c.x - 18, c.y + 10, w * 0.72, h * 0.48);
+          g.fillEllipse(c.x + 38, c.y - 20, w * 0.38, h * 0.3);
           detail.fillStyle(0x6f8a5a, 0.5);
           for (let i = 0; i < 5; i += 1) {
             detail.fillCircle(x + 20 + ((i * 37) % (w - 40)), y + 30 + ((i * 53) % (h - 50)), 9);
           }
         } else if (kind === 'highground') {
-          g.fillStyle(0x6a6152, 0.85);
-          g.fillRect(x, y, w, h);
+          g.fillStyle(0x302a27, 0.35);
+          g.fillEllipse(c.x, y + h - 18, w * 0.85, 34);
           detail.fillStyle(0x8b8272, 1);
           detail.fillTriangle(c.x - 46, y + h - 16, c.x - 8, y + 22, c.x + 30, y + h - 16);
           detail.fillStyle(0xa39a88, 1);
           detail.fillTriangle(c.x + 4, y + h - 16, c.x + 34, y + 40, c.x + 62, y + h - 16);
         } else if (kind === 'rubble') {
-          g.fillStyle(0x4a4038, 0.7);
-          g.fillRect(x, y, w, h);
           detail.fillStyle(0x6f6355, 1);
           for (let i = 0; i < 6; i += 1) {
             const rx = x + 18 + ((i * 41) % (w - 36));
@@ -761,8 +783,6 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
             detail.fillRect(rx, ry, 18 + (i % 3) * 6, 12 + (i % 2) * 5);
           }
         } else if (kind === 'tallgrass') {
-          g.fillStyle(0x4f7a3c, 0.42);
-          g.fillRect(x, y, w, h);
           detail.lineStyle(4, 0x76a84a, 0.75);
           for (let i = 0; i < 7; i += 1) {
             const bx = x + 16 + ((i * 29) % (w - 30));
@@ -773,15 +793,17 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
             detail.strokePath();
           }
         } else if (kind === 'shrine') {
-          g.fillStyle(0x5a5470, 0.55);
-          g.fillRect(x, y, w, h);
-          detail.lineStyle(5, 0xf5c542, 0.75);
-          detail.strokeCircle(c.x, c.y, 34);
-          detail.lineStyle(4, 0xffe9a8, 0.65);
-          detail.strokeCircle(c.x, c.y, 18);
+          g.fillStyle(0x40394d, 0.9);
+          g.fillEllipse(c.x, c.y + 18, 96, 48);
+          detail.lineStyle(7, 0x817890, 0.9);
+          detail.strokeEllipse(c.x, c.y + 12, 82, 42);
+          detail.fillStyle(0xff9a45, 0.95);
+          detail.fillTriangle(c.x - 13, c.y + 12, c.x, c.y - 35, c.x + 13, c.y + 12);
+          detail.lineStyle(3, 0xffe0a0, 0.8);
+          detail.strokeTriangle(c.x - 13, c.y + 12, c.x, c.y - 35, c.x + 13, c.y + 12);
         } else if (kind === 'seam') {
-          g.fillStyle(0x3b2d42, 0.76);
-          g.fillRect(x, y, w, h);
+          g.fillStyle(0x2b202d, 0.68);
+          g.fillEllipse(c.x, c.y + 18, w * 0.72, h * 0.4);
           detail.fillStyle(0xff8a3d, 0.95);
           for (let i = 0; i < 4; i += 1) {
             const cx = c.x - 34 + i * 22;
@@ -1118,7 +1140,9 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
   private buildTray(): void {
     const deck = this.deckForLevel();
-    this.add.rectangle(DESIGN.width / 2, TRAY.y + TRAY.height / 2, DESIGN.width, TRAY.height, 0x221c33, 0.92).setDepth(3000);
+    const ui = REGION_UI[this.levelDef.biome] ?? REGION_UI.fields!;
+    this.add.rectangle(DESIGN.width / 2, TRAY.y + TRAY.height / 2, DESIGN.width, TRAY.height, ui.tray, 0.96).setDepth(3000);
+    this.add.rectangle(DESIGN.width / 2, TRAY.y + 3, DESIGN.width, 6, ui.edge, 0.72).setDepth(3001);
 
     deck.forEach((id, i) => {
       const def = defender(id);
@@ -1129,8 +1153,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       // A true card-shaped panel: the old 150x200 texture was being stretched
       // into a near square, which distorted both the summon button and art.
       const frame = this.add
-        .rectangle(0, 0, TRAY.cardW - 4, TRAY.cardH - 4, 0x302842, 0.98)
-        .setStrokeStyle(4, 0x71608a);
+        .rectangle(0, 0, TRAY.cardW - 4, TRAY.cardH - 4, ui.card, 0.98)
+        .setStrokeStyle(4, ui.edge);
       container.add(frame);
 
       const art = this.cardArt(id, 0, -24, 0.56);
@@ -1254,8 +1278,9 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   }
 
   private refreshCardHighlight(): void {
+    const ui = REGION_UI[this.levelDef.biome] ?? REGION_UI.fields!;
     for (const card of this.cards) {
-      card.frame.setStrokeStyle(this.selectedCard === card.id ? 7 : 4, this.selectedCard === card.id ? 0xffd257 : 0x71608a);
+      card.frame.setStrokeStyle(this.selectedCard === card.id ? 7 : 4, this.selectedCard === card.id ? 0xffd257 : ui.edge);
       card.container.setScale(this.selectedCard === card.id ? 1.07 : 1);
     }
   }
