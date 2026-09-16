@@ -28,7 +28,7 @@
     "art:frames": "node scripts/import-frames.mjs",
     "art:packed": "node scripts/import-packed-sheet.mjs",
     "art:test": "node scripts/art-refresh-test.mjs",
-    "art:test:region2": "python3 scripts/check-region-actions.py",
+    "art:test:regions": "python3 scripts/check-region-actions.py",
     "breachtest": "node scripts/breachtest.mjs",
     "damagetest": "node scripts/damagetest.mjs",
     "siegetest": "node scripts/siegetest.mjs",

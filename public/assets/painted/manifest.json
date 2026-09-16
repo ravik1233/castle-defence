@@ -2510,5 +2510,818 @@
       }
     }
   },
-  "_region_2_actions": "Three-pose presentation sheets: idle, impact/cast, and fallen death. Walking intentionally uses idle until bespoke walk cycles are approved."
+  "_region_2_actions": "Three-pose presentation sheets: idle, impact/cast, and fallen death. Walking intentionally uses idle until bespoke walk cycles are approved.",
+  "unit.elf_ranger.frames": {
+    "sheet": "unit.elf_ranger.region3.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.elf_spellweaver.frames": {
+    "sheet": "unit.elf_spellweaver.region3.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.moonblade.frames": {
+    "sheet": "unit.moonblade.region3.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.faelith.frames": {
+    "sheet": "unit.faelith.region3.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.treesinger.frames": {
+    "sheet": "unit.treesinger.region3.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.hawkkeeper.frames": {
+    "sheet": "unit.hawkkeeper.region3.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.orc_shaman.frames": {
+    "sheet": "unit.orc_shaman.region3.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.wyvern_rider.frames": {
+    "sheet": "unit.wyvern_rider.region3.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.orc_axethrower.frames": {
+    "sheet": "unit.orc_axethrower.region3.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.orc_powderkeg.frames": {
+    "sheet": "unit.orc_powderkeg.region3.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.orc_berserker.frames": {
+    "sheet": "unit.orc_berserker.region3.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.orc_ironback.frames": {
+    "sheet": "unit.orc_ironback.region3.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.orc.frames": {
+    "sheet": "unit.orc.region3.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.gatebreaker.frames": {
+    "sheet": "unit.gatebreaker.region3.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "_region_3_actions": "Three-pose presentation sheets: idle, impact/cast, and fallen death. Walking intentionally uses idle until bespoke walk cycles are approved."
 }

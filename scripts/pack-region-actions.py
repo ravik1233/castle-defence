@@ -31,6 +31,12 @@ REGIONS = {
         "skeleton", "skeleton_archer", "zombie", "ghoul",
         "grave_raven", "vampire", "bone_golem", "lich", "necromancer",
     ],
+    3: [
+        "elf_ranger", "elf_spellweaver", "moonblade", "faelith",
+        "treesinger", "hawkkeeper", "orc_shaman", "wyvern_rider",
+        "orc_axethrower", "orc_powderkeg", "orc_berserker", "orc_ironback",
+        "orc", "troll", "orc_warlord", "gatebreaker",
+    ],
 }
 
 
@@ -122,6 +128,11 @@ def main() -> None:
     for art_id in ids:
         source_name = manifest.get(f"unit.{art_id}.full")
         if not isinstance(source_name, str):
+            # Preserve superior hand-authored sheets already carrying their
+            # own idle/walk/attack/death frames.
+            if isinstance(manifest.get(f"unit.{art_id}.frames"), dict):
+                print(f"{art_id}: kept existing authored frame sheet")
+                continue
             raise SystemExit(f"unit.{art_id}.full is missing from the painted manifest")
         source_path = PAINTED / source_name
         if not source_path.is_file() or source_path.stat().st_size == 0:
