@@ -29,6 +29,12 @@ REGIONS = {
         "deep_serpent", "tide_witch", "barnacle_hulk", "abyss_wisp",
         "kelp_thrall",
     ],
+    6: [
+        "templar", "pavise", "shieldbreaker", "garrick", "confessor",
+        "fallen_crossbow", "fallen_knight", "black_guard", "cultist",
+        "inquisitor", "betrayer", "sworn_lance", "spearwall",
+        "watchman", "bell_chanter", "black_hawk", "martyr",
+    ],
 }
 
 manifest = json.loads((PAINTED / "manifest.json").read_text())
