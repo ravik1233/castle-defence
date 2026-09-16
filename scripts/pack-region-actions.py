@@ -37,6 +37,11 @@ REGIONS = {
         "orc_axethrower", "orc_powderkeg", "orc_berserker", "orc_ironback",
         "orc", "troll", "orc_warlord", "gatebreaker",
     ],
+    4: [
+        "warden", "netcaster", "houndmaster", "seraphina",
+        "dire_wolf", "boar", "harpy", "giant_spider", "cave_bear",
+        "beastlord", "thornback", "packmother", "spitting_lizard",
+    ],
 }
 
 
