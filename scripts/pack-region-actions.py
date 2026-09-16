@@ -42,6 +42,12 @@ REGIONS = {
         "dire_wolf", "boar", "harpy", "giant_spider", "cave_bear",
         "beastlord", "thornback", "packmother", "spitting_lizard",
     ],
+    5: [
+        "harpooner", "tidecaller", "deepwatch", "nerion",
+        "drowned_sailor", "reef_crawler", "siren", "tide_raider",
+        "deep_serpent", "tide_witch", "barnacle_hulk", "abyss_wisp",
+        "kelp_thrall",
+    ],
 }
 
 
