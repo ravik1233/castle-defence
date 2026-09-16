@@ -21,8 +21,8 @@
         "weapon": "dagger",
         "wings": "feather"
       },
-      "currentAsset": "procedural-parts",
-      "frameCount": 0,
+      "currentAsset": "unit.goblin_glider.region1.png",
+      "frameCount": 5,
       "replacementStatus": "pending-review"
     },
     {
@@ -530,8 +530,8 @@
         "weapon": "spear",
         "metal": "#9aa4b4"
       },
-      "currentAsset": "unit.militia.sheet.png",
-      "frameCount": 8,
+      "currentAsset": "unit.militia.region1.png",
+      "frameCount": 3,
       "replacementStatus": "pending-review"
     },
     {
@@ -552,8 +552,8 @@
         },
         "weapon": "bow"
       },
-      "currentAsset": "unit.archer.sheet.png",
-      "frameCount": 8,
+      "currentAsset": "unit.archer.region1.png",
+      "frameCount": 3,
       "replacementStatus": "pending-review"
     },
     {
@@ -575,8 +575,8 @@
         "weapon": "sword",
         "offhand": "shield"
       },
-      "currentAsset": "legacy-frames",
-      "frameCount": 5,
+      "currentAsset": "unit.guardian.region1.png",
+      "frameCount": 3,
       "replacementStatus": "pending-review"
     },
     {
@@ -598,8 +598,8 @@
         },
         "weapon": "crossbow"
       },
-      "currentAsset": "legacy-frames",
-      "frameCount": 5,
+      "currentAsset": "unit.arbalest.region1.png",
+      "frameCount": 3,
       "replacementStatus": "pending-review"
     },
     {
@@ -644,8 +644,8 @@
         "weapon": "staff",
         "aura": "#8fe2f5"
       },
-      "currentAsset": "legacy-frames",
-      "frameCount": 5,
+      "currentAsset": "unit.frostmage.region1.png",
+      "frameCount": 3,
       "replacementStatus": "pending-review"
     },
     {
@@ -811,8 +811,8 @@
         },
         "weapon": "hammer"
       },
-      "currentAsset": "procedural-parts",
-      "frameCount": 0,
+      "currentAsset": "unit.dwarf_engineer.region1.png",
+      "frameCount": 3,
       "replacementStatus": "pending-review"
     },
     {
@@ -1262,8 +1262,8 @@
         },
         "weapon": "dagger"
       },
-      "currentAsset": "procedural-parts",
-      "frameCount": 0,
+      "currentAsset": "unit.goblin_thief.region1.png",
+      "frameCount": 5,
       "replacementStatus": "pending-review"
     },
     {
@@ -1285,8 +1285,8 @@
         },
         "weapon": "spear"
       },
-      "currentAsset": "procedural-parts",
-      "frameCount": 0,
+      "currentAsset": "unit.wolf_rider.region1.png",
+      "frameCount": 5,
       "replacementStatus": "pending-review"
     },
     {
@@ -1310,8 +1310,8 @@
         "weapon": "club",
         "cape": "#7a2030"
       },
-      "currentAsset": "procedural-parts",
-      "frameCount": 0,
+      "currentAsset": "unit.goblin_king.region1.png",
+      "frameCount": 5,
       "replacementStatus": "pending-review"
     },
     {
@@ -2096,8 +2096,8 @@
         },
         "weapon": "dagger"
       },
-      "currentAsset": "unit.goblin.sheet.v2.png",
-      "frameCount": 16,
+      "currentAsset": "unit.goblin.region1.png",
+      "frameCount": 5,
       "replacementStatus": "pending-review"
     },
     {
@@ -2118,8 +2118,8 @@
         },
         "weapon": "club"
       },
-      "currentAsset": "unit.goblin_runner.sheet.png",
-      "frameCount": 8,
+      "currentAsset": "unit.goblin_runner.region1.png",
+      "frameCount": 5,
       "replacementStatus": "pending-review"
     },
     {
@@ -2141,7 +2141,7 @@
         "weapon": "torch",
         "offhand": "orb"
       },
-      "currentAsset": "legacy-frames",
+      "currentAsset": "unit.goblin_bomber.region1.png",
       "frameCount": 5,
       "replacementStatus": "pending-review"
     },
@@ -2166,7 +2166,7 @@
         "weapon": "sword",
         "offhand": "buckler"
       },
-      "currentAsset": "legacy-frames",
+      "currentAsset": "unit.hobgoblin.region1.png",
       "frameCount": 5,
       "replacementStatus": "pending-review"
     },
@@ -2287,7 +2287,7 @@
         "weapon": "staff",
         "aura": "#a45cf0"
       },
-      "currentAsset": "legacy-frames",
+      "currentAsset": "unit.shaman.region1.png",
       "frameCount": 5,
       "replacementStatus": "pending-review"
     },
@@ -2437,8 +2437,8 @@
         "cape": "#2f6fb5",
         "aura": "#ffe9a8"
       },
-      "currentAsset": "unit.aldric.sheet.png",
-      "frameCount": 8,
+      "currentAsset": "unit.aldric.region1.png",
+      "frameCount": 3,
       "replacementStatus": "pending-review"
     },
     {
