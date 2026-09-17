@@ -15,6 +15,7 @@ import { CHAPTERS, level as levelById } from '../data/levels';
 import { DOCTRINES } from '../data/doctrines';
 import type { LevelDef } from '../data/types';
 import { portraitFor } from '../art/portraits';
+import { themeFor } from '../art/regions';
 import { profile } from '../systems/profile';
 import { ensureBattleTextures } from '../systems/textures';
 import { audio } from '../systems/audio';
@@ -56,8 +57,13 @@ export class LoadoutScene extends Phaser.Scene {
 
   create(): void {
     const w = DESIGN.width;
-    this.add.rectangle(w / 2, DESIGN.height / 2, w, DESIGN.height, 0x1b1626);
-    this.add.image(w / 2, DESIGN.height / 2, 'bg.menu').setDisplaySize(w, DESIGN.height).setAlpha(0.2);
+    const theme = themeFor(this.lvl.biome);
+    this.add.rectangle(w / 2, DESIGN.height / 2, w, DESIGN.height, theme.hud);
+    this.add
+      .image(w / 2, DESIGN.height / 2, `bg.${this.lvl.biome}`)
+      .setDisplaySize(w, DESIGN.height)
+      .setAlpha(0.3);
+    this.add.rectangle(w / 2, DESIGN.height / 2, w, DESIGN.height, theme.tray, 0.42);
 
     this.add.text(w / 2, 46, this.lvl.name.toUpperCase(), textStyle('title', COLORS.gold)).setOrigin(0.5);
     const brief = this.add

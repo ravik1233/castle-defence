@@ -6,6 +6,7 @@ import type { LevelDef } from '../data/types';
 import { profile } from '../systems/profile';
 import { audio } from '../systems/audio';
 import { emberCost } from '../battle/economy';
+import { themeFor } from '../art/regions';
 import { COLORS, Counter, TextButton, fitText, showDialog, starRow, tappable, textStyle } from '../ui/kit';
 
 export class MapScene extends Phaser.Scene {
@@ -16,10 +17,11 @@ export class MapScene extends Phaser.Scene {
     super('Map');
   }
 
-  create(): void {
+  create(data: { chapter?: number } = {}): void {
     const w = DESIGN.width;
     const h = DESIGN.height;
-    this.add.image(w / 2, h / 2, 'bg.map').setDisplaySize(w, h);
+    this.add.rectangle(w / 2, h / 2, w, h, 0x171421).setDepth(-30);
+    this.add.image(w / 2, h / 2, 'bg.map').setDisplaySize(w, h).setAlpha(0.26).setDepth(-20);
     this.add.rectangle(w / 2, 0, w, 96, 0x1b1626, 0.92).setOrigin(0.5, 0);
 
     new Counter(this, 40, 48, 'icon.coin', profile.gold, 'body');
@@ -32,10 +34,10 @@ export class MapScene extends Phaser.Scene {
 
     // Start on the chapter that holds the player's next fight.
     const progress = profile.campaignProgress;
-    this.chapterIndex = Math.max(
-      0,
-      CHAPTERS.findIndex((c) => c.levels.some((l) => levelNumber(l.id) >= progress)),
-    );
+    const requested = data.chapter ? CHAPTERS.findIndex((c) => c.id === data.chapter) : -1;
+    this.chapterIndex = requested >= 0
+      ? requested
+      : Math.max(0, CHAPTERS.findIndex((c) => c.levels.some((l) => levelNumber(l.id) >= progress)));
 
     this.drawChapter();
   }
@@ -46,6 +48,7 @@ export class MapScene extends Phaser.Scene {
     const chapter = CHAPTERS[this.chapterIndex]!;
     const w = DESIGN.width;
     const locked = Boolean(chapter.premium) && !profile.hasCrownPack;
+    const theme = themeFor(chapter.biome);
 
     const add = <T extends Phaser.GameObjects.GameObject>(o: T): T => {
       this.nodes.push(o);
@@ -53,15 +56,30 @@ export class MapScene extends Phaser.Scene {
     };
 
     add(
+      this.add
+        .image(w / 2, DESIGN.height / 2, `bg.${chapter.biome}`)
+        .setDisplaySize(w, DESIGN.height)
+        .setAlpha(0.58)
+        .setDepth(-14),
+    );
+    add(this.add.rectangle(w / 2, DESIGN.height / 2, w, DESIGN.height, theme.hud, 0.5).setDepth(-13));
+    add(
+      this.add
+        .rectangle(w / 2, 242, 980, 146, theme.card, 0.88)
+        .setStrokeStyle(5, theme.edge, 0.9)
+        .setDepth(-2),
+    );
+
+    add(
       fitText(
-        this.add.text(w / 2, 214, chapter.name.toUpperCase(), textStyle('title', '#43301a')).setOrigin(0.5),
+        this.add.text(w / 2, 214, chapter.name.toUpperCase(), textStyle('title', COLORS.parchment)).setOrigin(0.5),
         w - 300,
       ),
     );
     const stars = profile.chapterStars(chapter.id);
     add(
       this.add
-        .text(w / 2, 268, `${stars.earned} / ${stars.total} stars`, textStyle('small', '#6d5636'))
+        .text(w / 2, 268, `${stars.earned} / ${stars.total} stars`, textStyle('small', COLORS.gold))
         .setOrigin(0.5),
     );
 
@@ -127,7 +145,7 @@ export class MapScene extends Phaser.Scene {
       const record = profile.levelRecord(lvl.id);
 
       const node = this.add.container(x, y);
-      const disc = this.add.circle(0, 0, 46, unlocked ? 0x4a3a24 : 0x5d564a).setStrokeStyle(6, 0x2b2113);
+      const disc = this.add.circle(0, 0, 46, unlocked ? theme.card : 0x4a4650).setStrokeStyle(6, theme.edge);
       node.add(disc);
       node.add(
         this.add
@@ -142,7 +160,7 @@ export class MapScene extends Phaser.Scene {
       node.add(
         this.add
           .text(0, side < 0 ? -102 : 108, lvl.name, {
-            ...textStyle('small', '#3a2a18'),
+            ...textStyle('small', unlocked ? COLORS.parchment : COLORS.muted),
             align: 'center',
             wordWrap: { width: 230 },
           })

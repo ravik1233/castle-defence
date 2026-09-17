@@ -15,9 +15,7 @@ import { defender } from '../data/defenders';
 import { profile } from '../systems/profile';
 import { audio } from '../systems/audio';
 import { COLORS, TextButton, fitText, showDialog, starRow, tappable, textStyle } from '../ui/kit';
-
-/** Ground colour per region, west to east: fields, woods, ash, ruin. */
-const REGION_TINT = [0x6f7f43, 0x4c5c3a, 0x6b4636, 0x5a3242];
+import { themeFor } from '../art/regions';
 
 /** Where the map sits on screen, in pixels. */
 const MAP = { x: 120, y: 190, w: DESIGN.width - 240, h: DESIGN.height - 330 };
@@ -123,8 +121,9 @@ export class ContinentScene extends Phaser.Scene {
     CHAPTERS.forEach((region, i) => {
       const p = pts[i]!;
       const open = this.isOpen(region);
+      const theme = themeFor(region.biome);
       const g2 = this.add.graphics().setDepth(-14);
-      g2.fillStyle(open ? REGION_TINT[i % REGION_TINT.length]! : 0x3b3f36, open ? 0.55 : 0.4);
+      g2.fillStyle(open ? theme.lane : 0x3b3f36, open ? 0.58 : 0.4);
       g2.fillEllipse(p.x + 40, p.y + 10, 460, 320);
 
       // A scatter of trees or crags, kept out from under the card so the
@@ -186,6 +185,7 @@ export class ContinentScene extends Phaser.Scene {
     const cleared = region.levels.filter((l) => (profile.levelRecord(l.id)?.stars ?? 0) > 0).length;
     const stars = region.levels.reduce((n, l) => n + (profile.levelRecord(l.id)?.stars ?? 0), 0);
     const here = profile.currentRegion().id === region.id;
+    const theme = themeFor(region.biome);
 
     const node = this.add.container(x, y);
     const CARD_W = 340;
@@ -196,11 +196,22 @@ export class ContinentScene extends Phaser.Scene {
         .setDisplaySize(CARD_W, CARD_H)
         .setAlpha(open ? 1 : 0.55),
     );
+    node.add(
+      this.add
+        .image(0, 0, `bg.${region.biome}`)
+        .setDisplaySize(CARD_W - 14, CARD_H - 14)
+        .setAlpha(open ? 0.24 : 0.08),
+    );
+    node.add(
+      this.add
+        .rectangle(0, 0, CARD_W - 10, CARD_H - 10, theme.hud, open ? 0.36 : 0.62)
+        .setStrokeStyle(here ? 5 : 3, theme.edge, here ? 1 : 0.65),
+    );
     if (here) {
       node.add(
         this.add
           .rectangle(0, 0, CARD_W - 8, CARD_H - 8)
-          .setStrokeStyle(5, 0xf5c542, 0.95)
+          .setStrokeStyle(5, theme.edge, 0.95)
           .setFillStyle(0, 0),
       );
     }

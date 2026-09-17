@@ -4,6 +4,7 @@ import { DESIGN } from '../core/layout';
 import { profile } from '../systems/profile';
 import { audio } from '../systems/audio';
 import { ALL_LEVELS } from '../data/levels';
+import { themeFor } from '../art/regions';
 import { COLORS, Counter, TextButton, textStyle } from '../ui/kit';
 import {
   canInstall,
@@ -24,7 +25,13 @@ export class MainMenuScene extends Phaser.Scene {
   create(): void {
     const w = DESIGN.width;
     const h = DESIGN.height;
-    this.add.image(w / 2, h / 2, 'bg.menu').setDisplaySize(w, h);
+    const region = profile.currentRegion();
+    const regionalBackdrop = `bg.${region.biome}`;
+    const backdrop = this.textures.exists(regionalBackdrop) ? regionalBackdrop : 'bg.menu';
+    const theme = themeFor(region.biome);
+    this.add.image(w / 2, h / 2, backdrop).setDisplaySize(w, h);
+    this.add.rectangle(w / 2, h / 2, w, h, theme.hud, 0.34);
+    this.add.rectangle(w * 0.5, h * 0.5, 10, h, theme.edge, 0.38);
 
     // Title on the left, the way in on the right: a landscape screen wants
     // two columns, not one tall stack.
@@ -37,6 +44,10 @@ export class MainMenuScene extends Phaser.Scene {
       .text(left, h * 0.45, 'hold the wall, or lose everything behind it', textStyle('small', COLORS.parchment))
       .setOrigin(0.5)
       .setAlpha(0.85);
+    this.add
+      .text(left, h * 0.52, region.name.toUpperCase(), textStyle('tiny', COLORS.gold))
+      .setOrigin(0.5)
+      .setAlpha(0.9);
 
     const gold = new Counter(this, 40, 48, 'icon.coin', profile.gold, 'body');
     gold.setDepth(10);

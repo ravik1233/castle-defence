@@ -30,6 +30,7 @@ import {
   rowFromY,
 } from '../core/layout';
 import { BIOMES } from '../art/scenery';
+import { themeFor } from '../art/regions';
 import { Atmosphere } from '../battle/atmosphere';
 import { Tutorial, type TutorialHost } from '../battle/tutorial';
 import { quality } from '../systems/quality';
@@ -67,19 +68,6 @@ const SECTION_MAX_HP = 11;
  */
 const FIELD_BOUNTY_LINE = 1150;
 const FIELD_BOUNTY_BONUS = 1.5;
-
-const REGION_UI: Record<
-  string,
-  { hud: number; tray: number; card: number; edge: number; keep: number; lane: number; wall: number }
-> = {
-  fields: { hud: 0x1b2130, tray: 0x20283a, card: 0x2d3b53, edge: 0xc9ad67, keep: 0x756d61, lane: 0x304e35, wall: 0xeee5d2 },
-  barrows: { hud: 0x17252b, tray: 0x1d3034, card: 0x294247, edge: 0x91b9ae, keep: 0x56666a, lane: 0x29463f, wall: 0xb9cccc },
-  woods: { hud: 0x271b25, tray: 0x31222a, card: 0x49302f, edge: 0xc17443, keep: 0x5c514a, lane: 0x3f342e, wall: 0xc8aa90 },
-  highland: { hud: 0x202832, tray: 0x29333d, card: 0x384853, edge: 0xc7b579, keep: 0x716c60, lane: 0x485148, wall: 0xd2c9ae },
-  coast: { hud: 0x132a35, tray: 0x173744, card: 0x235361, edge: 0x67c4c8, keep: 0x4f6d70, lane: 0x255a66, wall: 0xa7d2d5 },
-  abyss: { hud: 0x271821, tray: 0x331d28, card: 0x4b2933, edge: 0xe07843, keep: 0x51444d, lane: 0x4a2934, wall: 0xb9959f },
-  throne: { hud: 0x1b1220, tray: 0x27152a, card: 0x3b203d, edge: 0xe1a23a, keep: 0x403746, lane: 0x402038, wall: 0xaa879d },
-};
 
 /** What the commander can take before the fort is lost. */
 const COMMANDER_HP = 30;
@@ -510,7 +498,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
   private buildField(): void {
     const biome = BIOMES[this.levelDef.biome];
-    const regionUi = REGION_UI[biome.id] ?? REGION_UI.fields!;
+    const regionUi = themeFor(biome.id);
     this.add
       .image(DESIGN.width / 2, FIELD.y - FIELD.horizon, `bg.${biome.id}`)
       .setOrigin(0.5, 0)
@@ -642,7 +630,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   /* ----------------------------------------------------------------- hud - */
 
   private buildHud(): void {
-    const ui = REGION_UI[this.levelDef.biome] ?? REGION_UI.fields!;
+    const ui = themeFor(this.levelDef.biome);
     this.add.rectangle(DESIGN.width / 2, HUD.height / 2, DESIGN.width, HUD.height, ui.hud, 0.97).setDepth(3000);
     this.add.rectangle(DESIGN.width / 2, HUD.height - 3, DESIGN.width, 6, ui.edge, 0.9).setDepth(3001);
 
@@ -740,7 +728,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
    * grass - rather than as a coloured square with a legend somewhere else.
    */
   private drawGround(): void {
-    const ui = REGION_UI[this.levelDef.biome] ?? REGION_UI.fields!;
+    const ui = themeFor(this.levelDef.biome);
     // Painted scenery has no baked-in lane geometry. Keep boundaries aligned
     // with the actual placement grid at every display size.
     {
@@ -1104,7 +1092,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
 
   private buildTray(): void {
     const deck = this.deckForLevel();
-    const ui = REGION_UI[this.levelDef.biome] ?? REGION_UI.fields!;
+    const ui = themeFor(this.levelDef.biome);
     this.add.rectangle(DESIGN.width / 2, TRAY.y + TRAY.height / 2, DESIGN.width, TRAY.height, ui.tray, 0.96).setDepth(3000);
     this.add.rectangle(DESIGN.width / 2, TRAY.y + 3, DESIGN.width, 6, ui.edge, 0.72).setDepth(3001);
 
@@ -1242,7 +1230,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   }
 
   private refreshCardHighlight(): void {
-    const ui = REGION_UI[this.levelDef.biome] ?? REGION_UI.fields!;
+    const ui = themeFor(this.levelDef.biome);
     for (const card of this.cards) {
       card.frame.setStrokeStyle(this.selectedCard === card.id ? 7 : 4, this.selectedCard === card.id ? 0xffd257 : ui.edge);
       card.container.setScale(this.selectedCard === card.id ? 1.07 : 1);
