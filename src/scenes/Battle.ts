@@ -732,87 +732,25 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       }
     }
     if (!this.tiles.length) return;
-    const g = this.add.graphics().setDepth(-900);
-    const detail = this.add.graphics().setDepth(-880);
-
     for (let row = 0; row < GRID.rows; row += 1) {
       for (let col = 0; col < GRID.cols; col += 1) {
         const kind = this.tileAt(row, col);
         if (kind === 'plain') continue;
         const c = cellCenter(row, col);
-        const w = GRID.cellW;
-        const h = GRID.cellH;
-        const x = c.x - w / 2;
-        const y = c.y - h / 2;
+        this.add
+          .image(c.x, c.y + 5, `tile.${kind}`)
+          .setDisplaySize(GRID.cellW * 0.92, GRID.cellH * 0.9)
+          .setDepth(-880);
 
-        if (kind === 'water') {
-          g.fillStyle(0x214f68, 0.76);
-          g.fillRoundedRect(x + 8, y + 15, w - 16, h - 28, 30);
-          g.fillStyle(0x397e93, 0.46);
-          g.fillEllipse(c.x - 18, c.y - 8, w * 0.72, h * 0.42);
-          detail.lineStyle(3, 0x7fd0e8, 0.5);
-          for (let i = 0; i < 3; i += 1) {
-            const yy = y + h * (0.3 + i * 0.22);
-            detail.beginPath();
-            detail.moveTo(x + 12, yy);
-            for (let k = 0; k <= 6; k += 1) {
-              detail.lineTo(x + 12 + (k * (w - 24)) / 6, yy + Math.sin(k * 1.3 + row + i) * 4);
-            }
-            detail.strokePath();
-          }
-        } else if (kind === 'marsh') {
-          g.fillStyle(0x293d35, 0.7);
-          g.fillEllipse(c.x - 18, c.y + 10, w * 0.72, h * 0.48);
-          g.fillEllipse(c.x + 38, c.y - 20, w * 0.38, h * 0.3);
-          detail.fillStyle(0x6f8a5a, 0.5);
-          for (let i = 0; i < 5; i += 1) {
-            detail.fillCircle(x + 20 + ((i * 37) % (w - 40)), y + 30 + ((i * 53) % (h - 50)), 9);
-          }
-        } else if (kind === 'highground') {
-          g.fillStyle(0x302a27, 0.35);
-          g.fillEllipse(c.x, y + h - 18, w * 0.85, 34);
-          detail.fillStyle(0x8b8272, 1);
-          detail.fillTriangle(c.x - 46, y + h - 16, c.x - 8, y + 22, c.x + 30, y + h - 16);
-          detail.fillStyle(0xa39a88, 1);
-          detail.fillTriangle(c.x + 4, y + h - 16, c.x + 34, y + 40, c.x + 62, y + h - 16);
-        } else if (kind === 'rubble') {
-          detail.fillStyle(0x6f6355, 1);
-          for (let i = 0; i < 6; i += 1) {
-            const rx = x + 18 + ((i * 41) % (w - 36));
-            const ry = y + 34 + ((i * 61) % (h - 60));
-            detail.fillRect(rx, ry, 18 + (i % 3) * 6, 12 + (i % 2) * 5);
-          }
-        } else if (kind === 'tallgrass') {
-          detail.lineStyle(4, 0x76a84a, 0.75);
-          for (let i = 0; i < 7; i += 1) {
-            const bx = x + 16 + ((i * 29) % (w - 30));
-            const by = y + h - 18 - ((i * 17) % 22);
-            detail.beginPath();
-            detail.moveTo(bx, by);
-            detail.lineTo(bx + (i % 2 ? 8 : -8), by - 34);
-            detail.strokePath();
-          }
-        } else if (kind === 'shrine') {
-          g.fillStyle(0x40394d, 0.9);
-          g.fillEllipse(c.x, c.y + 18, 96, 48);
-          detail.lineStyle(7, 0x817890, 0.9);
-          detail.strokeEllipse(c.x, c.y + 12, 82, 42);
-          detail.fillStyle(0xff9a45, 0.95);
-          detail.fillTriangle(c.x - 13, c.y + 12, c.x, c.y - 35, c.x + 13, c.y + 12);
-          detail.lineStyle(3, 0xffe0a0, 0.8);
-          detail.strokeTriangle(c.x - 13, c.y + 12, c.x, c.y - 35, c.x + 13, c.y + 12);
-        } else if (kind === 'seam') {
-          g.fillStyle(0x2b202d, 0.68);
-          g.fillEllipse(c.x, c.y + 18, w * 0.72, h * 0.4);
-          detail.fillStyle(0xff8a3d, 0.95);
-          for (let i = 0; i < 4; i += 1) {
-            const cx = c.x - 34 + i * 22;
-            const cy = c.y + Math.sin(i * 2) * 14;
-            detail.fillTriangle(cx - 8, cy + 10, cx, cy - 16, cx + 8, cy + 10);
-          }
+        if (kind === 'seam') {
           const key = `${row},${col}`;
           const label = this.add
-            .text(c.x + w / 2 - 18, c.y - h / 2 + 16, String(EMBER_DEPOSITS_PER_VEIN), textStyle('tiny', '#fff0d0'))
+            .text(
+              c.x + GRID.cellW / 2 - 18,
+              c.y - GRID.cellH / 2 + 16,
+              String(EMBER_DEPOSITS_PER_VEIN),
+              textStyle('tiny', '#fff0d0'),
+            )
             .setOrigin(0.5)
             .setDepth(-870);
           this.seamLabels.set(key, label);

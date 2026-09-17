@@ -22,6 +22,7 @@ import { characterArt } from './compose';
 import * as structures from './structures';
 import * as scenery from './scenery';
 import * as props from './props';
+import * as tiles from './tiles';
 
 /** Characters and props are drawn at 2x their in-game size for crispness. */
 export const SUPERSAMPLE = 2;
@@ -36,7 +37,7 @@ export interface TextureSpec {
 // The query is intentional. Painted files are stable public URLs rather than
 // Vite-hashed imports, so a version here guarantees that a deployed art pass
 // cannot be hidden behind an older service-worker entry.
-export const PAINTED_MANIFEST_URL = 'assets/painted/manifest.json?v=region1-art-6';
+export const PAINTED_MANIFEST_URL = 'assets/painted/manifest.json?v=regional-environment-1';
 
 function specs(): TextureSpec[] {
   const out: TextureSpec[] = [];
@@ -54,6 +55,10 @@ function specs(): TextureSpec[] {
   add('build.ballista', structures.ballista().svg);
   add('build.bombard', structures.bombard().svg);
   add('build.brazier', structures.brazier().svg);
+
+  for (const id of ['water', 'marsh', 'highground', 'rubble', 'tallgrass', 'shrine', 'seam'] as tiles.GroundArtId[]) {
+    add(`tile.${id}`, tiles.groundTile(id), 1);
+  }
 
   for (const id of [
     'arrow',

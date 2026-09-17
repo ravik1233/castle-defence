@@ -1292,6 +1292,11 @@
     ]
   },
   "build.tithe": "build.tithe.png",
+  "build.barricade": "build.barricade.painted.png",
+  "build.ballista": "build.ballista.painted.png",
+  "build.bombard": "build.bombard.painted.png",
+  "build.brazier": "build.brazier.painted.png",
+  "tile.seam": "tile.ember.seam.png",
   "icon.ember_core": "icon.ember_core.v2.png",
   "bg.fields": "bg.fields.region1.webp",
   "unit.cutthroat.frames": {
