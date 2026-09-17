@@ -76,10 +76,9 @@ export const FIELD = {
 /**
  * The wall: the keep strip plus the two tiles that can be built on.
  *
- * There is no gate. One was drawn across the face, perpendicular to the
- * wall, and read as a door lying on its side - the lanes run left to right,
- * so anything standing square to them fights the perspective. A breached
- * section is a hole in the stonework now, which is what a breach looks like.
+ * Each lane has its own small sally gate at the outer face. A gate is aligned
+ * with the lane rather than laid across the full wall, so it reads as the
+ * route defenders sortie through and as the section enemies batter down.
  */
 export const WALL = {
   x: KEEP_STRIP.width,

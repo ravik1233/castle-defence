@@ -10,6 +10,25 @@ ROOT = Path(__file__).resolve().parents[1]
 PAINTED = ROOT / "public/assets/painted"
 MANIFEST = PAINTED / "manifest.json"
 
+REQUIRED_ENVIRONMENT_KEYS = {
+    "bg.fields",
+    "bg.barrows",
+    "bg.woods",
+    "bg.highland",
+    "bg.coast",
+    "bg.abyss",
+    "bg.throne",
+    "build.tithe",
+    "build.barricade",
+    "build.ballista",
+    "build.bombard",
+    "build.brazier",
+    "tile.seam",
+    "wall.regional",
+    "wall.regional.cap",
+    "gate.regional",
+}
+
 
 def declared_files(manifest: dict[str, object]) -> set[str]:
     files: set[str] = set()
@@ -50,6 +69,8 @@ def image_error(path: Path) -> str | None:
 def main() -> None:
     manifest = json.loads(MANIFEST.read_text())
     errors: list[str] = []
+    for key in sorted(REQUIRED_ENVIRONMENT_KEYS - manifest.keys()):
+        errors.append(f"{key}: required painted environment key is missing")
     files = declared_files(manifest)
     for filename in sorted(files):
         path = PAINTED / filename

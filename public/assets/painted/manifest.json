@@ -1297,6 +1297,10 @@
   "build.bombard": "build.bombard.painted.png",
   "build.brazier": "build.brazier.painted.png",
   "tile.seam": "tile.ember.seam.png",
+  "wall.regional": "wall.stone.parapet.png",
+  "wall.regional.cap": "wall.stone.cap.png",
+  "gate.regional": "gate.stone.png",
+  "gate.stone": "gate.stone.png",
   "icon.ember_core": "icon.ember_core.v2.png",
   "bg.fields": "bg.fields.region1.webp",
   "unit.cutthroat.frames": {

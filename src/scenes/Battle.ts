@@ -68,14 +68,17 @@ const SECTION_MAX_HP = 11;
 const FIELD_BOUNTY_LINE = 1150;
 const FIELD_BOUNTY_BONUS = 1.5;
 
-const REGION_UI: Record<string, { hud: number; tray: number; card: number; edge: number; keep: number; lane: number }> = {
-  fields: { hud: 0x1b2130, tray: 0x20283a, card: 0x2d3b53, edge: 0xc9ad67, keep: 0x756d61, lane: 0x304e35 },
-  barrows: { hud: 0x17252b, tray: 0x1d3034, card: 0x294247, edge: 0x91b9ae, keep: 0x56666a, lane: 0x29463f },
-  woods: { hud: 0x271b25, tray: 0x31222a, card: 0x49302f, edge: 0xc17443, keep: 0x5c514a, lane: 0x3f342e },
-  highland: { hud: 0x202832, tray: 0x29333d, card: 0x384853, edge: 0xc7b579, keep: 0x716c60, lane: 0x485148 },
-  coast: { hud: 0x132a35, tray: 0x173744, card: 0x235361, edge: 0x67c4c8, keep: 0x4f6d70, lane: 0x255a66 },
-  abyss: { hud: 0x271821, tray: 0x331d28, card: 0x4b2933, edge: 0xe07843, keep: 0x51444d, lane: 0x4a2934 },
-  throne: { hud: 0x1b1220, tray: 0x27152a, card: 0x3b203d, edge: 0xe1a23a, keep: 0x403746, lane: 0x402038 },
+const REGION_UI: Record<
+  string,
+  { hud: number; tray: number; card: number; edge: number; keep: number; lane: number; wall: number }
+> = {
+  fields: { hud: 0x1b2130, tray: 0x20283a, card: 0x2d3b53, edge: 0xc9ad67, keep: 0x756d61, lane: 0x304e35, wall: 0xeee5d2 },
+  barrows: { hud: 0x17252b, tray: 0x1d3034, card: 0x294247, edge: 0x91b9ae, keep: 0x56666a, lane: 0x29463f, wall: 0xb9cccc },
+  woods: { hud: 0x271b25, tray: 0x31222a, card: 0x49302f, edge: 0xc17443, keep: 0x5c514a, lane: 0x3f342e, wall: 0xc8aa90 },
+  highland: { hud: 0x202832, tray: 0x29333d, card: 0x384853, edge: 0xc7b579, keep: 0x716c60, lane: 0x485148, wall: 0xd2c9ae },
+  coast: { hud: 0x132a35, tray: 0x173744, card: 0x235361, edge: 0x67c4c8, keep: 0x4f6d70, lane: 0x255a66, wall: 0xa7d2d5 },
+  abyss: { hud: 0x271821, tray: 0x331d28, card: 0x4b2933, edge: 0xe07843, keep: 0x51444d, lane: 0x4a2934, wall: 0xb9959f },
+  throne: { hud: 0x1b1220, tray: 0x27152a, card: 0x3b203d, edge: 0xe1a23a, keep: 0x403746, lane: 0x402038, wall: 0xaa879d },
 };
 
 /** What the commander can take before the fort is lost. */
@@ -567,31 +570,54 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
      * tiles of the grid and whatever is posted up there has to be seen
      * standing on it.
      */
-    this.add
-      .image(WALL.x, FIELD.y, `wall.${skin.id}`)
+    const regionalWall = this.textures.exists('wall.regional');
+    const wallKey = regionalWall ? 'wall.regional' : `wall.${skin.id}`;
+    const gateKey = regionalWall && this.textures.exists('gate.regional') ? 'gate.regional' : `gate.${skin.id}`;
+    const capKey = regionalWall && this.textures.exists('wall.regional.cap') ? 'wall.regional.cap' : `wall.${skin.id}.cap`;
+    const wall = this.add
+      .image(WALL.x, FIELD.y, wallKey)
       .setOrigin(0, 0)
       .setDisplaySize(WALL.width, FIELD.height)
       .setDepth(-870);
-    // The central sally gate is now a real regional asset rather than an
-    // invisible lane in a repeated wall texture.
-    this.add
-      .image(WALL.x + 9, laneCenterY(Math.floor(GRID.rows / 2)) - GRID.cellH * 0.41, `gate.${skin.id}`)
-      .setOrigin(0, 0)
-      .setDisplaySize(WALL.width - 18, GRID.cellH * 0.82)
-      .setDepth(-868);
+    if (regionalWall) wall.setTint(regionUi.wall);
+
+    // A real sally gate for every lane. Each one sits at the outer face of
+    // its own section, so five independent wall-health states read as five
+    // physical entrances instead of one decorative door in the middle.
+    const gateW = 112;
+    for (let row = 0; row < GRID.rows; row += 1) {
+      const gate = this.add
+        .image(WALL_FACE_X - gateW / 2, laneCenterY(row), gateKey)
+        .setDisplaySize(gateW, GRID.cellH * 0.84)
+        .setDepth(-868);
+      if (regionalWall) gate.setTint(regionUi.wall);
+    }
+
     // Skyline above the lanes: the merlons off the top of the painted wall,
     // so the parapet is capped by battlements rather than a grey block.
-    const capKey = `wall.${skin.id}.cap`;
     if (this.textures.exists(capKey)) {
-      this.add
+      const cap = this.add
         .image(WALL.x, FIELD.y - FIELD.horizon, capKey)
         .setOrigin(0, 0)
         .setDisplaySize(WALL.width, FIELD.horizon)
         .setDepth(-872);
+      if (regionalWall) cap.setTint(regionUi.wall);
     } else {
       this.add
         .rectangle(WALL.x + WALL.width / 2, FIELD.y - FIELD.horizon / 2, WALL.width, FIELD.horizon, 0x5e5866)
         .setDepth(-872);
+    }
+
+    // The keep rises behind the wall rather than leaving a flat colour strip
+    // at the rear. Its own regional roof, banner and stone palette remain
+    // visible above the parapet while the courtyard stays readable below.
+    const keepKey = `keep.${skin.id}`;
+    if (this.textures.exists(keepKey)) {
+      this.add
+        .image(KEEP_STRIP.width / 2, FIELD.y + 8, keepKey)
+        .setOrigin(0.5, 1)
+        .setDisplaySize(KEEP_STRIP.width - 10, FIELD.horizon * 1.75)
+        .setDepth(-884);
     }
 
     this.drawGround();
