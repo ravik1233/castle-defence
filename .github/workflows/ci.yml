@@ -19,6 +19,8 @@ jobs:
         run: npm run typecheck
       - name: Unit tests
         run: npm test
+      - name: Painted art integrity
+        run: npm run art:test:painted && npm run art:test:regions
       - name: Production build
         run: npm run build:fast
 

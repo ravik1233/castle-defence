@@ -35,6 +35,12 @@ REGIONS = {
         "inquisitor", "betrayer", "sworn_lance", "spearwall",
         "watchman", "bell_chanter", "black_hawk", "martyr",
     ],
+    7: [
+        "warleader", "kingsguard", "maerwyn", "hellhound",
+        "portal_fiend", "succubus", "balor", "demon_prince",
+        "hell_bombardier", "brimstone_ogre", "soul_harvester",
+        "gatebreaker",
+    ],
 }
 
 manifest = json.loads((PAINTED / "manifest.json").read_text())

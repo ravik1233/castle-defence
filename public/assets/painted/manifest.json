@@ -3266,7 +3266,7 @@
     }
   },
   "unit.gatebreaker.frames": {
-    "sheet": "unit.gatebreaker.region3.actions.png",
+    "sheet": "unit.gatebreaker.region7.actions.png",
     "count": 3,
     "width": 256,
     "height": 256,
@@ -5820,5 +5820,644 @@
       }
     }
   },
-  "_region_6_actions": "Three-pose presentation sheets: idle, impact/cast, and fallen death. Walking intentionally uses idle until bespoke walk cycles are approved."
+  "_region_6_actions": "Three-pose presentation sheets: idle, impact/cast, and fallen death. Walking intentionally uses idle until bespoke walk cycles are approved.",
+  "unit.warleader.frames": {
+    "sheet": "unit.warleader.region7.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.kingsguard.frames": {
+    "sheet": "unit.kingsguard.region7.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.maerwyn.frames": {
+    "sheet": "unit.maerwyn.region7.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.hellhound.frames": {
+    "sheet": "unit.hellhound.region7.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.portal_fiend.frames": {
+    "sheet": "unit.portal_fiend.region7.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.succubus.frames": {
+    "sheet": "unit.succubus.region7.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.balor.frames": {
+    "sheet": "unit.balor.region7.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.demon_prince.frames": {
+    "sheet": "unit.demon_prince.region7.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.hell_bombardier.frames": {
+    "sheet": "unit.hell_bombardier.region7.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.brimstone_ogre.frames": {
+    "sheet": "unit.brimstone_ogre.region7.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "unit.soul_harvester.frames": {
+    "sheet": "unit.soul_harvester.region7.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
+    }
+  },
+  "_region_7_actions": "Three-pose presentation sheets: idle, impact/cast, and fallen death. Walking intentionally uses idle until bespoke walk cycles are approved."
 }
