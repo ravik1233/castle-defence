@@ -30,6 +30,7 @@
     "art:test": "node scripts/art-refresh-test.mjs",
     "art:test:painted": "python3 scripts/check-painted-assets.py",
     "art:test:regions": "python3 scripts/check-region-actions.py",
+    "art:test:links": "python3 scripts/check-art-links.py",
     "breachtest": "node scripts/breachtest.mjs",
     "damagetest": "node scripts/damagetest.mjs",
     "siegetest": "node scripts/siegetest.mjs",

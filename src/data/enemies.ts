@@ -51,7 +51,7 @@ const GOBLINS_AND_ORCS: EnemyDef[] = [
     id: 'cutthroat',
     family: 'goblin',
     name: 'Goblin Cutthroat',
-    art: 'goblin_runner',
+    art: 'cutthroat',
     hp: 3,
     speed: 88,
     damage: 1,

@@ -20,7 +20,7 @@ jobs:
       - name: Unit tests
         run: npm test
       - name: Painted art integrity
-        run: npm run art:test:painted && npm run art:test:regions
+        run: npm run art:test:painted && npm run art:test:regions && npm run art:test:links
       - name: Production build
         run: npm run build:fast
 

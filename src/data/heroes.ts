@@ -49,7 +49,7 @@ export const HEROES: HeroDef[] = [
     id: 'bran',
     name: 'Bran Ironbark',
     title: 'Hearthwarden of Kar Duhrn',
-    art: 'monk',
+    art: 'bran',
     blurb: 'Held the woods for eleven winters with a hundred men and no wall.',
     spells: [
       {
@@ -85,7 +85,7 @@ export const HEROES: HeroDef[] = [
     id: 'faelith',
     name: 'Faelith of Elarion',
     title: 'Warden of the Ashen Woods',
-    art: 'elf_spellweaver',
+    art: 'faelith',
     blurb: 'She watched the woods burn for a season and did not once break formation.',
     spells: [
       {
@@ -120,7 +120,7 @@ export const HEROES: HeroDef[] = [
     id: 'nerion',
     name: 'Nerion of Sael',
     title: 'Tidewarden of the Drowned Coast',
-    art: 'siren',
+    art: 'nerion',
     blurb: 'He has drowned more of the horde than the whole Order has killed.',
     premium: true,
     spells: [
@@ -196,7 +196,7 @@ export const HEROES: HeroDef[] = [
     id: 'garrick',
     name: 'Ser Garrick Vane',
     title: 'Marshal of the Fallen March',
-    art: 'guardian',
+    art: 'garrick',
     blurb: 'He trained half the men now under the King\u2019s banner. He knows where their shields do not reach.',
     premium: true,
     spells: [
@@ -234,7 +234,7 @@ export const HEROES: HeroDef[] = [
     id: 'maerwyn',
     name: 'Maerwyn the Grey',
     title: 'Last Voice of the Order',
-    art: 'cleric',
+    art: 'maerwyn',
     blurb: 'She buried the rest of the order. She intends to bury the King.',
     premium: true,
     spells: [

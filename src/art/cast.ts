@@ -145,6 +145,17 @@ export const ENEMY_ART: Record<string, CharacterSpec> = {
     head: { shape: 'long', ears: 'big', jaw: 'fangs', brow: 0.6 },
     weapon: 'club',
   },
+  cutthroat: {
+    id: 'cutthroat',
+    height: 112,
+    build: 'small',
+    skin: '#78a845',
+    cloth: '#4a355c',
+    accent: '#b77be0',
+    eye: '#ffd34e',
+    head: { shape: 'long', ears: 'big', jaw: 'fangs', brow: 0.7 },
+    weapon: 'dagger',
+  },
   goblin_bomber: {
     id: 'goblin_bomber',
     height: 116,
@@ -1409,6 +1420,11 @@ export const HERO_ART: Record<string, CharacterSpec> = {
     wings: 'feather',
     aura: '#7ce0ff',
   },
+  bran: { ...DEFENDER_ART.monk, id: 'bran' },
+  faelith: { ...ALLY_ART.elf_spellweaver, id: 'faelith' },
+  nerion: { ...HORDE_ART.siren, id: 'nerion' },
+  garrick: { ...DEFENDER_ART.guardian, id: 'garrick' },
+  maerwyn: { ...DEFENDER_ART.cleric, id: 'maerwyn' },
 };
 
 export const ALL_CHARACTER_ART: Record<string, CharacterSpec> = {
