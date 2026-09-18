@@ -359,6 +359,25 @@
       }
     }
   },
+  "unit.demon_king.frames": {
+    "sheet": "unit.demon_king.region7.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": { "frames": [0], "fps": 3 },
+      "walk": { "frames": [0], "fps": 3 },
+      "attack": { "frames": [1, 0], "fps": 4 },
+      "cast": { "frames": [1, 0], "fps": 4 },
+      "die": { "frames": [2], "fps": 3 }
+    }
+  },
   "unit.shadow_fiend.head": "unit.shadow_fiend.head.png",
   "unit.shadow_fiend.armBack": "unit.shadow_fiend.armBack.png",
   "unit.shadow_fiend.armFront": "unit.shadow_fiend.armFront.png",
@@ -450,6 +469,24 @@
           0.5
         ]
       }
+    }
+  },
+  "unit.shadow_fiend.frames": {
+    "sheet": "unit.shadow_fiend.region7.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": { "frames": [0], "fps": 3 },
+      "walk": { "frames": [0], "fps": 3 },
+      "attack": { "frames": [1, 0], "fps": 4 },
+      "die": { "frames": [2], "fps": 3 }
     }
   },
   "unit.orc.cape": "unit.orc.cape.png",
@@ -1692,6 +1729,24 @@
   "unit.lich.full": "unit.lich.region.png",
   "unit.necromancer.full": "unit.necromancer.region.png",
   "unit.plague_bat.full": "unit.plague_bat.region.png",
+  "unit.plague_bat.frames": {
+    "sheet": "unit.plague_bat.region2.actions.png",
+    "count": 3,
+    "width": 256,
+    "height": 256,
+    "groundOffset": 10,
+    "names": [
+      "idle",
+      "attack",
+      "death"
+    ],
+    "animations": {
+      "idle": { "frames": [0], "fps": 3 },
+      "walk": { "frames": [0], "fps": 3 },
+      "attack": { "frames": [1, 0], "fps": 4 },
+      "die": { "frames": [2], "fps": 3 }
+    }
+  },
   "unit.martyr.full": "unit.martyr.region.png",
   "unit.elf_ranger.full": "unit.elf_ranger.region.png",
   "unit.elf_spellweaver.full": "unit.elf_spellweaver.region.png",

@@ -43,6 +43,12 @@ REGIONS = {
     ],
 }
 
+CLIMAX_ACTIONS = {
+    "demon_king": "unit.demon_king.region7.actions.png",
+    "shadow_fiend": "unit.shadow_fiend.region7.actions.png",
+    "plague_bat": "unit.plague_bat.region2.actions.png",
+}
+
 manifest = json.loads((PAINTED / "manifest.json").read_text())
 errors = []
 verified = 0
@@ -81,6 +87,20 @@ for region, art_ids in REGIONS.items():
         if compact and animations.get("die", {}).get("frames") != [2]:
             errors.append(f"region {region}/{art_id}: death must use the fallen pose")
         verified += 1
+
+for art_id, expected_sheet in CLIMAX_ACTIONS.items():
+    spec = manifest.get(f"unit.{art_id}.frames")
+    if not isinstance(spec, dict):
+        errors.append(f"climax/{art_id}: missing frame manifest")
+        continue
+    if spec.get("sheet") != expected_sheet:
+        errors.append(f"climax/{art_id}: expected action sheet {expected_sheet}")
+    if spec.get("names") != ["idle", "attack", "death"]:
+        errors.append(f"climax/{art_id}: expected idle, attack, and death poses")
+    sheet = PAINTED / expected_sheet
+    if not sheet.is_file() or sheet.stat().st_size == 0:
+        errors.append(f"climax/{art_id}: missing or empty sheet {expected_sheet}")
+    verified += 1
 
 if errors:
     print("\n".join(errors), file=sys.stderr)
