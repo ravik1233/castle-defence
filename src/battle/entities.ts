@@ -164,6 +164,7 @@ export class Defender {
     row: number,
     col: number,
     stats: { hp: number; damage: number },
+    artId?: string,
   ) {
     this.def = def;
     this.row = row;
@@ -185,7 +186,7 @@ export class Defender {
 
     const scene = world.stage;
     if (def.art.kind === 'unit') {
-      const art = characterArt(ALL_CHARACTER_ART[def.art.id]!);
+      const art = characterArt(ALL_CHARACTER_ART[artId ?? def.art.id]!);
       this.rig = new Rig(scene, this.x, this.y, art, { facing: 1, phase: Math.random() * 6 });
       this.rig.setDepth(this.y);
       this.rig.play('spawn');

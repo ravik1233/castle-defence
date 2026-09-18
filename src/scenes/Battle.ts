@@ -79,6 +79,15 @@ const COMMANDER_HP = 30;
  * it; nothing refills it mid-battle.
  */
 const RESERVE_POOL = 4;
+const RESERVE_ART: Record<string, string> = {
+  fields: 'militia',
+  barrows: 'dwarf_warrior',
+  woods: 'elf_ranger',
+  highland: 'warden',
+  coast: 'harpooner',
+  abyss: 'templar',
+  throne: 'kingsguard',
+};
 /** Ember to rebuild a breached section, and the share of it that comes back. */
 const REPAIR_COST = 3;
 const REPAIR_SHARE = 0.6;
@@ -558,54 +567,60 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
      * tiles of the grid and whatever is posted up there has to be seen
      * standing on it.
      */
-    const regionalWall = this.textures.exists('wall.regional');
-    const wallKey = regionalWall ? 'wall.regional' : `wall.${skin.id}`;
-    const gateKey = regionalWall && this.textures.exists('gate.regional') ? 'gate.regional' : `gate.${skin.id}`;
-    const capKey = regionalWall && this.textures.exists('wall.regional.cap') ? 'wall.regional.cap' : `wall.${skin.id}.cap`;
-    const wall = this.add
-      .image(WALL.x, FIELD.y, wallKey)
-      .setOrigin(0, 0)
-      .setDisplaySize(WALL.width, FIELD.height)
-      .setDepth(-870);
-    if (regionalWall) wall.setTint(regionUi.wall);
-
-    // A real sally gate for every lane. Each one sits at the outer face of
-    // its own section, so five independent wall-health states read as five
-    // physical entrances instead of one decorative door in the middle.
-    const gateW = 112;
-    for (let row = 0; row < GRID.rows; row += 1) {
-      const gate = this.add
-        .image(WALL_FACE_X - gateW / 2, laneCenterY(row), gateKey)
-        .setDisplaySize(gateW, GRID.cellH * 0.84)
-        .setDepth(-868);
-      if (regionalWall) gate.setTint(regionUi.wall);
-    }
-
-    // Skyline above the lanes: the merlons off the top of the painted wall,
-    // so the parapet is capped by battlements rather than a grey block.
-    if (this.textures.exists(capKey)) {
-      const cap = this.add
-        .image(WALL.x, FIELD.y - FIELD.horizon, capKey)
+    const dedicatedWallKey = `wall.${biome.id}`;
+    const dedicatedWall = this.textures.exists(dedicatedWallKey);
+    if (dedicatedWall) {
+      // The five-gate plate includes the keep yard, two buildable parapet
+      // lanes and all five outward-facing gates in one perspective-locked
+      // image. Keeping it whole prevents separate gate sprites drifting out
+      // of plane with the wall.
+      this.add
+        .image(0, FIELD.y - FIELD.horizon, dedicatedWallKey)
         .setOrigin(0, 0)
-        .setDisplaySize(WALL.width, FIELD.horizon)
-        .setDepth(-872);
-      if (regionalWall) cap.setTint(regionUi.wall);
+        .setDisplaySize(WALL_FACE_X, FIELD.height + FIELD.horizon)
+        .setDepth(-870);
     } else {
-      this.add
-        .rectangle(WALL.x + WALL.width / 2, FIELD.y - FIELD.horizon / 2, WALL.width, FIELD.horizon, 0x5e5866)
-        .setDepth(-872);
-    }
+      const regionalWall = this.textures.exists('wall.regional');
+      const wallKey = regionalWall ? 'wall.regional' : `wall.${skin.id}`;
+      const gateKey = regionalWall && this.textures.exists('gate.regional') ? 'gate.regional' : `gate.${skin.id}`;
+      const capKey = regionalWall && this.textures.exists('wall.regional.cap') ? 'wall.regional.cap' : `wall.${skin.id}.cap`;
+      const wall = this.add
+        .image(WALL.x, FIELD.y, wallKey)
+        .setOrigin(0, 0)
+        .setDisplaySize(WALL.width, FIELD.height)
+        .setDepth(-870);
+      if (regionalWall) wall.setTint(regionUi.wall);
 
-    // The keep rises behind the wall rather than leaving a flat colour strip
-    // at the rear. Its own regional roof, banner and stone palette remain
-    // visible above the parapet while the courtyard stays readable below.
-    const keepKey = `keep.${skin.id}`;
-    if (this.textures.exists(keepKey)) {
-      this.add
-        .image(KEEP_STRIP.width / 2, FIELD.y + 8, keepKey)
-        .setOrigin(0.5, 1)
-        .setDisplaySize(KEEP_STRIP.width - 10, FIELD.horizon * 1.75)
-        .setDepth(-884);
+      const gateW = 112;
+      for (let row = 0; row < GRID.rows; row += 1) {
+        const gate = this.add
+          .image(WALL_FACE_X - gateW / 2, laneCenterY(row), gateKey)
+          .setDisplaySize(gateW, GRID.cellH * 0.84)
+          .setDepth(-868);
+        if (regionalWall) gate.setTint(regionUi.wall);
+      }
+
+      if (this.textures.exists(capKey)) {
+        const cap = this.add
+          .image(WALL.x, FIELD.y - FIELD.horizon, capKey)
+          .setOrigin(0, 0)
+          .setDisplaySize(WALL.width, FIELD.horizon)
+          .setDepth(-872);
+        if (regionalWall) cap.setTint(regionUi.wall);
+      } else {
+        this.add
+          .rectangle(WALL.x + WALL.width / 2, FIELD.y - FIELD.horizon / 2, WALL.width, FIELD.horizon, 0x5e5866)
+          .setDepth(-872);
+      }
+
+      const keepKey = `keep.${skin.id}`;
+      if (this.textures.exists(keepKey)) {
+        this.add
+          .image(KEEP_STRIP.width / 2, FIELD.y + 8, keepKey)
+          .setOrigin(0.5, 1)
+          .setDisplaySize(KEEP_STRIP.width - 10, FIELD.horizon * 1.75)
+          .setDepth(-884);
+      }
     }
 
     this.drawGround();
@@ -882,6 +897,10 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
    * Shown rather than counted in a corner: the player should be able to
    * glance at the keep and see how many times the line can still be patched.
    */
+  private reserveArtId(): string {
+    return RESERVE_ART[this.levelDef.biome] ?? 'militia';
+  }
+
   private drawReserves(): void {
     for (const f of this.reserveFigures) f.destroy();
     this.reserveFigures = [];
@@ -897,7 +916,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     for (let i = 0; i < this.reserves; i += 1) {
       const post = reservePost(i);
       const c = this.add.container(post.x, post.y).setDepth(post.y);
-      c.add(this.cardArt('militia', 0, 0, WORLD_ART_SCALE * 0.8));
+      c.add(this.cardArt(this.reserveArtId(), 0, 0, WORLD_ART_SCALE * 0.8));
       c.setAlpha(0.85);
       this.reserveFigures.push(c);
     }
@@ -915,7 +934,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     if (!this.canPlaceAt(row, col, 'militia')) return;
     this.reserves -= 1;
     this.drawReserves();
-    this.placeDefender('militia', row, col);
+    this.placeDefender('militia', row, col, this.reserveArtId());
     this.burst(cellCenter(row, col).x, laneCenterY(row), 'heal');
     floatText(this, cellCenter(row, col).x, laneCenterY(row) - 40, 'RESERVE', COLORS.gold, 'tiny');
     audio.play('place');
@@ -1569,10 +1588,10 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     this.clearSelection();
   }
 
-  private placeDefender(id: string, row: number, col: number): void {
+  private placeDefender(id: string, row: number, col: number, artId?: string): void {
     const def = defender(id);
     const stats = upgradedStats(def, profile.upgradeLevel(id));
-    const unit = new Defender(this, def, row, col, stats);
+    const unit = new Defender(this, def, row, col, stats, artId);
     this.defenders.push(unit);
     this.occupancy.set(`${row},${col}`, unit);
   }
