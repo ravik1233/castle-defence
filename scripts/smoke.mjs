@@ -116,7 +116,7 @@ await page.close();
 const lose = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 lose.on('pageerror', (e) => errors.push(String(e)));
 await lose.goto(`${base}/?scene=Battle&level=c1l4&unlock=1&nomodal=1`, { waitUntil: 'load' });
-await lose.waitForFunction(() => globalThis.__battle !== undefined, { timeout: 180000 });
+await lose.waitForFunction(() => globalThis.__battle !== undefined, undefined, { timeout: 180000 });
 await lose.evaluate(() => {
   globalThis.__battle.endWaves();
   // Spawned near the wall on purpose: this test is about the gate falling,
