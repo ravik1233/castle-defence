@@ -20,7 +20,7 @@ try {
     for (const side of ['defenders', 'enemies']) {
       const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
       await page.goto(`${base}/?scene=Battle&level=${level}&unlock=1&nomodal=1`, { waitUntil: 'load' });
-      await page.waitForFunction(() => globalThis.__battle !== undefined, { timeout: 180000 });
+      await page.waitForFunction(() => globalThis.__battle !== undefined, undefined, { timeout: 180000 });
 
       const count = await page.evaluate((fillSide) => globalThis.__battle.qaFill(fillSide), side);
       assert.equal(count, rows * cols, `${level} ${side}: did not fill every cell`);
