@@ -191,13 +191,13 @@ export class Defender {
       this.rig.setDepth(this.y);
       this.rig.play('spawn');
     } else {
-      this.sprite = scene.add.image(this.x, this.y + 6, def.art.key);
+      this.sprite = scene.add.image(this.x, this.y, def.art.key);
       this.sprite.setOrigin(0.5, 1);
       // Fit the building to its lane rather than trusting a fixed scale: the
       // textures are supersampled, so a raw scale is meaningless.
       const fit = Math.min(
-        (GRID.cellH * 0.98) / this.sprite.height,
-        (GRID.cellW * 0.9) / this.sprite.width,
+        (GRID.cellH * 0.86) / this.sprite.height,
+        (GRID.cellW * 0.86) / this.sprite.width,
       );
       this.sprite.setScale(fit);
       this.sprite.setDepth(this.y);

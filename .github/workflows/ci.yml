@@ -42,6 +42,7 @@ jobs:
             curl -sf http://localhost:4173 >/dev/null && break
             sleep 1
           done
+          node scripts/gridlook.mjs http://localhost:4173
           node scripts/smoke.mjs http://localhost:4173
           node scripts/touchtest.mjs http://localhost:4173
           node scripts/pwacheck.mjs http://localhost:4173

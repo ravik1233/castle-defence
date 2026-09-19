@@ -55,6 +55,16 @@ export const GRID = {
   cellH: 150,
 } as const;
 
+/**
+ * Every ground unit fits inside one lane, including its idle/walk bob.
+ * Keeping one shared cap makes the keep, parapet, and open field agree.
+ */
+export const MAX_WORLD_UNIT_HEIGHT = GRID.cellH * 0.86;
+
+export function worldUnitScale(artHeight: number, scale = 1): number {
+  return Math.min(scale * WORLD_ART_SCALE, MAX_WORLD_UNIT_HEIGHT / artHeight);
+}
+
 /** The first column of open ground; everything left of it is parapet. */
 export const FIELD_COL0 = WALL_COLS;
 

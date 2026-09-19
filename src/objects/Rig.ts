@@ -9,7 +9,7 @@ import Phaser from 'phaser';
 import { REST_POSE, armLength, characterLayout } from '../art/compose';
 import type { CharacterArt } from '../art/humanoid';
 import { SUPERSAMPLE, paintedFrameSet, paintedRig, type PaintedFrames } from '../art/registry';
-import { WORLD_ART_SCALE } from '../core/layout';
+import { worldUnitScale } from '../core/layout';
 
 export type RigAnim = 'idle' | 'walk' | 'attack' | 'cast' | 'hurt' | 'die' | 'spawn';
 
@@ -89,7 +89,7 @@ export class Rig extends Phaser.GameObjects.Container {
     super(scene, x, y);
     this.art = art;
     this.facingSign = opts.facing ?? 1;
-    this.artScale = (opts.scale ?? 1) * WORLD_ART_SCALE;
+    this.artScale = worldUnitScale(art.height, opts.scale ?? 1);
     this.t = opts.phase ?? Math.random() * 10;
 
     const sk = art.skeleton;

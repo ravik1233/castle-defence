@@ -13,7 +13,6 @@ import {
   HERO_BAR,
   HUD,
   SPAWN_X,
-  WORLD_ART_SCALE,
   KEEP,
   KEEP_STRIP,
   FIELD_COL0,
@@ -37,7 +36,9 @@ import { quality } from '../systems/quality';
 import { REGION_WALL_SKINS, WALL_SKINS } from '../art/structures';
 import { DEFENDERS, defender, upgradedStats } from '../data/defenders';
 import { ALL_CHARACTER_ART } from '../art/cast';
-import { enemy as enemyDef } from '../data/enemies';
+import { characterArt } from '../art/compose';
+import { Rig } from '../objects/Rig';
+import { ENEMIES, enemy as enemyDef } from '../data/enemies';
 import { hero as heroDef } from '../data/heroes';
 import { CHAPTERS, generateWaves, hashString, level as levelById, levelNumber, type Wave } from '../data/levels';
 import type { DefenderDef, LevelDef, SpellDef, TileKind } from '../data/types';
@@ -250,6 +251,28 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         return true;
       },
       spawn: (id: string, row: number, x?: number): void => this.spawnEnemy(id, row, x ?? SPAWN_X),
+      /**
+       * Fill every playable cell for visual alignment QA. This deliberately
+       * bypasses terrain/card restrictions: it tests coordinates and art, not
+       * whether a particular deck is legal on a particular map.
+       */
+      qaFill: (side: 'defenders' | 'enemies'): number => {
+        let count = 0;
+        const ids =
+          side === 'defenders'
+            ? DEFENDERS.filter((d) => d.art.kind === 'unit').map((d) => d.id)
+            : ENEMIES.map((e) => e.id);
+        for (let row = 0; row < GRID.rows; row += 1) {
+          for (let col = 0; col < GRID.cols; col += 1) {
+            const id = ids[count % ids.length]!;
+            if (side === 'defenders') this.placeDefender(id, row, col);
+            else this.spawnEnemy(id, row, cellCenter(row, col).x);
+            count += 1;
+          }
+        }
+        this.paused = true;
+        return count;
+      },
       nextWave: (): void => this.startWave(),
       // Jumps to the final wave so the victory path can be exercised.
       endWaves: (): void => {
@@ -386,6 +409,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
             row: d.row,
             col: d.col,
             x: Math.round(d.x),
+            y: Math.round(d.y),
+            top: Math.round(d.topY),
             home: Math.round(d.homeX),
             sortie: d.sortie,
             // He shares a row with a lane, and anything looking a unit up by
@@ -396,7 +421,15 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         finished: this.finished,
         enemyDump: this.enemies
           .filter((e) => e.alive)
-          .map((e) => ({ id: e.def.id, row: e.row, x: Math.round(e.x), hp: Math.round(e.hp) })),
+          .map((e) => ({
+            id: e.def.id,
+            row: e.row,
+            x: Math.round(e.x),
+            y: Math.round(e.y),
+            top: Math.round(e.topY),
+            flying: e.flying,
+            hp: Math.round(e.hp),
+          })),
       }),
       castAt: (spellIndex: number, x: number, y: number): void => {
         const spell = this.spells[spellIndex]?.spell;
@@ -508,10 +541,27 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private buildField(): void {
     const biome = BIOMES[this.levelDef.biome];
     const regionUi = themeFor(biome.id);
+    /*
+     * Regional paintings were authored as landscapes, with their skyline
+     * occupying far more than the 88px scenery band. Stretching the whole
+     * painting over the battlefield put mountains, towers, and even sky in
+     * the first lane. Split each source into a compressed horizon and a
+     * ground crop so row zero always begins on walkable terrain.
+     */
+    const backgroundKey = `bg.${biome.id}`;
+    const source = this.textures.getFrame(backgroundKey);
+    const horizonSourceH = Math.round(source.height * 0.45);
     this.add
-      .image(DESIGN.width / 2, FIELD.y - FIELD.horizon, `bg.${biome.id}`)
-      .setOrigin(0.5, 0)
-      .setDisplaySize(DESIGN.width, FIELD.height + FIELD.horizon)
+      .image(0, FIELD.y - FIELD.horizon, backgroundKey)
+      .setOrigin(0, 0)
+      .setCrop(0, 0, source.width, horizonSourceH)
+      .setScale(DESIGN.width / source.width, FIELD.horizon / horizonSourceH)
+      .setDepth(-1000);
+    this.add
+      .image(0, FIELD.y, backgroundKey)
+      .setOrigin(0, 0)
+      .setCrop(0, horizonSourceH, source.width, source.height - horizonSourceH)
+      .setScale(DESIGN.width / source.width, FIELD.height / (source.height - horizonSourceH))
       .setDepth(-1000);
 
     // Everything above and below the field is a dark surround.
@@ -915,10 +965,14 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
      */
     for (let i = 0; i < this.reserves; i += 1) {
       const post = reservePost(i);
-      const c = this.add.container(post.x, post.y).setDepth(post.y);
-      c.add(this.cardArt(this.reserveArtId(), 0, 0, WORLD_ART_SCALE * 0.8));
-      c.setAlpha(0.85);
-      this.reserveFigures.push(c);
+      const spec = ALL_CHARACTER_ART[this.reserveArtId()] ?? ALL_CHARACTER_ART.militia!;
+      const rig = new Rig(this, post.x, post.y, characterArt(spec), {
+        facing: 1,
+        phase: i * 0.83,
+      });
+      rig.setDepth(post.y).setAlpha(0.85);
+      rig.play('idle');
+      this.reserveFigures.push(rig);
     }
   }
 

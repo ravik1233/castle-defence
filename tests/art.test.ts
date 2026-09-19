@@ -7,7 +7,7 @@ import { ENEMIES } from '../src/data/enemies';
 import { HEROES } from '../src/data/heroes';
 import { WALL_SKINS } from '../src/art/structures';
 import { darken, hexToRgb, lighten, mix, rgbToHex, tones } from '../src/core/color';
-import { cellCenter, colFromX, GRID, isInsideField, laneGroundY, rowFromY } from '../src/core/layout';
+import { MAX_WORLD_UNIT_HEIGHT, cellCenter, colFromX, GRID, isInsideField, laneGroundY, rowFromY, worldUnitScale } from '../src/core/layout';
 
 describe('data and art agree', () => {
   it('every defender points at art that exists', () => {
@@ -177,6 +177,14 @@ describe('grid maths', () => {
       const ground = laneGroundY(r);
       expect(ground).toBeGreaterThan(cellCenter(r, 0).y);
       expect(ground).toBeLessThanOrEqual(GRID.y0 + (r + 1) * GRID.cellH);
+    }
+  });
+
+  it('fits every ground character inside a lane at world scale', () => {
+    for (const spec of Object.values(ALL_CHARACTER_ART)) {
+      const height = spec.height * worldUnitScale(spec.height);
+      expect(height).toBeLessThanOrEqual(MAX_WORLD_UNIT_HEIGHT);
+      expect(laneGroundY(0) - height).toBeGreaterThanOrEqual(GRID.y0);
     }
   });
 });
