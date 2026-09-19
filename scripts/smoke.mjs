@@ -42,7 +42,7 @@ const until = async (fn, what, timeoutMs = 420000) => {
 };
 
 await page.goto(`${base}/?scene=Battle&level=c1l4&unlock=1&nomodal=1`, { waitUntil: 'load' });
-await page.waitForFunction(() => globalThis.__battle !== undefined, { timeout: 180000 });
+await page.waitForFunction(() => globalThis.__battle !== undefined, undefined, { timeout: 180000 });
 console.log('battle scene booted');
 
 await page.evaluate(() => globalThis.__battle.addGold(5000));

@@ -43,6 +43,7 @@ for (const device of DEVICES) {
   await page.goto(`${base}/`, { waitUntil: 'load' });
   await page.waitForFunction(
     () => globalThis.__game?.scene.getScenes(true)[0]?.scene.key === 'MainMenu',
+    undefined,
     { timeout: 180000 },
   );
   await page.waitForTimeout(1200);

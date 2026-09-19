@@ -7,7 +7,7 @@ import { mkdir } from 'node:fs/promises';
 import { launchBrowser } from './browser.mjs';
 
 const base = process.argv[2] ?? 'http://localhost:5199';
-const levels = ['c1l1', 'c2l1', 'c3l1', 'c4l1', 'c5l1', 'c6l1', 'c7l1'];
+const levels = ['c1l2', 'c2l1', 'c3l1', 'c4l1', 'c5l1', 'c6l1', 'c7l1'];
 const rows = 5;
 const cols = 8;
 const expectedXs = Array.from({ length: cols }, (_, col) => 300 + col * 200);
@@ -42,6 +42,7 @@ try {
       }
 
       await page.screenshot({ path: `screenshots/grid-alignment/${level}-${side}.png` });
+      console.log(`captured ${level} ${side}: ${dump.length} aligned units`);
       await page.close();
     }
   }

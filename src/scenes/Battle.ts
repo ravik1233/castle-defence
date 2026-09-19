@@ -557,11 +557,15 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       .setCrop(0, 0, source.width, horizonSourceH)
       .setScale(DESIGN.width / source.width, FIELD.horizon / horizonSourceH)
       .setDepth(-1000);
+    const groundSourceH = source.height - horizonSourceH;
+    const groundScaleY = FIELD.height / groundSourceH;
     this.add
-      .image(0, FIELD.y, backgroundKey)
+      // A Phaser crop keeps its source-space offset. Move the whole image up
+      // by that scaled offset so the first ground pixel lands at FIELD.y.
+      .image(0, FIELD.y - horizonSourceH * groundScaleY, backgroundKey)
       .setOrigin(0, 0)
-      .setCrop(0, horizonSourceH, source.width, source.height - horizonSourceH)
-      .setScale(DESIGN.width / source.width, FIELD.height / (source.height - horizonSourceH))
+      .setCrop(0, horizonSourceH, source.width, groundSourceH)
+      .setScale(DESIGN.width / source.width, groundScaleY)
       .setDepth(-1000);
 
     // Everything above and below the field is a dark surround.

@@ -17,7 +17,7 @@ await page.goto(`${base}/`, { waitUntil: 'load' });
 // A service worker claiming the page can abort requests already in flight, so
 // let it settle before probing anything.
 await page
-  .waitForFunction(() => navigator.serviceWorker?.controller !== null, { timeout: 15000 })
+  .waitForFunction(() => navigator.serviceWorker?.controller !== null, undefined, { timeout: 15000 })
   .catch(() => undefined);
 await page.waitForTimeout(1000);
 
