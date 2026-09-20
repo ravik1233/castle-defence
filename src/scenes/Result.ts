@@ -185,7 +185,7 @@ export class ResultScene extends Phaser.Scene {
   }
 
   private async goToBattle(levelId: string): Promise<void> {
-    await ensureBattleTextures(this, levelById(levelId).biome, profile.activeSkin);
+    await ensureBattleTextures(this, levelById(levelId).biome, profile.activeSkin, levelId);
     await this.leave(() => this.scene.start('Battle', { levelId }));
   }
 

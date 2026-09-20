@@ -2,8 +2,15 @@
  * Asset registry.
  *
  * Every texture in the game is declared here as a vector document, rasterised
- * once at boot into a Phaser texture. Nothing is fetched over the network, so
- * the game boots instantly and works offline.
+ * once into a Phaser texture.
+ *
+ * WHAT THE BOOT PAYS FOR
+ * ----------------------
+ * Only what the first screen shows. A unit the art pack has drawn poses for
+ * never assembles a puppet, so neither its parts nor its poses are touched at
+ * boot: `ensureUnitArt` streams the poses behind the menu and each fort waits
+ * on its own cast before it starts. Skipping that work took the boot from 41
+ * seconds and 46 MB to about 2 and 10.
  *
  * PAINTED ART SLOT-IN
  * -------------------
@@ -39,13 +46,21 @@ export interface TextureSpec {
 // cannot be hidden behind an older service-worker entry.
 export const PAINTED_MANIFEST_URL = 'assets/painted/manifest.json?v=regional-environment-3';
 
-function specs(): TextureSpec[] {
+function specs(drawn: ReadonlySet<string> = new Set()): TextureSpec[] {
   const out: TextureSpec[] = [];
   const add = (key: string, svg: Svg, scale = SUPERSAMPLE): void => {
     out.push({ key, svg, scale });
   };
 
   for (const spec of Object.values(ALL_CHARACTER_ART)) {
+    /*
+     * A unit whose poses were drawn never assembles a puppet: Rig returns as
+     * soon as it finds the strip, and portraitForArt prefers it too. Building
+     * its parts anyway cost the boot twice over - the geometry and the SVG
+     * here, and the painted part file over the network below - for textures
+     * nothing ever draws. Ninety-nine of the cast are in that state.
+     */
+    if (drawn.has(spec.id)) continue;
     const art = characterArt(spec);
     for (const part of art.parts) add(`unit.${spec.id}.${part.name}`, part.svg);
   }
@@ -182,6 +197,122 @@ export interface BuildOptions {
   onProgress?: (done: number, total: number) => void;
 }
 
+/** Sheets fetched at once. Enough to fill the pipe, few enough to stay ordered. */
+const SHEET_BATCH = 12;
+
+/** The manifest's file map, kept after the boot read so art can stream later. */
+let painted: Record<string, string> = {};
+
+/** In-flight or finished sheet loads, so a unit is never fetched twice. */
+const unitArt = new Map<string, Promise<void>>();
+
+/** Every unit the pack has drawn poses for. */
+export function drawnUnitIds(): string[] {
+  return [...paintedFrames.keys()];
+}
+
+/**
+ * Puts one unit's drawn poses in the texture manager.
+ *
+ * If the sheet cannot be fetched the unit falls back to the assembled puppet -
+ * its painted parts if the pack has them, the generated ones otherwise. That
+ * is the same fallback the boot used to provide by loading every unit's parts
+ * up front; doing it here instead means it costs nothing until it is needed.
+ */
+async function loadUnitArt(scene: Phaser.Scene, id: string): Promise<void> {
+  const strip = paintedFrames.get(id);
+  if (!strip) return;
+  const key = `unit.${id}.sheet`;
+  if (scene.textures.exists(key) || scene.textures.exists(`unit.${id}.frame0`)) return;
+  try {
+    if (strip.sheet) {
+      const img = await loadImage(`assets/painted/${strip.sheet}`);
+      if (!scene.textures.exists(key)) {
+        scene.textures.addSpriteSheet(key, img, {
+          frameWidth: strip.width, frameHeight: strip.height, endFrame: strip.count - 1,
+        });
+      }
+      return;
+    }
+    // The older packs ship one file per pose rather than a packed sheet.
+    const loose = await Promise.all(
+      Array.from({ length: strip.count }, (_, i) => painted[`unit.${id}.frame${i}`]).map(
+        async (file) => (file ? loadImage(`assets/painted/${file}`) : undefined),
+      ),
+    );
+    if (!loose.some(Boolean)) throw new Error(`no poses for ${id}`);
+    loose.forEach((img, i) => {
+      const frameKey = `unit.${id}.frame${i}`;
+      if (img && !scene.textures.exists(frameKey)) scene.textures.addImage(frameKey, img);
+    });
+  } catch {
+    await repairUnitArt(scene, id);
+  }
+}
+
+/** Assembles a unit the slow way, for when its sheet did not arrive. */
+async function repairUnitArt(scene: Phaser.Scene, id: string): Promise<void> {
+  const spec = ALL_CHARACTER_ART[id];
+  if (!spec) return;
+  for (const part of characterArt(spec).parts) {
+    const key = `unit.${id}.${part.name}`;
+    if (scene.textures.exists(key)) continue;
+    const file = painted[key];
+    try {
+      scene.textures.addImage(
+        key,
+        file ? await loadImage(`assets/painted/${file}`) : await rasterize(part.svg, SUPERSAMPLE),
+      );
+    } catch {
+      // Nothing more to try for this part; the rig simply omits it.
+    }
+  }
+}
+
+/**
+ * Ensures the drawn poses for these units are loaded, fetching only what is
+ * missing. Idempotent and safe to await repeatedly or from several screens at
+ * once: a unit already in flight is joined rather than fetched again.
+ */
+export async function ensureUnitArt(
+  scene: Phaser.Scene,
+  ids: Iterable<string>,
+  opts: BuildOptions = {},
+): Promise<void> {
+  const wanted = [...new Set(ids)].filter((id) => paintedFrames.has(id));
+  let done = 0;
+  const total = wanted.length;
+  if (!total) return;
+  for (let i = 0; i < wanted.length; i += SHEET_BATCH) {
+    await Promise.all(
+      wanted.slice(i, i + SHEET_BATCH).map(async (id) => {
+        let job = unitArt.get(id);
+        if (!job) {
+          job = loadUnitArt(scene, id);
+          unitArt.set(id, job);
+        }
+        await job;
+        done += 1;
+        opts.onProgress?.(done, total);
+      }),
+    );
+  }
+}
+
+/**
+ * Whether a painted file is made redundant by an animation strip that has
+ * already loaded, and so should never be fetched.
+ *
+ * Nothing belonging to a drawn unit is wanted at boot. Its poses - a packed
+ * sheet, or the older loose per-frame files - are cast art, which streams
+ * behind the menu; and its parts and whole-body sprite are dead either way,
+ * because Rig takes the poses and returns before it looks at them.
+ */
+function supersededByStrip(key: string, drawn: ReadonlySet<string>): boolean {
+  const m = /^unit\.(.+)\.[^.]+$/.exec(key);
+  return m ? drawn.has(m[1]!) : false;
+}
+
 /**
  * How a painted parts sheet fits together: where each piece hangs, how big it
  * is, and what it pivots around. Produced by scripts/import-parts.mjs, which
@@ -264,27 +395,32 @@ export async function buildTextures(
   extra: TextureSpec[] = [],
   opts: BuildOptions = {},
 ): Promise<void> {
-  const all = [...specs(), ...extra];
   const overrides = await paintedOverrides();
-  // One image upload per character instead of one upload per animation frame.
+  painted = overrides;
+
+  /*
+   * Who no longer needs a puppet. A unit counts as drawn when the pack has
+   * poses for it: a packed sheet, or the older one-file-per-frame set, which
+   * Rig accepts just as readily. Their sheets are not fetched here - they are
+   * the heaviest thing in the game and nothing on the way to the menu draws a
+   * single one - but knowing their names now is what lets this skip the part
+   * work they make pointless.
+   */
+  const sheeted = new Set<string>();
+  const drawn = new Set<string>();
   for (const [id, strip] of paintedFrames) {
-    if (!strip.sheet) continue;
-    try {
-      const img = await loadImage(`assets/painted/${strip.sheet}`);
-      scene.textures.addSpriteSheet(`unit.${id}.sheet`, img, {
-        frameWidth: strip.width, frameHeight: strip.height, endFrame: strip.count - 1,
-      });
-    } catch {
-      // Keep legacy frames and generated parts available if the sheet fails.
-    }
+    if (strip.sheet) sheeted.add(id);
+    if (strip.sheet || overrides[`unit.${id}.frame0`]) drawn.add(id);
   }
+
+  const all = [...specs(drawn), ...extra];
 
   // Painted packs may add keys the generator never produces - a whole-body
   // sprite (`unit.orc.full`) instead of parts, say - so anything in the
   // manifest that is not a generated key is loaded on its own.
   const generated = new Set(all.map((s) => s.key));
   const extraPainted = Object.keys(overrides).filter(
-    (key) => !key.startsWith('_') && !generated.has(key),
+    (key) => !key.startsWith('_') && !generated.has(key) && !supersededByStrip(key, drawn),
   );
 
   let done = 0;

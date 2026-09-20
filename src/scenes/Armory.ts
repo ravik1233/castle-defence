@@ -10,6 +10,7 @@ import { CHAPTERS } from '../data/levels';
 import { WALL_SKINS } from '../art/structures';
 import { profile, PREMIUM_SKINS } from '../systems/profile';
 import { ensureAllCastleSkins } from '../systems/textures';
+import { drawnUnitIds, ensureUnitArt } from '../art/registry';
 import { portraitFor, portraitForArt } from '../art/portraits';
 import { audio } from '../systems/audio';
 import { emberCost } from '../battle/economy';
@@ -71,6 +72,8 @@ export class ArmoryScene extends Phaser.Scene {
     // places and the player should always know how much of each they hold.
     new Counter(this, 260, 48, 'icon.hammer', profile.salvage, 'body');
 
+    this.repaintAsArtArrives();
+
     const tabs: Array<[Tab | 'workshop', string]> = [
       ['deck', 'DECK'],
       ['upgrades', 'FORGE'],
@@ -109,6 +112,22 @@ export class ArmoryScene extends Phaser.Scene {
   private track<T extends Phaser.GameObjects.GameObject>(o: T): T {
     this.body.push(o);
     return o;
+  }
+
+  /**
+   * Cards carry a drawn portrait, and the cast streams in behind the menu, so
+   * a card built before its unit landed would come out blank. Repainting as
+   * each batch arrives fills them in; by the time anyone has walked here from
+   * the menu it is usually already done, and the repaints are no-ops.
+   */
+  private repaintAsArtArrives(): void {
+    void ensureUnitArt(this, drawnUnitIds(), {
+      onProgress: () => {
+        if (this.scene.isActive()) this.draw();
+      },
+    }).catch(() => {
+      // Nothing to repaint with; the cards keep whatever art they found.
+    });
   }
 
   private draw(): void {

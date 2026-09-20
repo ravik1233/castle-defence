@@ -18,6 +18,7 @@ import { portraitFor } from '../art/portraits';
 import { themeFor } from '../art/regions';
 import { profile } from '../systems/profile';
 import { ensureBattleTextures } from '../systems/textures';
+import { drawnUnitIds, ensureUnitArt } from '../art/registry';
 import { audio } from '../systems/audio';
 import { emberCost } from '../battle/economy';
 import { COLORS, Counter, TextButton, fitText, showDialog, tappable, textStyle } from '../ui/kit';
@@ -71,6 +72,7 @@ export class LoadoutScene extends Phaser.Scene {
       .setOrigin(0.5, 0);
     fitText(brief, 1200);
     this.drawDoctrines();
+    this.repaintAsArtArrives();
 
     new Counter(this, 40, 46, 'icon.coin', profile.gold, 'small');
     new Counter(this, 250, 46, 'icon.hammer', profile.salvage, 'small');
@@ -140,6 +142,22 @@ export class LoadoutScene extends Phaser.Scene {
   private track<T extends Phaser.GameObjects.GameObject>(o: T): T {
     this.body.push(o);
     return o;
+  }
+
+  /**
+   * Cards carry a drawn portrait, and the cast streams in behind the menu, so
+   * a card built before its unit landed would come out blank. Repainting as
+   * each batch arrives fills them in; by the time anyone has walked here from
+   * the menu it is usually already done, and the repaints are no-ops.
+   */
+  private repaintAsArtArrives(): void {
+    void ensureUnitArt(this, drawnUnitIds(), {
+      onProgress: () => {
+        if (this.scene.isActive()) this.draw();
+      },
+    }).catch(() => {
+      // Nothing to repaint with; the cards keep whatever art they found.
+    });
   }
 
   private draw(): void {
@@ -375,7 +393,7 @@ export class LoadoutScene extends Phaser.Scene {
       .text(DESIGN.width / 2, DESIGN.height - 140, 'mustering...', textStyle('small', COLORS.muted))
       .setOrigin(0.5)
       .setDepth(9500);
-    await ensureBattleTextures(this, this.lvl.biome, profile.activeSkin);
+    await ensureBattleTextures(this, this.lvl.biome, profile.activeSkin, this.lvl.id);
     wait.destroy();
     this.scene.start('Battle', { levelId: this.lvl.id });
   }

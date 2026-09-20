@@ -1,9 +1,13 @@
 /**
- * Boot scene: rasterises the whole vector art set into textures, showing a
- * progress bar drawn with primitives (no textures exist yet).
+ * Boot scene: rasterises what the first screen needs, showing a progress bar
+ * drawn with primitives (no textures exist yet).
+ *
+ * The cast is deliberately not part of that. Its drawn poses are the heaviest
+ * thing the game owns and no menu draws one, so they stream in afterwards -
+ * see `streamCast` below.
  */
 import Phaser from 'phaser';
-import { BACKDROP_SCALE, addTexture, buildTextures, ensureBiome } from '../art/registry';
+import { BACKDROP_SCALE, addTexture, buildTextures, drawnUnitIds, ensureBiome, ensureUnitArt } from '../art/registry';
 import { mapBackdrop, menuBackdrop } from '../art/scenery';
 import { DESIGN, FIELD, GRID } from '../core/layout';
 import { level } from '../data/levels';
@@ -87,11 +91,28 @@ export class PreloadScene extends Phaser.Scene {
     if (target) {
       const levelId = params.get('level') ?? 'c1l1';
       if (target === 'Battle') {
-        await ensureBattleTextures(this, level(levelId).biome, profile.activeSkin);
+        await ensureBattleTextures(this, level(levelId).biome, profile.activeSkin, levelId);
       }
       this.scene.start(target, { levelId, skipBriefing: params.get('nomodal') === '1' });
+      this.streamCast();
       return;
     }
     this.scene.start('MainMenu');
+    this.streamCast();
+  }
+
+  /**
+   * Fetches the drawn poses for the whole cast behind the menu.
+   *
+   * The sheets are by far the heaviest thing the game owns and nothing before
+   * the first fort draws one, so waiting on them was the boot. Started here
+   * instead, they arrive while the player is reading a menu, and whatever has
+   * not landed by the time a fort begins is waited for there - and only the
+   * handful that fort actually fields.
+   */
+  private streamCast(): void {
+    void ensureUnitArt(this, drawnUnitIds()).catch(() => {
+      // Nothing to do: each fort awaits its own cast before it starts.
+    });
   }
 }
