@@ -35,7 +35,7 @@ REGIONS = {
         "elf_ranger", "elf_spellweaver", "moonblade", "faelith",
         "treesinger", "hawkkeeper", "orc_shaman", "wyvern_rider",
         "orc_axethrower", "orc_powderkeg", "orc_berserker", "orc_ironback",
-        "orc", "troll", "orc_warlord", "gatebreaker",
+        "orc", "troll", "orc_warlord",
     ],
     4: [
         "warden", "netcaster", "houndmaster", "seraphina",
@@ -58,7 +58,6 @@ REGIONS = {
         "warleader", "kingsguard", "maerwyn", "hellhound",
         "portal_fiend", "succubus", "balor", "demon_prince",
         "hell_bombardier", "brimstone_ogre", "soul_harvester",
-        "gatebreaker",
     ],
 }
 

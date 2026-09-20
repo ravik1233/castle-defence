@@ -16,7 +16,7 @@ REGIONS = {
         "elf_ranger", "elf_spellweaver", "moonblade", "faelith",
         "treesinger", "hawkkeeper", "orc_shaman", "wyvern_rider",
         "orc_axethrower", "orc_powderkeg", "orc_berserker", "orc_ironback",
-        "orc", "troll", "orc_warlord", "gatebreaker",
+        "orc", "troll", "orc_warlord",
     ],
     4: [
         "warden", "netcaster", "houndmaster", "seraphina",
@@ -39,9 +39,12 @@ REGIONS = {
         "warleader", "kingsguard", "maerwyn", "hellhound",
         "portal_fiend", "succubus", "balor", "demon_prince",
         "hell_bombardier", "brimstone_ogre", "soul_harvester",
-        "gatebreaker",
     ],
 }
+
+# Gatebreaker deliberately renders the shared bombard building. It is not a
+# character rig and must not be counted as missing regional action art.
+INTENTIONAL_BUILD_ART = {"gatebreaker": "build.bombard"}
 
 CLIMAX_ACTIONS = {
     "demon_king": "unit.demon_king.region7.actions.png",
@@ -51,6 +54,8 @@ CLIMAX_ACTIONS = {
 
 manifest = json.loads((PAINTED / "manifest.json").read_text())
 errors = []
+if manifest.get("_art_aliases") != INTENTIONAL_BUILD_ART:
+    errors.append("manifest must declare gatebreaker -> build.bombard as intentional build art")
 verified = 0
 for region, art_ids in REGIONS.items():
  for art_id in art_ids:

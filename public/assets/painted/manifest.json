@@ -371,11 +371,38 @@
       "death"
     ],
     "animations": {
-      "idle": { "frames": [0], "fps": 3 },
-      "walk": { "frames": [0], "fps": 3 },
-      "attack": { "frames": [1, 0], "fps": 4 },
-      "cast": { "frames": [1, 0], "fps": 4 },
-      "die": { "frames": [2], "fps": 3 }
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 4
+      },
+      "cast": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
     }
   },
   "unit.shadow_fiend.head": "unit.shadow_fiend.head.png",
@@ -483,10 +510,31 @@
       "death"
     ],
     "animations": {
-      "idle": { "frames": [0], "fps": 3 },
-      "walk": { "frames": [0], "fps": 3 },
-      "attack": { "frames": [1, 0], "fps": 4 },
-      "die": { "frames": [2], "fps": 3 }
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
     }
   },
   "unit.orc.cape": "unit.orc.cape.png",
@@ -1748,10 +1796,31 @@
       "death"
     ],
     "animations": {
-      "idle": { "frames": [0], "fps": 3 },
-      "walk": { "frames": [0], "fps": 3 },
-      "attack": { "frames": [1, 0], "fps": 4 },
-      "die": { "frames": [2], "fps": 3 }
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "attack": {
+        "frames": [
+          1,
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          2
+        ],
+        "fps": 3
+      }
     }
   },
   "unit.martyr.full": "unit.martyr.region.png",
@@ -6530,5 +6599,9 @@
       }
     }
   },
-  "_region_7_actions": "Three-pose presentation sheets: idle, impact/cast, and fallen death. Walking intentionally uses idle until bespoke walk cycles are approved."
+  "_region_7_actions": "Three-pose presentation sheets: idle, impact/cast, and fallen death. Walking intentionally uses idle until bespoke walk cycles are approved.",
+  "_art_aliases": {
+    "gatebreaker": "build.bombard"
+  },
+  "_gatebreaker_note": "Intentional non-character art alias: gameplay renders build.bombard; legacy character sheets are retained only as source archive."
 }
