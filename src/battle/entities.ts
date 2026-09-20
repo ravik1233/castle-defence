@@ -8,6 +8,7 @@
 import Phaser from 'phaser';
 import { characterArt } from '../art/compose';
 import { ALL_CHARACTER_ART } from '../art/cast';
+import { paintedFrameSet, type PaintedFrames } from '../art/registry';
 import type { ProjectileId } from '../art/props';
 import { GRID, KEEP, WALL_FACE_X, cellCenter, isWallCol, laneGroundY } from '../core/layout';
 import type { DamageType, DefenderDef, EnemyDef, EnemySpecial, TileKind } from '../data/types';
@@ -147,6 +148,8 @@ export class Defender {
 
   private readonly rig?: Rig;
   private readonly sprite?: Phaser.GameObjects.Image;
+  /** Optional authored poses for a siege structure such as Gatebreaker. */
+  private readonly buildFrames?: PaintedFrames;
   private readonly bar: HealthBar;
   private cooldown = 0;
   private economyTimer: number;
@@ -191,7 +194,11 @@ export class Defender {
       this.rig.setDepth(this.y);
       this.rig.play('spawn');
     } else {
-      this.sprite = scene.add.image(this.x, this.y, def.art.key);
+      // Siege structures can carry authored poses just like units. Gatebreaker
+      // uses its own tower sheet; ordinary static structures keep their key.
+      this.buildFrames = paintedFrameSet(def.id);
+      const texture = this.buildFrames?.sheet ? `unit.${def.id}.sheet` : def.art.key;
+      this.sprite = scene.add.image(this.x, this.y, texture, this.buildFrames ? 0 : undefined);
       this.sprite.setOrigin(0.5, 1);
       // Fit the building to its lane rather than trusting a fixed scale: the
       // textures are supersampled, so a raw scale is meaningless.
@@ -249,13 +256,20 @@ export class Defender {
       this.world.stage.time.delayedCall(600, () => this.rig?.destroy());
     }
     if (this.sprite) {
-      this.world.stage.tweens.add({
-        targets: this.sprite,
-        alpha: 0,
-        scaleY: 0.4,
-        duration: 260,
-        onComplete: () => this.sprite?.destroy(),
-      });
+      const death = this.buildFrames?.animations?.die;
+      const deathFrame = death?.frames[death.frames.length - 1];
+      if (deathFrame !== undefined) this.sprite.setFrame(deathFrame);
+      const fade = (): void => {
+        this.world.stage.tweens.add({
+          targets: this.sprite,
+          alpha: 0,
+          scaleY: 0.4,
+          duration: 260,
+          onComplete: () => this.sprite?.destroy(),
+        });
+      };
+      if (deathFrame !== undefined) this.world.stage.time.delayedCall(520, fade);
+      else fade();
     }
     this.bar.destroy();
   }
@@ -392,15 +406,30 @@ export class Defender {
         this.pendingShot = undefined;
       });
     } else {
-      fire();
-      if (this.sprite) {
-        this.world.stage.tweens.add({
-          targets: this.sprite,
-          scaleX: 0.94,
-          scaleY: 0.92,
-          duration: 90,
-          yoyo: true,
+      const clip = this.buildFrames?.animations?.attack;
+      if (this.sprite && clip?.frames.length) {
+        // Hold the authored impact pose until the projectile leaves the tower,
+        // then settle back onto the idle frame.
+        this.sprite.setFrame(clip.frames[0]!);
+        const beat = Math.max(90, Math.round(1000 / Math.max(1, clip.fps)));
+        this.world.stage.time.delayedCall(Math.round(beat * 0.55), () => {
+          if (this.alive) fire();
         });
+        this.world.stage.time.delayedCall(beat, () => {
+          if (!this.alive) return;
+          this.sprite?.setFrame(this.buildFrames?.animations?.idle?.frames[0] ?? 0);
+        });
+      } else {
+        fire();
+        if (this.sprite) {
+          this.world.stage.tweens.add({
+            targets: this.sprite,
+            scaleX: 0.94,
+            scaleY: 0.92,
+            duration: 90,
+            yoyo: true,
+          });
+        }
       }
     }
   }

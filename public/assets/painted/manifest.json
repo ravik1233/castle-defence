@@ -3407,7 +3407,7 @@
     }
   },
   "unit.gatebreaker.frames": {
-    "sheet": "unit.gatebreaker.region7.actions.png",
+    "sheet": "unit.gatebreaker.region3.actions.png",
     "count": 3,
     "width": 256,
     "height": 256,
