@@ -1786,13 +1786,15 @@
   "unit.necromancer.full": "unit.necromancer.region.png",
   "unit.plague_bat.full": "unit.plague_bat.region.png",
   "unit.plague_bat.frames": {
-    "sheet": "unit.plague_bat.region2.actions.png",
-    "count": 3,
+    "sheet": "unit.plague_bat.region2.walk.png",
+    "count": 5,
     "width": 256,
     "height": 256,
     "groundOffset": 10,
     "names": [
       "idle",
+      "walk_a",
+      "walk_b",
       "attack",
       "death"
     ],
@@ -1805,20 +1807,40 @@
       },
       "walk": {
         "frames": [
-          0
+          1,
+          2
         ],
-        "fps": 3
+        "fps": 6
       },
       "attack": {
         "frames": [
-          1,
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
           0
         ],
         "fps": 4
       },
       "die": {
         "frames": [
-          2
+          4
         ],
         "fps": 3
       }
@@ -1898,13 +1920,15 @@
   "unit.bell_chanter.full": "unit.bell_chanter.region.png",
   "unit.black_hawk.full": "unit.black_hawk.region.png",
   "unit.dwarf_warrior.frames": {
-    "sheet": "unit.dwarf_warrior.region2.actions.png",
-    "count": 3,
+    "sheet": "unit.dwarf_warrior.region2.walk.png",
+    "count": 5,
     "width": 256,
     "height": 256,
     "groundOffset": 10,
     "names": [
       "idle",
+      "walk_a",
+      "walk_b",
       "attack",
       "death"
     ],
@@ -1917,20 +1941,21 @@
       },
       "walk": {
         "frames": [
-          0
+          1,
+          2
         ],
-        "fps": 3
+        "fps": 6
       },
       "attack": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
       },
       "cast": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
@@ -1949,20 +1974,22 @@
       },
       "die": {
         "frames": [
-          2
+          4
         ],
         "fps": 3
       }
     }
   },
   "unit.runesmith.frames": {
-    "sheet": "unit.runesmith.region2.actions.png",
-    "count": 3,
+    "sheet": "unit.runesmith.region2.walk.png",
+    "count": 5,
     "width": 256,
     "height": 256,
     "groundOffset": 10,
     "names": [
       "idle",
+      "walk_a",
+      "walk_b",
       "attack",
       "death"
     ],
@@ -1975,20 +2002,21 @@
       },
       "walk": {
         "frames": [
-          0
+          1,
+          2
         ],
-        "fps": 3
+        "fps": 6
       },
       "attack": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
       },
       "cast": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
@@ -2007,20 +2035,22 @@
       },
       "die": {
         "frames": [
-          2
+          4
         ],
         "fps": 3
       }
     }
   },
   "unit.gravewarden.frames": {
-    "sheet": "unit.gravewarden.region2.actions.png",
-    "count": 3,
+    "sheet": "unit.gravewarden.region2.walk.png",
+    "count": 5,
     "width": 256,
     "height": 256,
     "groundOffset": 10,
     "names": [
       "idle",
+      "walk_a",
+      "walk_b",
       "attack",
       "death"
     ],
@@ -2033,20 +2063,21 @@
       },
       "walk": {
         "frames": [
-          0
+          1,
+          2
         ],
-        "fps": 3
+        "fps": 6
       },
       "attack": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
       },
       "cast": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
@@ -2065,20 +2096,22 @@
       },
       "die": {
         "frames": [
-          2
+          4
         ],
         "fps": 3
       }
     }
   },
   "unit.bran.frames": {
-    "sheet": "unit.bran.region2.actions.png",
-    "count": 3,
+    "sheet": "unit.bran.region2.walk.png",
+    "count": 5,
     "width": 256,
     "height": 256,
     "groundOffset": 10,
     "names": [
       "idle",
+      "walk_a",
+      "walk_b",
       "attack",
       "death"
     ],
@@ -2091,20 +2124,21 @@
       },
       "walk": {
         "frames": [
-          0
+          1,
+          2
         ],
-        "fps": 3
+        "fps": 6
       },
       "attack": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
       },
       "cast": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
@@ -2123,20 +2157,22 @@
       },
       "die": {
         "frames": [
-          2
+          4
         ],
         "fps": 3
       }
     }
   },
   "unit.skeleton.frames": {
-    "sheet": "unit.skeleton.region2.actions.png",
-    "count": 3,
+    "sheet": "unit.skeleton.region2.walk.png",
+    "count": 5,
     "width": 256,
     "height": 256,
     "groundOffset": 10,
     "names": [
       "idle",
+      "walk_a",
+      "walk_b",
       "attack",
       "death"
     ],
@@ -2149,20 +2185,21 @@
       },
       "walk": {
         "frames": [
-          0
+          1,
+          2
         ],
-        "fps": 3
+        "fps": 6
       },
       "attack": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
       },
       "cast": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
@@ -2181,20 +2218,22 @@
       },
       "die": {
         "frames": [
-          2
+          4
         ],
         "fps": 3
       }
     }
   },
   "unit.skeleton_archer.frames": {
-    "sheet": "unit.skeleton_archer.region2.actions.png",
-    "count": 3,
+    "sheet": "unit.skeleton_archer.region2.walk.png",
+    "count": 5,
     "width": 256,
     "height": 256,
     "groundOffset": 10,
     "names": [
       "idle",
+      "walk_a",
+      "walk_b",
       "attack",
       "death"
     ],
@@ -2207,20 +2246,21 @@
       },
       "walk": {
         "frames": [
-          0
+          1,
+          2
         ],
-        "fps": 3
+        "fps": 6
       },
       "attack": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
       },
       "cast": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
@@ -2239,20 +2279,22 @@
       },
       "die": {
         "frames": [
-          2
+          4
         ],
         "fps": 3
       }
     }
   },
   "unit.zombie.frames": {
-    "sheet": "unit.zombie.region2.actions.png",
-    "count": 3,
+    "sheet": "unit.zombie.region2.walk.png",
+    "count": 5,
     "width": 256,
     "height": 256,
     "groundOffset": 10,
     "names": [
       "idle",
+      "walk_a",
+      "walk_b",
       "attack",
       "death"
     ],
@@ -2265,20 +2307,21 @@
       },
       "walk": {
         "frames": [
-          0
+          1,
+          2
         ],
-        "fps": 3
+        "fps": 6
       },
       "attack": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
       },
       "cast": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
@@ -2297,20 +2340,22 @@
       },
       "die": {
         "frames": [
-          2
+          4
         ],
         "fps": 3
       }
     }
   },
   "unit.ghoul.frames": {
-    "sheet": "unit.ghoul.region2.actions.png",
-    "count": 3,
+    "sheet": "unit.ghoul.region2.walk.png",
+    "count": 5,
     "width": 256,
     "height": 256,
     "groundOffset": 10,
     "names": [
       "idle",
+      "walk_a",
+      "walk_b",
       "attack",
       "death"
     ],
@@ -2323,20 +2368,21 @@
       },
       "walk": {
         "frames": [
-          0
+          1,
+          2
         ],
-        "fps": 3
+        "fps": 6
       },
       "attack": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
       },
       "cast": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
@@ -2355,20 +2401,22 @@
       },
       "die": {
         "frames": [
-          2
+          4
         ],
         "fps": 3
       }
     }
   },
   "unit.grave_raven.frames": {
-    "sheet": "unit.grave_raven.region2.actions.png",
-    "count": 3,
+    "sheet": "unit.grave_raven.region2.walk.png",
+    "count": 5,
     "width": 256,
     "height": 256,
     "groundOffset": 10,
     "names": [
       "idle",
+      "walk_a",
+      "walk_b",
       "attack",
       "death"
     ],
@@ -2381,20 +2429,21 @@
       },
       "walk": {
         "frames": [
-          0
+          1,
+          2
         ],
-        "fps": 3
+        "fps": 6
       },
       "attack": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
       },
       "cast": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
@@ -2413,20 +2462,22 @@
       },
       "die": {
         "frames": [
-          2
+          4
         ],
         "fps": 3
       }
     }
   },
   "unit.vampire.frames": {
-    "sheet": "unit.vampire.region2.actions.png",
-    "count": 3,
+    "sheet": "unit.vampire.region2.walk.png",
+    "count": 5,
     "width": 256,
     "height": 256,
     "groundOffset": 10,
     "names": [
       "idle",
+      "walk_a",
+      "walk_b",
       "attack",
       "death"
     ],
@@ -2439,20 +2490,21 @@
       },
       "walk": {
         "frames": [
-          0
+          1,
+          2
         ],
-        "fps": 3
+        "fps": 6
       },
       "attack": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
       },
       "cast": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
@@ -2471,20 +2523,22 @@
       },
       "die": {
         "frames": [
-          2
+          4
         ],
         "fps": 3
       }
     }
   },
   "unit.bone_golem.frames": {
-    "sheet": "unit.bone_golem.region2.actions.png",
-    "count": 3,
+    "sheet": "unit.bone_golem.region2.walk.png",
+    "count": 5,
     "width": 256,
     "height": 256,
     "groundOffset": 10,
     "names": [
       "idle",
+      "walk_a",
+      "walk_b",
       "attack",
       "death"
     ],
@@ -2497,20 +2551,21 @@
       },
       "walk": {
         "frames": [
-          0
+          1,
+          2
         ],
-        "fps": 3
+        "fps": 6
       },
       "attack": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
       },
       "cast": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
@@ -2529,20 +2584,22 @@
       },
       "die": {
         "frames": [
-          2
+          4
         ],
         "fps": 3
       }
     }
   },
   "unit.lich.frames": {
-    "sheet": "unit.lich.region2.actions.png",
-    "count": 3,
+    "sheet": "unit.lich.region2.walk.png",
+    "count": 5,
     "width": 256,
     "height": 256,
     "groundOffset": 10,
     "names": [
       "idle",
+      "walk_a",
+      "walk_b",
       "attack",
       "death"
     ],
@@ -2555,20 +2612,21 @@
       },
       "walk": {
         "frames": [
-          0
+          1,
+          2
         ],
-        "fps": 3
+        "fps": 6
       },
       "attack": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
       },
       "cast": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
@@ -2587,20 +2645,22 @@
       },
       "die": {
         "frames": [
-          2
+          4
         ],
         "fps": 3
       }
     }
   },
   "unit.necromancer.frames": {
-    "sheet": "unit.necromancer.region2.actions.png",
-    "count": 3,
+    "sheet": "unit.necromancer.region2.walk.png",
+    "count": 5,
     "width": 256,
     "height": 256,
     "groundOffset": 10,
     "names": [
       "idle",
+      "walk_a",
+      "walk_b",
       "attack",
       "death"
     ],
@@ -2613,20 +2673,21 @@
       },
       "walk": {
         "frames": [
-          0
+          1,
+          2
         ],
-        "fps": 3
+        "fps": 6
       },
       "attack": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
       },
       "cast": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
@@ -2645,13 +2706,13 @@
       },
       "die": {
         "frames": [
-          2
+          4
         ],
         "fps": 3
       }
     }
   },
-  "_region_2_actions": "Three-pose presentation sheets: idle, impact/cast, and fallen death. Walking intentionally uses idle until bespoke walk cycles are approved.",
+  "_region_2_actions": "Five-pose sheets: idle, two authored walk contacts, impact/cast, and fallen death.",
   "unit.elf_ranger.frames": {
     "sheet": "unit.elf_ranger.region3.actions.png",
     "count": 3,

@@ -42,6 +42,8 @@ REGIONS = {
     ],
 }
 
+WALK_COMPLETE_REGIONS = {2}
+
 # Gatebreaker is siege art rather than a humanoid rig, but its idle, firing,
 # and destroyed poses are authored and validated with the Region 3 roster.
 
@@ -86,10 +88,19 @@ for region, art_ids in REGIONS.items():
         else:
             errors.append(f"region {region}/{art_id}: no sheet file declared")
         animations = spec.get("animations", {})
-        if compact and animations.get("walk", {}).get("frames") != [0]:
-            errors.append(f"region {region}/{art_id}: walking must remain on the approved idle pose")
-        if compact and animations.get("die", {}).get("frames") != [2]:
-            errors.append(f"region {region}/{art_id}: death must use the fallen pose")
+        walk_frames = animations.get("walk", {}).get("frames")
+        if region in WALK_COMPLETE_REGIONS:
+            if spec.get("count") != 5 or names != ["idle", "walk_a", "walk_b", "attack", "death"]:
+                errors.append(f"region {region}/{art_id}: expected the five-pose authored walk sheet")
+            if not isinstance(walk_frames, list) or len(set(walk_frames)) < 2:
+                errors.append(f"region {region}/{art_id}: walk cycle must use two distinct authored frames")
+            if animations.get("die", {}).get("frames") != [4]:
+                errors.append(f"region {region}/{art_id}: death must use frame 4")
+        else:
+            if compact and walk_frames != [0]:
+                errors.append(f"region {region}/{art_id}: incomplete walk cycle must remain on idle")
+            if compact and animations.get("die", {}).get("frames") != [2]:
+                errors.append(f"region {region}/{art_id}: death must use the fallen pose")
         verified += 1
 
 for art_id, expected_sheet in CLIMAX_ACTIONS.items():
