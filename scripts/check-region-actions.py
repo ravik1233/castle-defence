@@ -50,7 +50,6 @@ WALK_COMPLETE_REGIONS = {2}
 CLIMAX_ACTIONS = {
     "demon_king": "unit.demon_king.region7.actions.png",
     "shadow_fiend": "unit.shadow_fiend.region7.actions.png",
-    "plague_bat": "unit.plague_bat.region2.actions.png",
 }
 
 manifest = json.loads((PAINTED / "manifest.json").read_text())
