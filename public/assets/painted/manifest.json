@@ -1380,6 +1380,7 @@
   "build.barricade": "build.barricade.painted.png",
   "build.ballista": "build.ballista.painted.png",
   "build.bombard": "build.bombard.painted.png",
+  "build.gatebreaker": "unit.gatebreaker.region.png",
   "build.brazier": "build.brazier.painted.png",
   "tile.seam": "tile.ember.seam.png",
   "wall.fields": "wall.fields.five-gate.webp",
@@ -6599,9 +6600,5 @@
       }
     }
   },
-  "_region_7_actions": "Three-pose presentation sheets: idle, impact/cast, and fallen death. Walking intentionally uses idle until bespoke walk cycles are approved.",
-  "_art_aliases": {
-    "gatebreaker": "build.bombard"
-  },
-  "_gatebreaker_note": "Intentional non-character art alias: gameplay renders build.bombard; legacy character sheets are retained only as source archive."
+  "_region_7_actions": "Three-pose presentation sheets: idle, impact/cast, and fallen death. Walking intentionally uses idle until bespoke walk cycles are approved."
 }

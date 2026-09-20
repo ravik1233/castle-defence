@@ -22,6 +22,7 @@ REQUIRED_ENVIRONMENT_KEYS = {
     "build.barricade",
     "build.ballista",
     "build.bombard",
+    "build.gatebreaker",
     "build.brazier",
     "tile.seam",
     "wall.regional",

@@ -21,6 +21,11 @@ describe('data and art agree', () => {
     }
   });
 
+  it('maps Gatebreaker to its own siege artwork', () => {
+    const gatebreaker = DEFENDERS.find((d) => d.id === 'gatebreaker');
+    expect(gatebreaker?.art).toEqual({ kind: 'build', key: 'build.gatebreaker' });
+  });
+
   it('every enemy points at art that exists', () => {
     // The newer hordes live in their own block of the cast, so this asks the
     // whole cast rather than the roster the game shipped with.

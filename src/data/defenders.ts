@@ -613,7 +613,7 @@ export const DEFENDERS: DefenderDef[] = [
     name: 'Gatebreaker',
     blurb: 'Built to put a hole in something the size of a demon. Crown Pack.',
     role: 'ranged',
-    art: { kind: 'build', key: 'build.bombard' },
+    art: { kind: 'build', key: 'build.gatebreaker' },
     cost: 425,
     recharge: 20,
     hp: 16,
