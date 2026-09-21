@@ -4,6 +4,7 @@
  * Card prices remain authored on the original tuning scale and are converted
  * to small whole Ember costs at the battle boundary.
  */
+import { dripUnlocks } from './unlocks';
 import type { DefenderDef } from './types';
 
 export const DEFENDERS: DefenderDef[] = [
@@ -735,6 +736,16 @@ export const DEFENDERS: DefenderDef[] = [
     upgrade: { hp: 0.14, damage: 0.14 },
   },
 ];
+
+/*
+ * The authored `unlockLevel` above says which region a card belongs to. Where
+ * inside that region it actually arrives is decided in one place, so a whole
+ * muster cannot land at a region's first fort again - see data/unlocks.ts.
+ */
+for (const [id, at] of dripUnlocks(DEFENDERS)) {
+  const def = DEFENDERS.find((d) => d.id === id);
+  if (def) def.unlockLevel = at;
+}
 
 export const DEFENDER_BY_ID = new Map(DEFENDERS.map((d) => [d.id, d]));
 

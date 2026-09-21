@@ -14,6 +14,7 @@ import { GRID, KEEP, WALL_FACE_X, cellCenter, isWallCol, laneGroundY } from '../
 import type { DamageType, DefenderDef, EnemyDef, EnemySpecial, TileKind } from '../data/types';
 import { TILE_EFFECT } from '../data/types';
 import { Rig } from '../objects/Rig';
+import { emberIncome } from './economy';
 import {
   FAMILY,
   applyDamage,
@@ -50,6 +51,8 @@ export interface BattleWorld {
   isWarded(row: number): boolean;
   /** How far anything of ours can see here. The night takes a quarter. */
   rangeFactor(): number;
+  /** What this one lane does to a shooter's reach, on top of the night. */
+  laneRangeFactor(row: number): number;
   /** True when this fort is fought under the named rule. */
   under(id: import('../data/doctrines').DoctrineId): boolean;
   /** What kind of ground a cell is: rock, marsh, shrine, water, or plain. */
@@ -298,9 +301,9 @@ export class Defender {
         if (this.economyTimer <= 0) {
           this.economyTimer = this.def.economy.interval;
           if (this.def.economy.requiresSeam) {
-            this.world.mineEmber(this.row, this.col, this.def.economy.amount, this.x, this.topY);
+            this.world.mineEmber(this.row, this.col, emberIncome(this.def.economy.amount), this.x, this.topY);
           } else {
-            this.world.awardGold(this.def.economy.amount, this.x, this.topY);
+            this.world.awardGold(emberIncome(this.def.economy.amount), this.x, this.topY);
           }
         }
       }
@@ -335,7 +338,8 @@ export class Defender {
     // Standing beside rock lets a shooter see further down the lane; a dark
     // night takes reach off everyone.
     const vantage = this.ground === 'highground' ? TILE_EFFECT.highgroundRange : 1;
-    const reach = attack.range * vantage * this.world.rangeFactor();
+    const reach =
+      attack.range * vantage * this.world.rangeFactor() * this.world.laneRangeFactor(this.row);
     const target = this.findTarget(reach, attack.targets !== 'ground');
     if (!target) return;
     this.cooldown = 1 / attack.rate;

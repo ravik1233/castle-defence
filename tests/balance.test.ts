@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import entitiesSrc from '../src/battle/entities.ts?raw';
 import combatSrc from '../src/battle/combat.ts?raw';
-import { CHAPTERS, generateWaves } from '../src/data/levels';
+import { CHAPTERS, generateWaves, levelNumber } from '../src/data/levels';
 import { DEFENDERS, DEFENDER_BY_ID } from '../src/data/defenders';
 import { ENEMIES, enemy } from '../src/data/enemies';
 import { dpsPerGold, effectiveDps, outOfBand } from '../src/data/balance';
 import { enemyScaling } from '../src/battle/combat';
-import { emberBounty, emberCost } from '../src/battle/economy';
+import { EMBER_STEP, LEGACY_GOLD_PER_EMBER, emberBounty, emberCost } from '../src/battle/economy';
 
 describe('what a card is worth', () => {
   /*
@@ -198,8 +198,20 @@ describe('the shape of the campaign', () => {
   function ease(levelId: string): number {
     const ch = CHAPTERS.find((c) => c.levels.some((l) => l.id === levelId))!;
     const l = ch.levels.find((x) => x.id === levelId)!;
-    const pool = CHAPTERS.filter((c) => c.id <= ch.id).flatMap((c) => c.unlocks);
-    const best = Math.max(...pool.map((id) => dpsPerGold(DEFENDER_BY_ID.get(id)!)));
+    /*
+     * What the player is actually holding at this fort, not what their
+     * region will eventually give them.
+     *
+     * This used to take every card of every region up to this one, which was
+     * true while a region handed its whole muster over at its first fort. The
+     * drip means a player reaches fort one of the Barrow Moors with one of
+     * its five cards, so measuring them against all five measured a player
+     * who does not exist - and would have hidden exactly the cliff the drip
+     * is most likely to create.
+     */
+    const at = levelNumber(levelId);
+    const held = DEFENDERS.filter((d) => d.unlockLevel <= at);
+    const best = Math.max(...held.map((d) => dpsPerGold(d)));
     const waves = generateWaves(l);
     let bounty = 0;
     let peak = 0;
@@ -217,11 +229,17 @@ describe('the shape of the campaign', () => {
     });
     // Stage 1 is the first fully migrated Ember battle. Later campaign
     // stages remain in authored purchasing units until their regional pass.
+    // Ember and the authored purchasing units are the same money at
+    // different scales, so one has to be converted to compare forts. Derived
+    // rather than typed: this read `* 25` against an Ember that was a
+    // twenty-fifth of a gold, and the moment the step moved it valued this
+    // fort at five times its real income and called the next one a cliff.
+    const GOLD_PER_EMBER = LEGACY_GOLD_PER_EMBER / EMBER_STEP;
     const income =
       l.id === 'c1l1'
         ? (emberCost(l.startingGold) +
             waves.flatMap((wave) => wave.entries).reduce((sum, entry) => sum + emberBounty(enemy(entry.enemyId).bounty), 0)) *
-          25
+          GOLD_PER_EMBER
         : l.startingGold + bounty;
     return ((income / 100) * best) / Math.max(1, peak);
   }
@@ -235,10 +253,25 @@ describe('the shape of the campaign', () => {
   });
 
   it('opens gently and ends hard', () => {
-    const first = ease('c1l1');
-    const last = ease('c7l15');
-    expect(first, 'the first fort should be forgiving').toBeGreaterThan(2.5);
-    expect(last, 'the last fort should not be').toBeLessThan(first * 0.75);
+    /*
+     * Region against region, not fort against fort.
+     *
+     * This used to read ease('c7l15') < ease('c1l1') * 0.75, which compared
+     * the hardest fort in the game against a scripted tutorial - and the
+     * tutorial is measured holding the one card it gives you, so the
+     * comparison says more about the lesson than about the campaign. A
+     * single fort is noisy in this metric anyway: a boss fort banks fifteen
+     * waves of bounty against one wave of peak pressure and scores as the
+     * easiest thing in its region. Averaged over fifteen forts that washes
+     * out, and what is left is the thing worth asserting - that the Throne
+     * is a harder place to be than the Broken Fields.
+     */
+    const region = (id: number): number => {
+      const forts = CHAPTERS.find((c) => c.id === id)!.levels;
+      return forts.reduce((sum, l) => sum + ease(l.id), 0) / forts.length;
+    };
+    expect(ease('c1l1'), 'the first fort should be forgiving').toBeGreaterThan(2.5);
+    expect(region(7), 'the last region should be harder than the first').toBeLessThan(region(1) * 0.8);
   });
 
   it('never doubles the difficulty between one fort and the next', () => {

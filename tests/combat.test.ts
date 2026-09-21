@@ -19,11 +19,13 @@ import {
 } from '../src/battle/combat';
 import {
   EMBER_DEPOSITS_PER_VEIN,
+  EMBER_STEP,
   emberBounty,
   emberCost,
   musterPay,
+  roundEmber,
 } from '../src/battle/economy';
-import { defender } from '../src/data/defenders';
+import { DEFENDERS, defender } from '../src/data/defenders';
 import { enemy } from '../src/data/enemies';
 
 describe('damageAfterArmor', () => {
@@ -194,11 +196,26 @@ describe('damage types', () => {
 });
 
 describe('battle income', () => {
-  it('converts old roster values into small whole Ember amounts', () => {
-    expect(emberCost(50)).toBe(2);
-    expect(emberCost(75)).toBe(3);
-    expect(emberBounty(enemy('goblin').bounty)).toBe(1);
+  it('converts old roster values onto the five-step', () => {
+    expect(emberCost(50)).toBe(10);
+    expect(emberCost(75)).toBe(15);
+    expect(emberBounty(enemy('goblin').bounty)).toBe(5);
     expect(EMBER_DEPOSITS_PER_VEIN).toBe(3);
+  });
+
+  it('shows the player nothing off the step, however it was derived', () => {
+    // Every figure the tray, the float and the ledger can print goes through
+    // roundEmber, because a 13 next to a 10 and a 20 is the thing this step
+    // exists to prevent - and thin supply, salvage and the field bonus all
+    // multiply a price by something that is not a whole number.
+    for (const def of DEFENDERS) {
+      expect(emberCost(def.cost) % EMBER_STEP).toBe(0);
+      expect(roundEmber(emberCost(def.cost) * 1.25) % EMBER_STEP).toBe(0);
+      expect(roundEmber(emberCost(def.cost) * 0.5) % EMBER_STEP).toBe(0);
+    }
+    // Nothing ever rounds away to nothing, however small it started.
+    expect(roundEmber(0)).toBe(EMBER_STEP);
+    expect(roundEmber(0.4)).toBe(EMBER_STEP);
   });
 
   it('pays no passive or between-wave wage', () => {

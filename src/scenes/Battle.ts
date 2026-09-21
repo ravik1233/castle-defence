@@ -44,15 +44,16 @@ import { CHAPTERS, generateWaves, hashString, level as levelById, levelNumber, t
 import type { DefenderDef, LevelDef, SpellDef, TileKind } from '../data/types';
 import { profile } from '../systems/profile';
 import { audio, haptic, type SfxId } from '../systems/audio';
-import { COLORS, Counter, TextButton, fitText, floatText, showDialog, tappable, textStyle } from '../ui/kit';
+import { COLORS, Counter, FONT, TextButton, fitText, floatText, showDialog, tappable, textStyle } from '../ui/kit';
 import { showDefenderEntry } from '../ui/ledger';
 import { Defender, Enemy, Projectile, type BattleWorld, type ProjectileOptions } from '../battle/entities';
 import { portraitFor, portraitForArt } from '../art/portraits';
 import { enemyScaling, starsForKeep, tensionFor } from '../battle/combat';
-import { EMBER_DEPOSITS_PER_VEIN, emberBounty, emberCost } from '../battle/economy';
+import { EMBER_DEPOSITS_PER_VEIN, emberBounty, emberCost, roundEmber } from '../battle/economy';
 import { CONSUMABLES, EQUIPMENT_EFFECT, consumable } from '../data/workshop';
 import { TILE_NAME, canStandOn } from '../data/tiles';
 import { DOCTRINES, DOCTRINE_EFFECT, type DoctrineId } from '../data/doctrines';
+import { LANE_ROLES, LANE_ROLE_EFFECT, lanesWith, type LaneRoleId } from '../data/laneRoles';
 import type { KeepState } from '../battle/combat';
 
 /**
@@ -167,6 +168,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private readonly seamLabels = new Map<string, Phaser.GameObjects.Text>();
   /** The rules this fort is fought under. */
   private doctrines = new Set<DoctrineId>();
+  /** What each of the five gates demands here, by lane. */
+  private laneRoles: Array<LaneRoleId | undefined> = [];
   private sectionMax = SECTION_MAX_HP;
   private spawnQueue: Array<{ at: number; enemyId: string; row: number; scale?: number }> = [];
   private elapsed = 0;
@@ -468,6 +471,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       }
     }
     this.doctrines = new Set(this.levelDef.modifiers?.doctrines ?? []);
+    this.laneRoles = this.levelDef.modifiers?.laneRoles ?? [];
     this.sectionMax = Math.round(
       SECTION_MAX_HP * (this.fitted.has('reinforced') ? EQUIPMENT_EFFECT.reinforced.sectionHp : 1),
     );
@@ -478,6 +482,9 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     // A breached gate is the fort's opening position, not something that
     // happens to it: the player picks their deck already knowing.
     if (this.doctrines.has('breached')) this.sections[Math.floor(GRID.rows / 2)] = 0;
+    // A collapsed gate is down before the first wave, for the same reason:
+    // it is the fort's opening position and the player picked a deck knowing.
+    for (const row of lanesWith(this.laneRoles, 'collapsed')) this.sections[row] = 0;
     this.reserves = RESERVE_POOL;
     this.killCount = 0;
     this.goldSpent = 0;
@@ -860,6 +867,33 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       const y = laneCenterY(row);
 
       /*
+       * What this gate is, written on the gate.
+       *
+       * Half the roles are legible from the ground alone - a flooded lane is
+       * under water, a defile is walled in rubble. The other half are not:
+       * nothing about a windward gate or a sally port looks any different
+       * while the fight is on. The briefing names them before the deck is
+       * picked, but nobody holds two roles across five lanes in their head
+       * for six waves, so the gate carries its own label.
+       */
+      const role = this.laneRoles[row];
+      if (role) {
+        this.add
+          // At the foot of the lane, not the head: REBUILD is banner-sized
+          // and sits across the middle of a fallen section, and a label under
+          // it is a label the player never reads.
+          .text(WALL.x + 8, y + GRID.cellH / 2 - 26, LANE_ROLES[role].name.toUpperCase(), {
+            fontFamily: FONT,
+            fontSize: '17px',
+            color: '#9ec6e8',
+            stroke: '#0e1620',
+            strokeThickness: 4,
+          })
+          .setOrigin(0, 0)
+          .setDepth(-860);
+      }
+
+      /*
        * Damage, painted onto the stonework rather than beside it. It is a
        * dark wash over that lane's span of wall which deepens as the section
        * is worn down, so the wall itself is the health bar.
@@ -1039,6 +1073,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
    * makes a runesmith worth a slot next to something that only kills.
    */
   isConsecrated(row: number): boolean {
+    if (this.laneRoles[row] === 'consecrated') return true;
     return this.defenders.some((d) => d.alive && d.row === row && d.def.trait === 'consecrate');
   }
 
@@ -1591,7 +1626,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       }
       const target = this.occupancy.get(`${row},${col}`);
       if (target) {
-        const refund = Math.max(1, Math.round(this.priceOf(target.def.cost) * 0.5));
+        const refund = roundEmber(this.priceOf(target.def.cost) * 0.5);
         this.gold += refund;
         floatText(this, target.x, target.y - 90, `+${refund}`, COLORS.gold);
         this.occupancy.delete(`${row},${col}`);
@@ -1770,7 +1805,11 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
      * losses, collect exactly what standing still would have paid.
      */
     const far = e.x > FIELD_BOUNTY_LINE;
-    const bounty = Math.max(1, Math.round(emberBounty(e.def.bounty) * (far ? FIELD_BOUNTY_BONUS : 1)));
+    // A sally port exists to be pushed out of, so what it pays for going out
+    // has to beat what every other lane pays for the same risk.
+    const fieldRate =
+      this.laneRoles[e.row] === 'sallyport' ? LANE_ROLE_EFFECT.sallyPortSalvage : FIELD_BOUNTY_BONUS;
+    const bounty = roundEmber(emberBounty(e.def.bounty) * (far ? fieldRate : 1));
     this.gold += bounty;
     floatText(
       this,
@@ -1828,7 +1867,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   /** What a card costs here. Thin supply puts the price up. */
   private priceOf(cost: number): number {
     const base = emberCost(cost);
-    return this.under('thinsupply') ? Math.ceil(base * DOCTRINE_EFFECT.thinSupplyCost) : base;
+    return this.under('thinsupply') ? roundEmber(base * DOCTRINE_EFFECT.thinSupplyCost) : base;
   }
 
   /** How far a defender can see. The night takes a quarter of it. */
@@ -1849,6 +1888,33 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   /** Whether a unit may be sold or sent out. Not under standing orders. */
   canGiveGround(): boolean {
     return !this.under('holdtheline');
+  }
+
+  /**
+   * Whether a unit in this lane may march out of the gate.
+   *
+   * A fort with a sally port has exactly one way out, which is the whole
+   * point of the role: it invites aggression in one named place rather than
+   * everywhere at once. A fort without one is unchanged.
+   */
+  canSortieFrom(row: number): boolean {
+    if (!this.canGiveGround()) return false;
+    const ports = lanesWith(this.laneRoles, 'sallyport');
+    return ports.length === 0 || ports.includes(row);
+  }
+
+  /**
+   * How far anything in this lane can see, on top of what the night takes.
+   *
+   * Windward and killing ground are the same mechanism pointed opposite
+   * ways: one lane where a bow is the wrong answer, and one where it is very
+   * much the right one.
+   */
+  laneRangeFactor(row: number): number {
+    const role = this.laneRoles[row];
+    if (role === 'windward') return LANE_ROLE_EFFECT.windwardRange;
+    if (role === 'killingground') return LANE_ROLE_EFFECT.killingGroundRange;
+    return 1;
   }
 
   /** How much stock the player is carrying, all kinds together. */
@@ -1945,9 +2011,17 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
    * square stays the handle for calling it home.
    */
   private toggleSortie(row: number, col: number, x: number, y: number): void {
-    if (!this.canGiveGround()) {
+    if (!this.canSortieFrom(row)) {
       audio.play('deny');
-      floatText(this, x, y - 40, 'no sorties here', COLORS.muted, 'tiny');
+      const ports = lanesWith(this.laneRoles, 'sallyport');
+      floatText(
+        this,
+        x,
+        y - 40,
+        this.canGiveGround() && ports.length ? 'the sally port is the only way out' : 'no sorties here',
+        COLORS.muted,
+        'tiny',
+      );
       return;
     }
     const target =

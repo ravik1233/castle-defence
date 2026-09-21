@@ -2,6 +2,7 @@
 import type { ProjectileId } from '../art/props';
 import type { BiomeId } from '../art/scenery';
 import type { DoctrineId } from './doctrines';
+import type { LaneRoleId } from './laneRoles';
 
 export type DefenderRole = 'melee' | 'ranged' | 'economy' | 'wall' | 'support' | 'aoe';
 
@@ -284,6 +285,8 @@ export interface LevelModifiers {
   fixedDeck?: string[];
   /** The rules this fort is fought under, declared before the deck is picked. */
   doctrines?: DoctrineId[];
+  /** What makes each of the five gates its own problem, by lane. */
+  laneRoles?: Array<LaneRoleId | undefined>;
 }
 
 export interface LevelDef {
@@ -303,6 +306,15 @@ export interface LevelDef {
   reward: number;
   premium?: boolean;
   modifiers?: LevelModifiers;
+  /**
+   * The fort after a card arrives, built to give that card something to do.
+   *
+   * The enemy named here is guaranteed to turn up, with room reserved in the
+   * wave budget before the rest of it is spent - waves are generated from a
+   * threat budget over the region's pool, so without this a fort meant to
+   * teach the Archer could roll no flyers at all and teach nothing.
+   */
+  spotlight?: { card: string; enemy?: string };
   /** One-line briefing shown before the fight. */
   brief: string;
 }

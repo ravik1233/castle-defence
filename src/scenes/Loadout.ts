@@ -13,6 +13,7 @@ import { DEFENDERS, defender } from '../data/defenders';
 import { CONSUMABLES, EQUIPMENT, EQUIPMENT_SLOTS } from '../data/workshop';
 import { CHAPTERS, level as levelById } from '../data/levels';
 import { DOCTRINES } from '../data/doctrines';
+import { LANE_ROLES } from '../data/laneRoles';
 import type { LevelDef } from '../data/types';
 import { portraitFor } from '../art/portraits';
 import { themeFor } from '../art/regions';
@@ -38,6 +39,14 @@ const PAGE_BACK = '\u25c0';
 const PAGE_NEXT = '\u25b6';
 
 const BENCH_SLOTS = 14;
+
+/**
+ * The top of the page body - the "IN HAND" and "FITTED TO THE WALL" headings.
+ * The rule strip above has to end before this, however many rules a fort poses.
+ */
+const LOADOUT_BODY_TOP = 296;
+/** Where the equipment list begins, below its own heading. */
+const LOADOUT_EQUIPMENT_TOP = 356;
 
 export class LoadoutScene extends Phaser.Scene {
   private lvl!: LevelDef;
@@ -71,7 +80,7 @@ export class LoadoutScene extends Phaser.Scene {
       .text(w / 2, 88, this.lvl.brief, { ...textStyle('small', COLORS.muted), wordWrap: { width: 1200 }, align: 'center' })
       .setOrigin(0.5, 0);
     fitText(brief, 1200);
-    this.drawDoctrines();
+    this.drawDoctrines(brief.y + brief.height + 12);
     this.repaintAsArtArrives();
 
     new Counter(this, 40, 46, 'icon.coin', profile.gold, 'small');
@@ -101,37 +110,87 @@ export class LoadoutScene extends Phaser.Scene {
    * player knows what is being asked of it. Each rule carries its answer, so
    * the briefing teaches the counter rather than only naming the problem.
    */
-  private drawDoctrines(): void {
-    const rules = (this.lvl.modifiers?.doctrines ?? []).map((id) => DOCTRINES[id]);
+  private drawDoctrines(topY: number): void {
+    /*
+     * Doctrines and lane roles share one strip, because to the player they
+     * are the same kind of thing: what this fort asks of them that the last
+     * one did not. The only difference is scope - a doctrine binds the whole
+     * fort, a role binds one gate - so a role card names its gate and is
+     * toned differently, and otherwise they are read the same way.
+     */
+    const rules: Array<{ name: string; blurb: string; answer: string; lane: boolean }> = [
+      ...(this.lvl.modifiers?.doctrines ?? []).map((id) => ({ ...DOCTRINES[id], lane: false })),
+      ...(this.lvl.modifiers?.laneRoles ?? []).flatMap((role, row) =>
+        role ? [{ ...LANE_ROLES[role], name: `Gate ${row + 1} · ${LANE_ROLES[role].name}`, lane: true }] : [],
+      ),
+    ];
     if (!rules.length) return;
     const w = DESIGN.width;
-    const cardW = Math.min(760, 1560 / rules.length);
+    // Use the full page width: a wider card wraps to fewer lines, which is
+    // the cheapest way to keep four rules readable without shrinking them.
+    const cardW = Math.min(760, (w - 120) / rules.length - 20);
     const total = rules.length * cardW + (rules.length - 1) * 20;
+    const wrap = cardW - 56;
 
-    rules.forEach((d, i) => {
-      const cx = (w - total) / 2 + cardW / 2 + i * (cardW + 20);
-      // Clear of the fort's brief above: the cards used to be drawn over it.
-      const cy = 208;
-      const wrap = cardW - 56;
-      this.add.rectangle(cx, cy, cardW, 144, 0x3a2434, 0.92).setStrokeStyle(3, 0xc0603a);
-      const name = this.add.text(cx, cy - 56, d.name.toUpperCase(), textStyle('small', COLORS.danger)).setOrigin(0.5);
-      fitText(name, wrap);
-      this.add
-        .text(cx, cy - 36, d.blurb, {
-          ...textStyle('tiny', COLORS.parchment),
-          wordWrap: { width: wrap },
-          align: 'center',
-        })
+    /*
+     * Measured, not guessed at.
+     *
+     * This used to hang the blurb and the answer at fixed offsets, which was
+     * fine while a fort posed one rule and the card was 760 wide. A fort can
+     * now pose four - two doctrines and two gates - and at 390 wide the blurb
+     * wraps to twice the lines it used to and lands on top of its own answer.
+     * So each card is built, measured, and only then given a height.
+     */
+    const built = rules.map((d) => {
+      const name = fitText(
+        this.add.text(0, 0, d.name.toUpperCase(), textStyle('small', d.lane ? COLORS.gold : COLORS.danger)).setOrigin(0.5, 0),
+        wrap,
+      );
+      const blurb = this.add
+        .text(0, 0, d.blurb, { ...textStyle('tiny', COLORS.parchment), wordWrap: { width: wrap }, align: 'center' })
         .setOrigin(0.5, 0);
-      this.add
-        .text(cx, cy + 16, d.answer, {
-          ...textStyle('tiny', COLORS.muted),
-          wordWrap: { width: wrap },
-          align: 'center',
-        })
+      const answer = this.add
+        .text(0, 0, d.answer, { ...textStyle('tiny', COLORS.muted), wordWrap: { width: wrap }, align: 'center' })
         .setOrigin(0.5, 0)
         .setScale(0.9);
+      return { d, name, blurb, answer };
     });
+
+    const PAD = 10;
+    const GAP = 4;
+    const cardH =
+      PAD * 2 +
+      GAP * 2 +
+      Math.max(...built.map((b) => b.name.height + b.blurb.height + b.answer.height * 0.9));
+
+    built.forEach((b, i) => {
+      const cx = (w - total) / 2 + cardW / 2 + i * (cardW + 20);
+      const card = this.add.container(cx, topY);
+      card.add(
+        this.add
+          .rectangle(0, cardH / 2, cardW, cardH, b.d.lane ? 0x23303c : 0x3a2434, 0.92)
+          .setStrokeStyle(3, b.d.lane ? 0x4a86b8 : 0xc0603a),
+      );
+      let y = PAD;
+      for (const part of [b.name, b.blurb, b.answer]) {
+        part.setPosition(0, y);
+        card.add(part);
+        y += part.height * part.scaleY + GAP;
+      }
+    });
+
+    /*
+     * Four rules are taller than one, and the equipment list underneath does
+     * not move. Rather than let them collide, the whole strip is scaled to
+     * whatever room is actually left between the brief and the list.
+     */
+    const room = LOADOUT_BODY_TOP - 22 - topY;
+    if (cardH > room) {
+      const k = room / cardH;
+      for (const child of this.children.list) {
+        if (child instanceof Phaser.GameObjects.Container && child.y === topY) child.setScale(k);
+      }
+    }
   }
 
   private clearBody(): void {
@@ -337,7 +396,7 @@ export class LoadoutScene extends Phaser.Scene {
     }
 
     owned.forEach((def, i) => {
-      const y = 356 + i * 92;
+      const y = LOADOUT_EQUIPMENT_TOP + i * 92;
       const on = fitted.includes(def.id);
       const row = this.track(this.add.container(x, y));
       row.add(this.add.rectangle(0, 0, 620, 84, on ? 0x33405e : 0x2a2338, 0.92).setStrokeStyle(3, on ? 0xf5c542 : 0x4a4060));

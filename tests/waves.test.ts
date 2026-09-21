@@ -8,7 +8,7 @@ import levelsSrc from '../src/data/levels.ts?raw';
 import entitiesSrc from '../src/battle/entities.ts?raw';
 import { canStandOn, tilesFor } from '../src/data/tiles';
 import { DOCTRINES, doctrinesFor } from '../src/data/doctrines';
-import { FIELD_COL0, GRID } from '../src/core/layout';
+import { FIELD_COL0, GRID, WALL_COLS } from '../src/core/layout';
 
 describe('rng', () => {
   it('is deterministic for a seed', () => {
@@ -189,14 +189,49 @@ describe('who holds each region', () => {
     }
   });
 
-  it("opens a mustered card exactly when its region does, at its region's price", () => {
+  it("drips a mustered card inside its own region, at its region's price", () => {
     for (const c of CHAPTERS) {
       const first = levelNumber(c.levels[0]!.id);
+      const last = levelNumber(c.levels[c.levels.length - 1]!.id);
       for (const id of c.unlocks) {
         const def = DEFENDER_BY_ID.get(id)!;
-        expect(def.unlockLevel, `${id} unlocks at ${def.unlockLevel}, region opens at ${first}`).toBe(first);
+        // A card belongs to its region and arrives somewhere inside it. It
+        // used to arrive at the region's very first fort along with the whole
+        // rest of the muster, which is the lump the drip exists to break up.
+        expect(def.unlockLevel, `${id} unlocks outside its own region`).toBeGreaterThanOrEqual(first);
+        expect(def.unlockLevel, `${id} unlocks after its region ends`).toBeLessThanOrEqual(last);
         expect(Boolean(def.premium), `${id} price`).toBe(Boolean(c.premium));
       }
+    }
+  });
+
+  it('never hands a region its whole muster at one fort', () => {
+    for (const c of CHAPTERS) {
+      const byFort = new Map<number, number>();
+      for (const id of c.unlocks) {
+        const at = DEFENDER_BY_ID.get(id)!.unlockLevel;
+        byFort.set(at, (byFort.get(at) ?? 0) + 1);
+      }
+      if (c.unlocks.length < 3) continue;
+      const biggest = Math.max(...byFort.values());
+      expect(biggest, `${c.name} drops ${biggest} of its ${c.unlocks.length} cards at one fort`)
+        .toBeLessThanOrEqual(Math.ceil(c.unlocks.length / 2));
+      expect(byFort.size, `${c.name} spreads over only ${byFort.size} forts`).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('gives the fort after a card something to use it on', () => {
+    for (const l of ALL_LEVELS) {
+      if (!l.spotlight) continue;
+      // The card exists, and the enemy it is taught against turns up - the
+      // budget reserves room for it before it spends the rest, so a fort
+      // built to teach the Archer cannot roll six waves of footsoldiers.
+      expect(DEFENDER_BY_ID.has(l.spotlight.card), `${l.id} showcases unknown ${l.spotlight.card}`).toBe(true);
+      if (!l.spotlight.enemy) continue;
+      const spawned = generateWaves(l).some((w) =>
+        w.entries.some((e) => e.enemyId === l.spotlight!.enemy),
+      );
+      expect(spawned, `${l.id} teaches ${l.spotlight.card} against an enemy that never arrives`).toBe(true);
     }
   });
 
@@ -263,9 +298,38 @@ describe('the ground a fort is fought on', () => {
 
   it('keeps the cell nearest the gate clear in every lane', () => {
     for (const l of ALL_LEVELS) {
-      // The parapet and the stair behind it are dressed stone, always.
-      for (const cells of l.modifiers?.tiles ?? []) {
-        for (let col = 0; col <= FIELD_COL0; col += 1) expect(cells[col]).toBe('plain');
+      const roles = l.modifiers?.laneRoles ?? [];
+      (l.modifiers?.tiles ?? []).forEach((cells, row) => {
+        // The parapet and the stair behind it are dressed stone - except at a
+        // gate whose rampart has come down, which is the whole of that role.
+        const from = roles[row] === 'broken' ? WALL_COLS : 0;
+        for (let col = from; col <= FIELD_COL0; col += 1) {
+          expect(cells[col], `${l.id} lane ${row} col ${col}`).toBe('plain');
+        }
+        // Even then the stair itself stays clear, so a broken gate is a gate
+        // that is expensive to hold rather than one that cannot be held.
+        expect(cells[FIELD_COL0], `${l.id} lane ${row} stair`).toBe('plain');
+      });
+    }
+  });
+
+  it('never poses a gate the player has no legal answer to', () => {
+    for (const l of ALL_LEVELS) {
+      const roles = l.modifiers?.laneRoles ?? [];
+      (l.modifiers?.tiles ?? []).forEach((cells, row) => {
+        // Every aquatic unit in the game is Crown Pack and unlocked on the
+        // Drowned Coast, so a lane only they can hold is a paywall wearing a
+        // difficulty costume. Dry ground, always, in every lane of every fort.
+        const dry = cells.filter((k) => canStandOn(k, false)).length;
+        expect(dry, `${l.id} lane ${row} (${roles[row] ?? 'plain'}) has no dry cell`).toBeGreaterThan(0);
+      });
+    }
+  });
+
+  it('keeps flooded gates out of the regions that cannot answer them', () => {
+    for (const l of ALL_LEVELS) {
+      if ((l.modifiers?.laneRoles ?? []).includes('flooded')) {
+        expect(l.chapter, `${l.id} floods a gate before aquatic units exist`).toBeGreaterThanOrEqual(4);
       }
     }
   });

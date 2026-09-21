@@ -9,6 +9,7 @@
  * So the design targets are written down and checked. A card may sit outside
  * its band, but only deliberately and only where the code says why.
  */
+import { emberCost, emberIncome } from '../battle/economy';
 import type { DefenderDef, DefenderRole } from './types';
 
 /**
@@ -47,8 +48,10 @@ export function hpPerGold(def: DefenderDef): number {
 export function payback(def: DefenderDef): number {
   if (def.metaGold) return 0;
   if (!def.economy) return Infinity;
-  const emberCost = Math.max(1, Math.round(def.cost / 25));
-  return (emberCost / def.economy.amount) * def.economy.interval;
+  // Both sides of this are on the same Ember step, so the answer is in
+  // seconds either way - but reading them from the economy keeps the two
+  // formulas from drifting apart the next time the step moves.
+  return (emberCost(def.cost) / emberIncome(def.economy.amount)) * def.economy.interval;
 }
 
 /**

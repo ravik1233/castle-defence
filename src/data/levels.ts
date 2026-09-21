@@ -6,10 +6,13 @@
  * player fights exactly the same waves and balance changes are one number.
  */
 import { GRID } from '../core/layout';
+import { DEFENDERS } from './defenders';
 import { enemy, familyOf } from './enemies';
+import { showcaseEnemy } from './unlocks';
 import { tilesFor } from './tiles';
 import { DOCTRINE_EFFECT, doctrinesFor } from './doctrines';
-import type { ChapterDef, EnemyFamily, LevelDef } from './types';
+import { LANE_ROLE_EFFECT, applyLaneRoles, laneRolesFor, lanesWith } from './laneRoles';
+import type { ChapterDef, EnemyFamily, LevelDef, LevelModifiers } from './types';
 
 /** Deterministic PRNG so generated waves are stable across devices. */
 export function mulberry32(seed: number): () => number {
@@ -30,6 +33,9 @@ export function hashString(s: string): number {
   }
   return h >>> 0;
 }
+
+/** How much heavier than this fort's own horde a showcase may reach. */
+const SHOWCASE_WEIGHT_MARGIN = 1.5;
 
 export interface WaveEntry {
   enemyId: string;
@@ -248,6 +254,94 @@ function poolFor(family: EnemyFamily, boss: string, index: number, total: number
   return roster.slice(from, from + shown).map((e) => e.id);
 }
 
+/**
+ * The rules and the ground one fort is fought on.
+ *
+ * Order matters here. The doctrines are settled first because a lane role is
+ * not allowed to contradict one - a sally port in a fort that forbids
+ * sorties would advertise a gate the player may not use - and the roles are
+ * cut into the ground last, so a flooded gate stays flooded rather than
+ * being handed back its dry cells by the terrain's own guarantees.
+ */
+function rulesFor(meta: (typeof CHAPTER_META)[number], i: number): LevelModifiers {
+  const levelId = `c${meta.id}l${i + 1}`;
+  const doctrines = doctrinesFor(meta.family, i, meta.id);
+  const laneRoles = laneRolesFor(levelId, i, meta.id, doctrines);
+  return {
+    tiles: applyLaneRoles(tilesFor(levelId, meta.biome, i), laneRoles),
+    doctrines,
+    laneRoles,
+  };
+}
+
+/**
+ * The card this fort exists to give a job to, and what it puts in front of it.
+ *
+ * A showcase is simply the fort after a card arrived. Where several arrived
+ * at once - the Crown Pack rides alongside the free cards in region 1 - the
+ * free one is showcased, because a fort built around a card the player may
+ * not own teaches them nothing.
+ */
+/**
+ * What the player is told before they pick a deck.
+ *
+ * A showcase names what is coming and what it just handed them, and stops
+ * there. It does not say "use the Archer": the fort is built so the new card
+ * is the neat answer and two or three other answers still work, and a
+ * briefing that gave the order would throw that away and turn a fort into a
+ * tutorial step.
+ */
+function briefFor(f: {
+  first: boolean;
+  last: boolean;
+  opening: boolean;
+  waves: number;
+  blurb: string;
+  spotlight?: LevelDef['spotlight'];
+}): string {
+  if (f.first) return 'Goblin Grunts are testing the gate. Every kill releases Ember for reinforcements.';
+  if (f.opening) return f.blurb;
+  if (f.last) return 'Their commander is here. If the gate falls, there is nothing behind it.';
+  if (f.spotlight?.enemy) {
+    const card = DEFENDERS.find((d) => d.id === f.spotlight!.card);
+    const foe = enemy(f.spotlight.enemy);
+    if (card) return `${foe.name}s in numbers. The ${card.name} you just raised has an answer - it is not the only one.`;
+  }
+  return `Hold the gate. Wave ${f.waves} is the last.`;
+}
+
+function spotlightFor(
+  global: number,
+  meta: (typeof CHAPTER_META)[number],
+  pool: string[],
+): LevelDef['spotlight'] {
+  const arrived = DEFENDERS.filter((d) => d.unlockLevel === global - 1);
+  if (!arrived.length) return undefined;
+  const card = arrived.find((d) => !d.premium) ?? arrived[0]!;
+  /*
+   * Chosen from the region's whole horde rather than from this fort's
+   * current pool, because a showcase is allowed to *introduce* the thing it
+   * teaches - and usually has to. The pool widens slowly over a region, so
+   * asking it for a flyer at fort four gets you the heaviest footsoldier
+   * instead and the Archer's own fort teaches nothing about shooting up.
+   */
+  const roster = familyOf(meta.family).filter(
+    (e) => e.id !== meta.boss && e.special !== 'boss' && !e.specials?.includes('boss'),
+  );
+  /*
+   * A lesson may be half again as heavy as the fort's current top body, and
+   * no heavier.
+   *
+   * The margin is what lets a showcase teach at all: the Archer's fort needs
+   * the Goblin Glider, which is 1.3x the heaviest thing the Broken Fields
+   * field by then, and with no margin it fell back to a plain Grunt and
+   * taught nothing about shooting upward. Two and a bit times, on the other
+   * hand, is a Balor in the Throne's second fort. The line sits between.
+   */
+  const ceiling = Math.max(...pool.map((id) => enemy(id).threat)) * SHOWCASE_WEIGHT_MARGIN;
+  return { card: card.id, enemy: showcaseEnemy(card, roster, ceiling) };
+}
+
 function buildLevel(
   chapterIdx: number,
   meta: (typeof CHAPTER_META)[number],
@@ -258,6 +352,12 @@ function buildLevel(
   const first = global === 1;
   const waves = first ? 3 : 6 + Math.min(7, Math.floor(i * 0.5)) + (last ? 2 : 0);
   const tier = chapterIdx;
+  const pool = first ? ['goblin'] : poolFor(meta.family, meta.boss, i, meta.levels);
+  const spotlight = first || global === 2 ? undefined : spotlightFor(global, meta, pool);
+  // A fort that teaches a card against an enemy the region has not shown yet
+  // brings that enemy forward. This is the only way the pool ever widens out
+  // of order, and it is the point: the lesson arrives with its subject.
+  if (spotlight?.enemy && !pool.includes(spotlight.enemy)) pool.push(spotlight.enemy);
   return {
     id: `c${meta.id}l${i + 1}`,
     chapter: meta.id,
@@ -267,20 +367,14 @@ function buildLevel(
     waves,
     budgetStart: first ? 1.4 : 8 + i * 2.2 + tier * 5,
     budgetGrowth: first ? 1.12 : 1.22 + tier * 0.02,
-    pool: first ? ['goblin'] : poolFor(meta.family, meta.boss, i, meta.levels),
+    pool,
     boss: last ? meta.boss : undefined,
+    spotlight,
     // Five Ember buys two Militia with one point of breathing room.
     startingGold: first ? 125 : 165 + Math.min(90, i * 7) + tier * 18,
     reward: 120 + i * 30 + tier * 90 + (last ? 400 : 0),
     premium: meta.premium,
-    brief:
-      first
-        ? 'Goblin Grunts are testing the gate. Every kill releases Ember for reinforcements.'
-        : i === 0
-        ? meta.blurb
-        : last
-          ? 'Their commander is here. If the gate falls, there is nothing behind it.'
-          : `Hold the gate. Wave ${waves} is the last.`,
+    brief: briefFor({ first, last, opening: i === 0, waves, blurb: meta.blurb, spotlight }),
     /*
      * Every fort is fought on its own ground. The tutorial is the exception:
      * it is flat, because the first thing a player learns should not be an
@@ -291,10 +385,7 @@ function buildLevel(
         ? { fixedDeck: ['militia'], hpScale: 0.7, waitForClear: true }
         : global === 2
           ? { fixedDeck: ['militia', 'dwarf_engineer'], tiles: tilesFor('c1l2', meta.biome, i) }
-        : {
-            tiles: tilesFor(`c${meta.id}l${i + 1}`, meta.biome, i),
-            doctrines: doctrinesFor(meta.family, i, meta.id),
-          },
+        : rulesFor(meta, i),
   };
 }
 
@@ -378,6 +469,22 @@ export function generateWaves(def: LevelDef): Wave[] {
     let budget = def.budgetStart * Math.pow(def.budgetGrowth, w) * (big ? 1.55 : 1);
 
     /*
+     * A showcase fort has to actually show the thing.
+     *
+     * Waves are spent on whatever the budget can afford, biased to the
+     * strongest - which is emergent and good, and also means a fort built to
+     * teach the Archer can roll six waves of ground troops and teach nothing
+     * at all. So the spotlight enemy is taken out of the budget first, before
+     * a single ordinary spawn is chosen, and only what is left is spent the
+     * usual way. It is a reservation, not an addition: the fort stays worth
+     * what its budget says it is worth.
+     */
+    const spotlit = def.spotlight?.enemy ? enemy(def.spotlight.enemy) : undefined;
+    const spotlitCount = spotlit ? (big ? 3 : 2) : 0;
+    const reserved = spotlit ? Math.min(budget * 0.6, spotlit.threat * spotlitCount) : 0;
+    budget -= reserved;
+
+    /*
      * A warband is half as many at twice the size; a swarm is the reverse.
      * The budget is the same either way - what changes is whether the answer
      * is one heavy blow or something that hits a whole lane.
@@ -456,6 +563,34 @@ export function generateWaves(def: LevelDef): Wave[] {
         delay: rand() * spawnWindow,
         scale: bodyScale === 1 ? undefined : bodyScale,
       });
+    }
+
+    /*
+     * The reserved spawns, spread down the lanes rather than stacked in one,
+     * so the lesson is "these are in the sky" and not "lane three is lost".
+     */
+    if (spotlit) {
+      for (let n = 0; n < spotlitCount; n += 1) {
+        entries.push({
+          enemyId: spotlit.id,
+          row: Math.floor(rand() * GRID.rows),
+          delay: rand() * spawnWindow,
+          scale: bodyScale === 1 ? undefined : bodyScale,
+        });
+      }
+    }
+
+    /*
+     * A rich seam is paid for in bodies. The extra is added after the budget
+     * is spent rather than taken out of it, because the whole trade is that
+     * the lane is worth more Ember *and* more dangerous - if it came out of
+     * the wave's own budget the lane would be free money.
+     */
+    for (const row of lanesWith(def.modifiers?.laneRoles, 'seam')) {
+      const drawn = pool[Math.min(pool.length - 1, Math.floor(rand() * pool.length))];
+      for (let n = 0; n < LANE_ROLE_EFFECT.seamExtraPerWave && drawn; n += 1) {
+        entries.push({ enemyId: drawn.id, row, delay: rand() * spawnWindow, scale: bodyScale === 1 ? undefined : bodyScale });
+      }
     }
 
     if (finale && def.boss) {
