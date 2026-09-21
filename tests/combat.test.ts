@@ -27,6 +27,7 @@ import {
 } from '../src/battle/economy';
 import { DEFENDERS, defender } from '../src/data/defenders';
 import { enemy } from '../src/data/enemies';
+import { GRID, WALL_FACE_X, cellCenter, isWallCol } from '../src/core/layout';
 
 describe('damageAfterArmor', () => {
   it('subtracts armour', () => {
@@ -230,6 +231,31 @@ describe('what an enemy walks into', () => {
    * is the rule everything ordinary obeys.
    */
   const at = (x: number, row = 2, alive = true) => ({ x, row, alive });
+
+  it('keeps every parapet cell behind the wall face and every field cell in front of it', () => {
+    /*
+     * The rule that makes a gate a gate: while a section stands, an enemy
+     * outside it cannot target anything behind it, so it runs out of targets
+     * and hits the wall instead. That rule is written as a comparison against
+     * WALL_FACE_X, which is only correct while the parapet really is behind
+     * that line and the field really is in front of it.
+     *
+     * Worth pinning, because when it was not true the failure was silent and
+     * total: a single militia on the parapet was a legal target for the whole
+     * horde, so they walked through the stonework to reach it and no fort in
+     * the game ever had its gate attacked.
+     */
+    for (let row = 0; row < GRID.rows; row += 1) {
+      for (let col = 0; col < GRID.cols; col += 1) {
+        const { x } = cellCenter(row, col);
+        if (isWallCol(col)) {
+          expect(x, `parapet cell ${row},${col} is not behind the wall`).toBeLessThan(WALL_FACE_X);
+        } else {
+          expect(x, `field cell ${row},${col} is not in front of the wall`).toBeGreaterThan(WALL_FACE_X);
+        }
+      }
+    }
+  });
 
   it('stops at the nearest defender ahead, not the first one it saw', () => {
     const back = at(330);

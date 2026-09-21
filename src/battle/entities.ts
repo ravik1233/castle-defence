@@ -1142,7 +1142,27 @@ export class Enemy {
   private findBlocker(): Defender | undefined {
     // Flyers pass over the whole line: only units that can shoot stop them.
     if (this.flying) return undefined;
-    return pickBlocker(this, this.world.defenders);
+    const blocker = pickBlocker(this, this.world.defenders);
+    if (!blocker) return undefined;
+    /*
+     * A standing gate is not a suggestion.
+     *
+     * pickBlocker answers with the front-most defender anywhere in the lane,
+     * which includes the ones on the parapet and the commander at the keep -
+     * all of them behind the wall. Anything the enemy targets it walks
+     * toward, and the branch that stops it at the wall only runs when it has
+     * no target at all. So a single militia posted on the parapet made the
+     * whole horde ignore the gate and stroll through the stonework to reach
+     * it: the gate was never struck, and the wall units ended up in melee
+     * with a crowd that should still have been outside.
+     *
+     * While the section stands, nothing behind it is reachable. The enemy is
+     * left with no target, stops at the wall, and hits the gate - which is
+     * what a gate is for.
+     */
+    const through = this.inside || this.world.isBreached(this.row);
+    if (!through && blocker.x < WALL_FACE_X) return undefined;
+    return blocker;
   }
 
 

@@ -1056,8 +1056,19 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     };
   }
 
-  /** The keep's last defenders, cutting at whatever came through a breach. */
+  /**
+   * The keep's last defenders, cutting at whatever came through a breach.
+   *
+   * They are the commander's household, and they stand while he does. That
+   * used to go unsaid, and the effect was that anything through a breach
+   * quietly took damage from nothing at all: a player who had spent their
+   * reserves and lost the lane still watched the horde die in the courtyard
+   * with no unit of theirs anywhere near it. Killing should be attributable
+   * to something on the field. With the commander down there is nobody left
+   * inside, and a breach finally costs what it looks like it costs.
+   */
   private garrisonFire(dt: number): void {
+    if (!this.commander?.alive) return;
     for (const e of this.enemies) {
       if (!e.alive || !e.inside) continue;
       const dps = GARRISON_DPS * (this.fitted.has('garrison') ? EQUIPMENT_EFFECT.garrison.garrisonDps : 1);

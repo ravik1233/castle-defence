@@ -165,10 +165,27 @@ class Audio {
       case 'upgrade':
         [440, 554, 659, 880].forEach((f, i) => this.tone(f, 0.22, 'square', 0.12, i * 0.07));
         break;
-      case 'gate':
-        this.noise(0.6, 0.5, 600);
-        this.tone(60, 0.6, 'square', 0.26, 0, 30);
+      case 'gate': {
+        /*
+         * A ram on timber, not a bass drop.
+         *
+         * This fires on every blow from every body at the gate, and there
+         * can be a dozen of them swinging at once. Six-tenths of a second of
+         * loud filtered noise over a 60Hz square wave was fine as a one-off
+         * and awful as a texture: the hits smeared into each other and the
+         * whole siege turned into one continuous drone with no individual
+         * blow audible in it.
+         *
+         * Short, dry and pitched a little differently each time. The detune
+         * is what stops a busy gate phasing into a single tone, and the
+         * shorter decay leaves silence between blows so a player can hear
+         * how fast the gate is actually being hit.
+         */
+        const v = 0.9 + Math.random() * 0.22;
+        this.noise(0.08, 0.2, 1500 * v);
+        this.tone(140 * v, 0.14, 'triangle', 0.12, 0, 64 * v);
         break;
+      }
       default:
         break;
     }

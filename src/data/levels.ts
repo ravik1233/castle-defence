@@ -310,6 +310,31 @@ function briefFor(f: {
   return `Hold the gate. Wave ${f.waves} is the last.`;
 }
 
+/**
+ * Every enemy a showcase has brought forward in this region up to this fort.
+ *
+ * Walked from the region's first fort rather than carried, because a level is
+ * built on demand and has no memory of the one before it. Fifteen forts of
+ * arithmetic per level is nothing, and it keeps the pool a pure function of
+ * the fort's own position.
+ */
+function introducedBefore(
+  chapterIdx: number,
+  meta: (typeof CHAPTER_META)[number],
+  upto: number,
+): string[] {
+  const out: string[] = [];
+  const base = CHAPTER_META.slice(0, chapterIdx).reduce((n, c) => n + c.levels, 0);
+  for (let k = 0; k <= upto; k += 1) {
+    const global = base + k + 1;
+    if (global <= 2) continue;
+    const basePool = poolFor(meta.family, meta.boss, k, meta.levels);
+    const enemyId = spotlightFor(global, meta, basePool)?.enemy;
+    if (enemyId && !out.includes(enemyId)) out.push(enemyId);
+  }
+  return out;
+}
+
 function spotlightFor(
   global: number,
   meta: (typeof CHAPTER_META)[number],
@@ -354,10 +379,19 @@ function buildLevel(
   const tier = chapterIdx;
   const pool = first ? ['goblin'] : poolFor(meta.family, meta.boss, i, meta.levels);
   const spotlight = first || global === 2 ? undefined : spotlightFor(global, meta, pool);
-  // A fort that teaches a card against an enemy the region has not shown yet
-  // brings that enemy forward. This is the only way the pool ever widens out
-  // of order, and it is the point: the lesson arrives with its subject.
-  if (spotlight?.enemy && !pool.includes(spotlight.enemy)) pool.push(spotlight.enemy);
+  /*
+   * A fort that teaches a card against an enemy the region has not shown yet
+   * brings that enemy forward - and every fort after it keeps that enemy.
+   *
+   * Introducing it for one fort only was worse than not introducing it: the
+   * Archer's fort put Gliders in the sky at fort four and fort five took
+   * them away again, so the horde appeared to forget a unit it had just
+   * fielded and the player's new anti-air card had nothing to shoot for six
+   * forts. Once a region has shown something it keeps showing it.
+   */
+  for (const id of introducedBefore(chapterIdx, meta, i)) {
+    if (!pool.includes(id)) pool.push(id);
+  }
   return {
     id: `c${meta.id}l${i + 1}`,
     chapter: meta.id,
