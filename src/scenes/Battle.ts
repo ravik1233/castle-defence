@@ -519,6 +519,12 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
     audio.startMusic();
     audio.setTension(0);
 
+    /*
+     * Only for the ways into a fort that skip the loadout - a deep link, or
+     * "next fort" straight off the results screen. Arriving the ordinary way
+     * the player has just read all of this on the loadout, doctrine cards
+     * and lane roles included, and a panel repeating it is a tap for nothing.
+     */
     if (!this.skipBriefing) {
       // Two rules need more panel than one: a briefing the player has to
       // read around the button is not a briefing.

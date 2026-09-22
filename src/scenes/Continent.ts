@@ -11,7 +11,6 @@ import { DESIGN } from '../core/layout';
 import { CHAPTERS } from '../data/levels';
 import { hero } from '../data/heroes';
 import { portraitForArt } from '../art/portraits';
-import { defender } from '../data/defenders';
 import { profile } from '../systems/profile';
 import { audio } from '../systems/audio';
 import { COLORS, TextButton, fitText, showDialog, starRow, tappable, textStyle } from '../ui/kit';
@@ -259,9 +258,16 @@ export class ContinentScene extends Phaser.Scene {
   }
 
   /**
-   * Entering a region is a briefing, not a menu click: the player is told who
-   * commands here and what they will be given, because both change how the
-   * next ten fights go.
+   * Entering a region.
+   *
+   * This used to stop on a briefing panel naming the commander, their spells
+   * and the region's muster, and ask the player to confirm. All three are
+   * worth knowing and none of them needed a modal: they are written across
+   * the top of the map the button led to, which the player was going to look
+   * at anyway. A panel that repeats the next screen is a tap, not a briefing.
+   *
+   * A sealed region still stops, because that one is a refusal rather than a
+   * confirmation, and it has somewhere to send them.
    */
   private enter(region: (typeof CHAPTERS)[number], open: boolean): void {
     audio.play('tap');
@@ -281,19 +287,6 @@ export class ContinentScene extends Phaser.Scene {
       return;
     }
 
-    const commander = hero(region.commander);
-    const muster = region.unlocks.map((id) => defender(id).name).join(', ');
-    showDialog(this, {
-      title: region.name,
-      body: `${region.blurb}\n\n${commander.name}, ${commander.title}, commands here.\n\nSpells: ${commander.spells
-        .map((s) => s.name)
-        .join(' and ')}\nMuster: ${muster}`,
-      width: 960,
-      height: 620,
-      buttons: [
-        { text: 'RIDE OUT', tone: 'green', onClick: () => this.scene.start('Map', { chapter: region.id }) },
-        { text: 'BACK', tone: 'stone' },
-      ],
-    });
+    this.scene.start('Map', { chapter: region.id });
   }
 }

@@ -1,11 +1,11 @@
 /** Campaign map: chapters of level nodes on a parchment. */
 import Phaser from 'phaser';
 import { DESIGN } from '../core/layout';
-import { CHAPTERS, levelNumber, levelThreat } from '../data/levels';
+import { CHAPTERS, levelNumber } from '../data/levels';
+import { hero } from '../data/heroes';
 import type { LevelDef } from '../data/types';
 import { profile } from '../systems/profile';
 import { audio } from '../systems/audio';
-import { emberCost } from '../battle/economy';
 import { themeFor } from '../art/regions';
 import { COLORS, Counter, TextButton, fitText, showDialog, starRow, tappable, textStyle } from '../ui/kit';
 
@@ -63,25 +63,54 @@ export class MapScene extends Phaser.Scene {
         .setDepth(-14),
     );
     add(this.add.rectangle(w / 2, DESIGN.height / 2, w, DESIGN.height, theme.hud, 0.5).setDepth(-13));
+    /*
+     * Who holds this ground, what they cast, and what they will hand over.
+     *
+     * This was a panel on the way in that the player had to dismiss before
+     * they could see the map. It is the same three facts, written on the map
+     * itself, where they can be read whenever rather than once.
+     */
+    const commander = hero(chapter.commander);
     add(
       this.add
-        .rectangle(w / 2, 242, 980, 146, theme.card, 0.88)
+        .rectangle(w / 2, 228, 1180, 158, theme.card, 0.88)
         .setStrokeStyle(5, theme.edge, 0.9)
         .setDepth(-2),
     );
 
     add(
       fitText(
-        this.add.text(w / 2, 214, chapter.name.toUpperCase(), textStyle('title', COLORS.parchment)).setOrigin(0.5),
+        this.add.text(w / 2, 178, chapter.name.toUpperCase(), textStyle('title', COLORS.parchment)).setOrigin(0.5),
         w - 300,
       ),
     );
     const stars = profile.chapterStars(chapter.id);
     add(
       this.add
-        .text(w / 2, 268, `${stars.earned} / ${stars.total} stars`, textStyle('small', COLORS.gold))
+        .text(w / 2, 226, `${stars.earned} / ${stars.total} stars`, textStyle('small', COLORS.gold))
         .setOrigin(0.5),
     );
+    add(
+      fitText(
+        this.add
+          .text(
+            w / 2,
+            268,
+            `${commander.name}, ${commander.title}  ·  ${commander.spells.map((sp) => sp.name).join(' and ')}`,
+            textStyle('small', COLORS.parchment),
+          )
+          .setOrigin(0.5),
+        1120,
+      ),
+    );
+    /*
+     * The region's muster is deliberately not listed here any more. It used
+     * to be, on the panel this header replaced, and it was true then: a
+     * region handed its whole muster over at its first fort. Cards arrive one
+     * at a time now, so naming all five at the gate would promise something
+     * the region does not do - the loadout marks each one RAISED HERE at the
+     * fort it actually turns up at, which is the honest place to say it.
+     */
 
     if (this.chapterIndex > 0) {
       add(
@@ -186,32 +215,17 @@ export class MapScene extends Phaser.Scene {
   }
 
   /**
-   * A fort is chosen, then packed for. The loadout screen streams the art in
-   * while the player picks their hand, so nothing waits on a loading line.
+   * A fort is chosen, then packed for.
+   *
+   * Tapping a fort used to raise a panel with the fort's name, its brief, its
+   * waves, its threat and its starting Ember, and a FIGHT button - and then
+   * the loadout screen behind it opened with the same name and the same brief
+   * at the top. Two panels to say one thing. The numbers that were only on
+   * the panel now sit in the loadout's own header, and the tap goes straight
+   * there: the loadout is where the player commits, and MARCH OUT is the
+   * commitment.
    */
-  private startBattle(lvl: LevelDef): void {
-    this.scene.start('Loadout', { levelId: lvl.id });
-  }
-
   private openLevel(lvl: LevelDef): void {
-    const record = profile.levelRecord(lvl.id);
-    const threat = Math.round(levelThreat(lvl));
-    showDialog(this, {
-      title: lvl.name,
-      body: `${lvl.brief}\n\n${lvl.waves} waves  ·  threat ${threat}\nStarting Ember ${emberCost(lvl.startingGold)}${
-        record ? `\nBest: ${record.stars} stars` : ''
-      }`,
-      height: 620,
-      buttons: [
-        { text: 'BACK', tone: 'stone' },
-        {
-          text: 'FIGHT',
-          tone: 'green',
-          onClick: () => {
-            void this.startBattle(lvl);
-          },
-        },
-      ],
-    });
+    this.scene.start('Loadout', { levelId: lvl.id });
   }
 }

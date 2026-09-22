@@ -11,7 +11,7 @@ import Phaser from 'phaser';
 import { DESIGN } from '../core/layout';
 import { DEFENDERS, defender } from '../data/defenders';
 import { CONSUMABLES, EQUIPMENT, EQUIPMENT_SLOTS } from '../data/workshop';
-import { CHAPTERS, level as levelById } from '../data/levels';
+import { CHAPTERS, level as levelById, levelThreat } from '../data/levels';
 import { DOCTRINES } from '../data/doctrines';
 import { LANE_ROLES } from '../data/laneRoles';
 import type { LevelDef } from '../data/types';
@@ -75,12 +75,29 @@ export class LoadoutScene extends Phaser.Scene {
       .setAlpha(0.3);
     this.add.rectangle(w / 2, DESIGN.height / 2, w, DESIGN.height, theme.tray, 0.42);
 
-    this.add.text(w / 2, 46, this.lvl.name.toUpperCase(), textStyle('title', COLORS.gold)).setOrigin(0.5);
+    this.add.text(w / 2, 40, this.lvl.name.toUpperCase(), textStyle('title', COLORS.gold)).setOrigin(0.5);
+    /*
+     * What the fort costs to walk into: its length, its weight, and what it
+     * hands you to spend. These used to live on a panel between the map and
+     * this screen, which the player dismissed to get here - the one thing on
+     * it that this screen did not already say.
+     */
+    const record = profile.levelRecord(this.lvl.id);
+    this.add
+      .text(
+        w / 2,
+        82,
+        `${this.lvl.waves} waves  ·  threat ${Math.round(levelThreat(this.lvl))}  ·  ${emberCost(
+          this.lvl.startingGold,
+        )} Ember to start${record ? `  ·  best ${record.stars} stars` : ''}`,
+        textStyle('tiny', COLORS.gold),
+      )
+      .setOrigin(0.5, 0);
     const brief = this.add
-      .text(w / 2, 88, this.lvl.brief, { ...textStyle('small', COLORS.muted), wordWrap: { width: 1200 }, align: 'center' })
+      .text(w / 2, 116, this.lvl.brief, { ...textStyle('small', COLORS.muted), wordWrap: { width: 1200 }, align: 'center' })
       .setOrigin(0.5, 0);
     fitText(brief, 1200);
-    this.drawDoctrines(brief.y + brief.height + 12);
+    this.drawDoctrines(brief.y + brief.height + 10);
     this.repaintAsArtArrives();
 
     new Counter(this, 40, 46, 'icon.coin', profile.gold, 'small');
@@ -454,6 +471,9 @@ export class LoadoutScene extends Phaser.Scene {
       .setDepth(9500);
     await ensureBattleTextures(this, this.lvl.biome, profile.activeSkin, this.lvl.id);
     wait.destroy();
-    this.scene.start('Battle', { levelId: this.lvl.id });
+    // Briefed already: this screen has just shown the fort's name, its
+    // brief and a card for every doctrine and lane role it poses. Stopping
+    // the player on a panel that repeats it is a tap for nothing.
+    this.scene.start('Battle', { levelId: this.lvl.id, skipBriefing: true });
   }
 }

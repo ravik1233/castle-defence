@@ -24,8 +24,11 @@ Do these in order. Each one is a thing that recently changed.
 2. The first three are free. Regions 4–7 read **CROWN PACK**.
 3. Your region is ringed gold and says YOU ARE HERE; the rest read LOCKED
    until you reach them.
-4. Tap a region: the briefing names its commander, their two spells, and the
-   five units the people there muster.
+4. Tap a region: its map of forts opens straight away, headed by the region's
+   name, its stars, and the commander who holds it with their two spells.
+   Tapping a fort likewise opens the loadout straight away - neither step
+   stops on a panel to confirm, and the loadout carries the fort's waves,
+   threat, starting Ember and your best result at the top.
 
 ### Each region is its own war
 
@@ -256,7 +259,7 @@ shipping builds.
 | `?reach=5` / `?reach=7` | Same for the Drowned Coast and the Throne |
 | `?scene=Battle&level=c2l4` | Straight into a fort |
 | `?scene=Continent` | Straight to the continent |
-| `?nomodal=1` | Skip the pre-battle briefing |
+| `?nomodal=1` | Skip the pre-battle briefing. Arriving through the loadout skips it anyway - the panel is only for a deep link or "next fort" straight off the results screen |
 | `?touchdebug=1` | Draw where the game thinks your finger is |
 | `/preview.html` | Every character, part by part |
 

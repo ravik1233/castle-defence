@@ -154,14 +154,16 @@ for (const screen of SCREENS) {
     });
     if (!opened) fail('no fort to open on the region map');
     await page.waitForTimeout(700);
-    if (!(await clickOffCentre('FIGHT'))) fail('no FIGHT button in the fort briefing');
+    // Straight through. Tapping a fort used to raise a panel repeating the
+    // loadout's own heading and brief, with a FIGHT button under it; both
+    // screens said the same thing and only one of them was needed.
+    if (await clickOffCentre('FIGHT')) fail('the fort briefing panel is back between the map and the loadout');
     if ((await sceneKey()) !== 'Loadout') fail('opening a fort did not reach the loadout');
   } else if (screen === 'Continent') {
-    // The first region, then the briefing's RIDE OUT: both are containers a
-    // thumb has to hit off centre.
+    // Likewise: a region opens its map rather than a panel about the map.
     if (!(await clickOffCentre('The Broken Fields'))) fail('no first region on the continent');
-    if (!(await clickOffCentre('RIDE OUT'))) fail('no RIDE OUT in the region briefing');
-    if ((await sceneKey()) !== 'Map') fail('riding out of a region did not open its forts');
+    if (await clickOffCentre('RIDE OUT')) fail('the region briefing panel is back between the continent and the map');
+    if ((await sceneKey()) !== 'Map') fail('choosing a region did not open its forts');
   }
 }
 
