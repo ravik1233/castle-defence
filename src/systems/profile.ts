@@ -6,7 +6,8 @@
  */
 import { CHAPTERS, ALL_LEVELS, levelNumber } from '../data/levels';
 import { DEFENDERS, MAX_UPGRADE_LEVEL, defender, upgradeCost } from '../data/defenders';
-import { HEROES } from '../data/heroes';
+import { HEROES, HERO_BY_ID } from '../data/heroes';
+import { spellSlots } from '../data/unlocks';
 import { CONSUMABLE_BY_ID, EQUIPMENT_BY_ID, EQUIPMENT_SLOTS } from '../data/workshop';
 import { WALL_SKINS } from '../art/structures';
 import { defaultSave, loadSave, writeSave, type SaveData, type Settings } from './save';
@@ -247,6 +248,57 @@ export class Profile {
   setHero(id: string): void {
     if (!this.availableHeroes().includes(id)) return;
     this.data.heroId = id;
+    this.commit();
+  }
+
+  /** How many spells any commander may carry right now. */
+  get spellSlots(): number {
+    return spellSlots(this.campaignProgress);
+  }
+
+  /**
+   * The spells this commander takes into a fort.
+   *
+   * Always trimmed to the slots actually open and to spells this commander
+   * really has, so a save made when two slots were open still behaves if the
+   * roster changes under it. An untouched commander carries the first of
+   * their four, which is the one their region is written around.
+   */
+  equippedSpells(heroId: string): string[] {
+    const roster = HERO_BY_ID.get(heroId)?.spells ?? [];
+    const chosen = (this.data.spells[heroId] ?? []).filter((id) => roster.some((sp) => sp.id === id));
+    const picked = chosen.length ? chosen : roster.map((sp) => sp.id);
+    return picked.slice(0, this.spellSlots);
+  }
+
+  /** True when this spell is one of the ones riding out. */
+  isSpellEquipped(heroId: string, spellId: string): boolean {
+    return this.equippedSpells(heroId).includes(spellId);
+  }
+
+  /**
+   * Takes a spell in or out of a commander's hand.
+   *
+   * Equipping past the open slots drops the one that has been carried
+   * longest rather than refusing, because a player tapping a third spell has
+   * plainly decided they want it - and being told "no" by a screen that
+   * could simply swap is the kind of friction this game has enough of.
+   */
+  toggleSpell(heroId: string, spellId: string): void {
+    const roster = HERO_BY_ID.get(heroId)?.spells ?? [];
+    if (!roster.some((sp) => sp.id === spellId)) return;
+    const slots = this.spellSlots;
+    if (slots <= 0) return;
+    const current = this.equippedSpells(heroId);
+    let next: string[];
+    if (current.includes(spellId)) {
+      // Never leave a commander with an empty hand.
+      if (current.length <= 1) return;
+      next = current.filter((id) => id !== spellId);
+    } else {
+      next = [...current, spellId].slice(-slots);
+    }
+    this.data.spells[heroId] = next;
     this.commit();
   }
 

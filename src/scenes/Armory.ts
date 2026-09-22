@@ -6,7 +6,8 @@ import Phaser from 'phaser';
 import { DESIGN } from '../core/layout';
 import { DEFENDERS, MAX_UPGRADE_LEVEL, upgradeCost, upgradedStats } from '../data/defenders';
 import { HEROES } from '../data/heroes';
-import { CHAPTERS } from '../data/levels';
+import { ALL_LEVELS, CHAPTERS } from '../data/levels';
+import { SPELL_SLOT_FORTS } from '../data/unlocks';
 import { WALL_SKINS } from '../art/structures';
 import { profile, PREMIUM_SKINS } from '../systems/profile';
 import { ensureAllCastleSkins } from '../systems/textures';
@@ -368,9 +369,30 @@ export class ArmoryScene extends Phaser.Scene {
 
   private drawHero(): void {
     const w = DESIGN.width;
+    /*
+     * How many spells anyone may carry, and where the next slot comes from.
+     * Both used to be in hand from the first fort with nothing said about it.
+     */
+    const slots = profile.spellSlots;
+    const nextAt = SPELL_SLOT_FORTS.find((at) => profile.campaignProgress < at);
+    const nextFort = nextAt ? ALL_LEVELS[nextAt - 1] : undefined;
     this.track(
       this.add
-        .text(w / 2, 196, 'Commanders ride with their own region. Their spells come with them.', textStyle('small', COLORS.muted))
+        .text(w / 2, 186, 'Commanders ride with their own region. Tap a sigil to take it or leave it.', textStyle('small', COLORS.muted))
+        .setOrigin(0.5),
+    );
+    this.track(
+      this.add
+        .text(
+          w / 2,
+          220,
+          slots === 0
+            ? `No spell slots yet — the first opens at ${nextFort?.name ?? 'the next fort'}.`
+            : nextFort
+              ? `${slots} spell slot${slots === 1 ? '' : 's'} open · the next at ${nextFort.name}`
+              : `${slots} spell slots open — a commander carries ${slots} of their four.`,
+          textStyle('small', COLORS.gold),
+        )
         .setOrigin(0.5),
     );
 
@@ -414,35 +436,54 @@ export class ArmoryScene extends Phaser.Scene {
         .setOrigin(0.5);
       this.track(fitText(where, cardW - 60));
 
-      h.spells.forEach((s, si) => {
-        // A blurb runs to three lines at this width, so the spells sit 74
-        // apart and the button 155 down: at 62 and 148 the first blurb ran
-        // into the second spell's name and the second ran under CHOOSE.
-        const sy = y - 22 + si * 74;
-        if (this.textures.exists(s.icon)) {
-          this.track(this.add.image(cx - cardW / 2 + 40, sy + 12, s.icon).setDisplaySize(46, 46));
-        }
-        this.track(
+      /*
+       * Four sigils in a two-by-two block, each one a switch.
+       *
+       * They used to be two stacked rows with a blurb under each, which fit
+       * while a commander knew exactly two spells and had nothing to choose
+       * between. Four of those would run off the bottom of the card and
+       * through the button below it, and a blurb is the wrong thing to spend
+       * the room on anyway: what the player needs here is which four exist
+       * and which two are riding out. The blurbs are on the card in battle
+       * and in the War Ledger.
+       */
+      const carried = profile.equippedSpells(h.id);
+      const chipW = (cardW - 56) / 2;
+      const chipH = 62;
+      h.spells.forEach((sp, si) => {
+        const gx = cx - cardW / 2 + 28 + (si % 2) * (chipW + 4) + chipW / 2;
+        const gy = y - 6 + Math.floor(si / 2) * (chipH + 6);
+        const on = carried.includes(sp.id);
+        const chip = this.track(this.add.container(gx, gy));
+        chip.add(
           this.add
-            .text(cx - cardW / 2 + 72, sy, `${s.name}  (${s.cooldown}s)`, textStyle('tiny', COLORS.parchment))
-            .setOrigin(0, 0.5),
+            .rectangle(0, 0, chipW, chipH, on ? 0x33405e : 0x241d33, owned ? 0.95 : 0.5)
+            .setStrokeStyle(3, on ? 0xf5c542 : 0x4a4060),
         );
-        /*
-         * Two lines and no more. The blurbs vary from one line to four, and
-         * a four-line one printed its tail over the next spell's name or the
-         * CHOOSE button below it. The full text is on the card in battle and
-         * in the ledger; here it only has to say which spell this is.
-         */
-        const blurb = this.add
-          .text(cx - cardW / 2 + 72, sy + 14, s.blurb, {
-            ...textStyle('tiny', COLORS.muted),
-            wordWrap: { width: (cardW - 100) / 0.85 },
-          })
-          .setOrigin(0, 0)
-          .setScale(0.85);
-        const wrapped = blurb.getWrappedText(s.blurb);
-        if (wrapped.length > 2) blurb.setText(`${wrapped.slice(0, 2).join('\n').replace(/[.,;\s]+$/, '')}...`);
-        this.track(blurb);
+        if (this.textures.exists(sp.icon)) {
+          chip.add(this.add.image(-chipW / 2 + 26, 0, sp.icon).setDisplaySize(40, 40).setAlpha(owned ? 1 : 0.4));
+        }
+        chip.add(
+          fitText(
+            this.add
+              .text(-chipW / 2 + 50, -10, sp.name, textStyle('tiny', on ? COLORS.gold : COLORS.parchment))
+              .setOrigin(0, 0.5),
+            chipW - 60,
+          ),
+        );
+        chip.add(
+          this.add
+            .text(-chipW / 2 + 50, 12, on ? `carried · ${sp.cooldown}s` : `${sp.cooldown}s`, textStyle('tiny', COLORS.muted))
+            .setOrigin(0, 0.5)
+            .setScale(0.9),
+        );
+        if (!owned || slots <= 0) return;
+        tappable(chip, chipW, chipH);
+        chip.on('pointerdown', () => {
+          profile.toggleSpell(h.id, sp.id);
+          audio.play('tap');
+          this.draw();
+        });
       });
 
       const label = active ? 'LEADING' : owned ? 'CHOOSE' : h.premium && !profile.hasCrownPack ? 'CROWN PACK' : 'NOT YET MET';

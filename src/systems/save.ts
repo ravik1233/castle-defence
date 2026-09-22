@@ -40,6 +40,8 @@ export interface SaveData {
   upgrades: Record<string, number>;
   heroId: string;
   deck: string[];
+  /** Which spells each commander carries, by hero id. Capped by open slots. */
+  spells: Record<string, string[]>;
   /** Salvage: what comes back out of a battle, spent in the workshop. */
   salvage: number;
   /** Fort equipment bought, and the three pieces taken to war. */
@@ -71,6 +73,7 @@ export function defaultSave(): SaveData {
     upgrades: {},
     heroId: 'aldric',
     deck: ['tithe', 'militia', 'archer', 'barricade'],
+    spells: {},
     salvage: 0,
     ownedEquipment: [],
     equipped: [],
@@ -149,6 +152,12 @@ export function migrate(raw: Record<string, unknown>): SaveData {
     levels: (data.levels as SaveData['levels']) ?? {},
     upgrades: (data.upgrades as SaveData['upgrades']) ?? {},
     deck: Array.isArray(data.deck) && data.deck.length ? (data.deck as string[]) : base.deck,
+    // An older save has no spell loadout at all; an empty map means "whatever
+    // this commander's first slots would be", which is what profile decides.
+    spells:
+      typeof data.spells === 'object' && data.spells !== null
+        ? (data.spells as Record<string, string[]>)
+        : base.spells,
     ownedSkins: Array.isArray(data.ownedSkins) ? (data.ownedSkins as string[]) : base.ownedSkins,
   };
 }

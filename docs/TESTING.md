@@ -82,12 +82,22 @@ Do these in order. Each one is a thing that recently changed.
 
 ### Commanders change how you fight
 
-20. Each region's spell bar is its commander's: Aldric's Smite and Rally,
-    Bran's Rockfall and War Horn, **Faelith's Arrow Storm and Quickstep**,
-    Seraphina's Chain Lightning and Blizzard, **Nerion's Undertow and Spring
-    Tide**, **Garrick's Breaking Blow and Close Ranks**, Maerwyn's Sanctuary
-    and Word of Ending.
-21. ARMOURY → HERO shows all **seven**. Ones whose region you have not reached
+20. Each region's spell bar is its commander's, and each commander knows
+    **four** and carries **two**: Aldric has Smite, Rally, Bulwark and Lance
+    of Light; Bran has Rockfall, War Horn, Stonefast and Ember Forge; and so
+    on down the seven. Every spell has its own drawn sigil - no two in one
+    commander's hand look alike.
+20a. Spell slots open as the campaign runs, not at the start. Fort 1 has
+    **no** spell bar at all; the first slot opens at **The Mill Road**
+    (fort 2) and the second on reaching **the Barrow Moors** (fort 16), so
+    region 1 is fought with one spell and everything after it with two.
+    Neither slot is behind the Crown Pack.
+21. ARMOURY → HERO shows all **seven**, each with their four sigils in a
+    block. The two being carried are ringed gold and read "carried"; tap any
+    sigil to take it or leave it. Taking a third drops the one carried
+    longest, and the last one cannot be put down.
+21a. ARMOURY → HERO also states how many slots are open and which fort the
+    next one comes at. Ones whose region you have not reached
     read NOT YET MET. No commander appears in two regions — the Fallen March
     is Garrick's, the Throne is Maerwyn's.
 21b. Cast **Sanctuary** or **Close Ranks** with a hurt line: every defender

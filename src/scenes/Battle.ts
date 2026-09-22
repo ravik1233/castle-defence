@@ -1431,24 +1431,32 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       DESIGN.width - 330 - (HERO_BAR.x + 100),
     );
 
-    hero.spells.forEach((spell, i) => {
-      const x = DESIGN.width - 250 + i * 150;
-      // Label above the button: below it would fall off the bottom edge.
-      fitText(
-        this.add.text(x, TRAY.y + 20, spell.name, textStyle('tiny', COLORS.muted)).setOrigin(0.5).setDepth(3001),
-        138,
-      );
-      const container = this.add.container(x, TRAY.y + TRAY.height / 2 + 14).setDepth(3001);
-      const ring = this.add.image(0, 0, 'ui.button.blue').setDisplaySize(112, 100);
-      container.add(ring);
-      const icon = this.add.image(0, 0, spell.icon).setDisplaySize(66, 66);
-      container.add(icon);
-      const overlay = this.add.graphics();
-      container.add(overlay);
-      tappable(container, 112, 100);
-      container.on('pointerdown', () => this.selectSpell(spell));
-      this.spells.push({ spell, container, cooldownLeft: 0, overlay, ready: ring });
-    });
+    /*
+     * Only what this commander is actually carrying. A commander knows four
+     * and rides with the two the player picked - and with one, or none, while
+     * the campaign is still opening their slots.
+     */
+    const carried = profile.equippedSpells(hero.id);
+    hero.spells
+      .filter((sp) => carried.includes(sp.id))
+      .forEach((spell, i) => {
+        const x = DESIGN.width - 250 + i * 150;
+        // Label above the button: below it would fall off the bottom edge.
+        fitText(
+          this.add.text(x, TRAY.y + 20, spell.name, textStyle('tiny', COLORS.muted)).setOrigin(0.5).setDepth(3001),
+          138,
+        );
+        const container = this.add.container(x, TRAY.y + TRAY.height / 2 + 14).setDepth(3001);
+        const ring = this.add.image(0, 0, 'ui.button.blue').setDisplaySize(112, 100);
+        container.add(ring);
+        const icon = this.add.image(0, 0, spell.icon).setDisplaySize(66, 66);
+        container.add(icon);
+        const overlay = this.add.graphics();
+        container.add(overlay);
+        tappable(container, 112, 100);
+        container.on('pointerdown', () => this.selectSpell(spell));
+        this.spells.push({ spell, container, cooldownLeft: 0, overlay, ready: ring });
+      });
   }
 
   private selectSpell(spell: SpellDef): void {

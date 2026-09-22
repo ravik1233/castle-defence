@@ -30,6 +30,8 @@ import * as structures from './structures';
 import * as scenery from './scenery';
 import * as props from './props';
 import * as tiles from './tiles';
+import { spellIcon, spellIconKey } from './spells';
+import { ALL_SPELLS } from '../data/heroes';
 
 /** Characters and props are drawn at 2x their in-game size for crispness. */
 export const SUPERSAMPLE = 2;
@@ -119,6 +121,13 @@ function specs(drawn: ReadonlySet<string> = new Set()): TextureSpec[] {
   ] as props.PickupId[]) {
     add(`icon.${id}`, props.pickup(id));
   }
+
+  /*
+   * A sigil per spell. Drawn rather than borrowed: every spell used to point
+   * its icon at one of the generic battle effects, so five of them shared a
+   * picture of a shockwave.
+   */
+  for (const s of ALL_SPELLS) add(spellIconKey(s.id), spellIcon(s.motif, s.tone));
 
   add('ui.card', props.cardFrame(150, 200), SUPERSAMPLE);
   add('ui.panel', props.panel(560, 360), 1);

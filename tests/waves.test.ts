@@ -3,6 +3,7 @@ import { ALL_LEVELS, CHAPTERS, generateWaves, hashString, level, levelNumber, mu
 import { ENEMY_BY_ID, enemy } from '../src/data/enemies';
 import { DEFENDERS, DEFENDER_BY_ID } from '../src/data/defenders';
 import { HERO_BY_ID, HEROES } from '../src/data/heroes';
+import { MAX_SPELL_SLOTS, SPELL_SLOT_FORTS, spellSlots } from '../src/data/unlocks';
 import battleSrc from '../src/scenes/Battle.ts?raw';
 import levelsSrc from '../src/data/levels.ts?raw';
 import entitiesSrc from '../src/battle/entities.ts?raw';
@@ -474,5 +475,44 @@ describe('what each fort demands', () => {
     const a = doctrinesFor('beast', 6, 4);
     expect(doctrinesFor('beast', 6, 4)).toEqual(a);
     expect(doctrinesFor('beast', 7, 4)).not.toEqual([]);
+  });
+});
+
+describe('what a commander carries', () => {
+  it('gives every commander a real choice, and no two sigils alike in one hand', () => {
+    for (const h of HEROES) {
+      expect(h.spells.length, `${h.name} has nothing to choose between`).toBeGreaterThan(MAX_SPELL_SLOTS);
+      // A hand is chosen by looking at four icons side by side, so two that
+      // draw the same picture in the same colours is the same as no icon.
+      const sigils = h.spells.map((s) => `${s.motif}:${s.tone}`);
+      expect(new Set(sigils).size, `${h.name} carries two spells drawn alike`).toBe(sigils.length);
+      // And every one is its own texture rather than a borrowed battle effect.
+      for (const s of h.spells) expect(s.icon).toBe(`icon.spell.${s.id}`);
+    }
+  });
+
+  it('opens the spell slots over the campaign rather than at the first fort', () => {
+    expect(spellSlots(1), 'the tutorial should not also teach two spells').toBe(0);
+    expect(spellSlots(SPELL_SLOT_FORTS[0]!)).toBe(1);
+    expect(spellSlots(SPELL_SLOT_FORTS[1]!)).toBe(MAX_SPELL_SLOTS);
+    expect(spellSlots(ALL_LEVELS.length)).toBe(MAX_SPELL_SLOTS);
+    // Monotonic: a slot never closes again as the campaign runs on.
+    let last = 0;
+    for (let at = 1; at <= ALL_LEVELS.length; at += 1) {
+      const now = spellSlots(at);
+      expect(now, `slots went backwards at fort ${at}`).toBeGreaterThanOrEqual(last);
+      last = now;
+    }
+  });
+
+  it('never lets a spell effect exist that the battle cannot cast', () => {
+    // Spells are re-skins of a handful of implemented effects; a new one that
+    // never reached castSpell would be a button that does nothing.
+    const cast = new Set(['smite', 'chain', 'freeze', 'heal', 'rally']);
+    for (const h of HEROES) {
+      for (const s of h.spells) {
+        expect(cast.has(s.effect ?? ''), `${s.name} casts an effect nothing implements`).toBe(true);
+      }
+    }
   });
 });

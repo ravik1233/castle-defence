@@ -3,6 +3,7 @@ import type { ProjectileId } from '../art/props';
 import type { BiomeId } from '../art/scenery';
 import type { DoctrineId } from './doctrines';
 import type { LaneRoleId } from './laneRoles';
+import type { SpellMotif, SpellTone } from '../art/spells';
 
 export type DefenderRole = 'melee' | 'ranged' | 'economy' | 'wall' | 'support' | 'aoe';
 
@@ -230,7 +231,11 @@ export interface SpellDef {
   id: string;
   name: string;
   blurb: string;
+  /** Texture key of this spell's own sigil, derived from its id. */
   icon: string;
+  /** What the sigil draws, and in which school's colours. */
+  motif: SpellMotif;
+  tone: SpellTone;
   target: SpellTarget;
   cooldown: number;
   damage?: number;

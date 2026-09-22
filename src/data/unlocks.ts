@@ -166,3 +166,30 @@ export function showcaseEnemy(
 
   return teacher(pool)?.id;
 }
+
+/**
+ * When a commander's spell slots open.
+ *
+ * Both used to be in hand at the first fort, which made the commander's
+ * whole kit a thing you were given rather than a thing you earned - and made
+ * the tutorial teach placement, Ember, mining and two spells at once.
+ *
+ * The first opens at the Mill Road, once the player has held a gate and
+ * knows what a lane is. The second waits for the Barrow Moors, so crossing
+ * a border is where the hand grows: region 1 is fought with one spell and
+ * every region after it with two.
+ *
+ * Deliberately not Crown Pack. A second spell slot is a mechanic rather than
+ * a cosmetic, and the pack already sells cards, commanders and regions -
+ * putting the player's second slot behind it would be the flooded-lane
+ * mistake again, selling the answer to a problem the game poses anyway.
+ */
+export const SPELL_SLOT_FORTS = [2, 16] as const;
+
+/** The most spells a commander may carry, given how far the campaign has run. */
+export function spellSlots(progress: number): number {
+  return SPELL_SLOT_FORTS.filter((at) => progress >= at).length;
+}
+
+/** The most any commander can ever carry, however far the campaign has run. */
+export const MAX_SPELL_SLOTS = SPELL_SLOT_FORTS.length;
