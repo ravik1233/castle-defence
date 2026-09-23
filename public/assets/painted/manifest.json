@@ -6661,5 +6661,8 @@
       }
     }
   },
-  "_region_7_actions": "Three-pose presentation sheets: idle, impact/cast, and fallen death. Walking intentionally uses idle until bespoke walk cycles are approved."
+  "_region_7_actions": "Three-pose presentation sheets: idle, impact/cast, and fallen death. Walking intentionally uses idle until bespoke walk cycles are approved.",
+  "rampart.broken.fields": "rampart.broken.fields.png",
+  "wall.breach.fields": "wall.breach.fields.png",
+  "wall.cracks.fields": "wall.cracks.fields.png"
 }
