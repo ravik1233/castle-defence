@@ -6667,5 +6667,6 @@
   "wall.cracks.fields": "wall.cracks.fields.png",
   "rampart.broken.barrows": "rampart.broken.barrows.png",
   "wall.breach.barrows": "wall.breach.barrows.png",
-  "wall.cracks.barrows": "wall.cracks.barrows.png"
+  "wall.cracks.barrows": "wall.cracks.barrows.png",
+  "tile.rubble.fields": "tile.rubble.fields.png"
 }
