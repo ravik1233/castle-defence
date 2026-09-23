@@ -144,3 +144,50 @@ it at the same canvas size, and keep the same anchor point.
 Backdrops are rasterised at half resolution and scaled up (`BACKDROP_SCALE`),
 so a painted `bg.*` at 1080×1160 or larger will look sharper than the vector
 original, not worse.
+
+### Ground tiles
+
+Special ground is part of the field, not something set down on it. The
+vector originals were drawn as objects - a glossy oval with a dark rim for
+water, a cone on a disc for a shrine - and against the painted backdrops they
+read as stickers. Paint them the way `tile.ember.seam.png` is painted, and
+keep to three rules:
+
+1. **No outline and no hard shadow.** Contact shading is soft and local.
+2. **Fade to fully transparent before the edge of the canvas.** A fade that
+   reaches the edge is cut off there in a straight line, and that line is what
+   makes a tile look boxed in. Keep alpha at zero along all four edges - except
+   the edges where strip pieces join (below).
+3. **Darken the ground rather than recolouring it** for wet or trodden earth.
+   Translucent darks sit on every region's ground; an opaque brown only sits
+   on one.
+
+Every tile is authored for one 200×150 cell. Paint at 2× (400×300).
+
+| Key | What | Drawn |
+| --- | --- | --- |
+| `tile.highground` | A broken bedrock shelf with a level top | fitted to the cell, centred |
+| `tile.rubble` | Fallen masonry in a spread of grit | fitted to the cell, centred |
+| `tile.tallgrass` | A stand of tall grass, paler than the field | fitted to the cell, centred |
+| `tile.shrine` | A weathered standing stone, a lit rune cut in it | fitted to the cell, centred |
+| `tile.seam` | An Ember vein | fitted to the cell, centred |
+| `tile.water` / `tile.marsh` | A pool on its own | exactly one cell |
+| `tile.water.left` / `.mid` / `.right` | The ends and middle of a run of water | exactly one cell, edge to edge |
+| `tile.marsh.left` / `.mid` / `.right` | The same for marsh | exactly one cell, edge to edge |
+
+**Water and marsh come in pieces** because a run of them across a lane is one
+body of ground, and a flooded lane is a single channel. The battle lays a
+run as `left`, as many `mid` as it needs, then `right`; a lone cell uses the
+plain `tile.water` / `tile.marsh`. So:
+
+- `mid` must repeat seamlessly left to right: its left edge continues its own
+  right edge.
+- `left` must join `mid` on its right edge, and `right` must join `mid` on its
+  left edge.
+- The bank may wave, but keep its height at the joining edges the same in all
+  three pieces, or every join shows as a step.
+- Supply all four of a set together. A painted `tile.water` next to vector
+  `left`/`mid`/`right` pieces will not match.
+
+Water must read as deep - nothing without a boat can stand in it, and a
+puddle says the opposite. Marsh must read as wet ground, never as water.

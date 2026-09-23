@@ -73,8 +73,19 @@ function specs(drawn: ReadonlySet<string> = new Set()): TextureSpec[] {
   add('build.bombard', structures.bombard().svg);
   add('build.brazier', structures.brazier().svg);
 
+  /*
+   * Ground features, at twice their drawn size: they are soft-edged and
+   * textured now rather than flat shapes with outlines, and at 1:1 the
+   * texture smeared on a phone screen. Water and marsh also get the pieces
+   * a lane-long run is built from, so a flooded lane is one body of water.
+   */
   for (const id of ['water', 'marsh', 'highground', 'rubble', 'tallgrass', 'shrine', 'seam'] as tiles.GroundArtId[]) {
-    add(`tile.${id}`, tiles.groundTile(id), 1);
+    add(`tile.${id}`, tiles.groundTile(id), SUPERSAMPLE);
+  }
+  for (const ground of tiles.STRIP_GROUNDS) {
+    for (const piece of ['left', 'mid', 'right'] as tiles.StripPiece[]) {
+      add(tiles.stripKey(ground, piece), tiles.stripTile(ground, piece), SUPERSAMPLE);
+    }
   }
 
   for (const id of [

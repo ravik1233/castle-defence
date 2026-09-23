@@ -52,6 +52,7 @@ import { enemyScaling, starsForKeep, tensionFor } from '../battle/combat';
 import { EMBER_DEPOSITS_PER_VEIN, emberBounty, emberCost, roundEmber } from '../battle/economy';
 import { CONSUMABLES, EQUIPMENT_EFFECT, consumable } from '../data/workshop';
 import { TILE_NAME, canStandOn } from '../data/tiles';
+import { STRIP_GROUNDS, stripKey, type StripGround, type StripPiece } from '../art/tiles';
 import { DOCTRINES, DOCTRINE_EFFECT, type DoctrineId } from '../data/doctrines';
 import { LANE_ROLES, LANE_ROLE_EFFECT, lanesWith, type LaneRoleId } from '../data/laneRoles';
 import type { KeepState } from '../battle/combat';
@@ -832,11 +833,45 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       for (let col = 0; col < GRID.cols; col += 1) {
         const kind = this.tileAt(row, col);
         if (kind === 'plain') continue;
+
+        /*
+         * Water and marsh are laid as one body along the lane, not a tile per
+         * cell. Each cell used to draw its own oval, so two water cells side
+         * by side were two puddles with a gap between them and a flooded lane
+         * was five puddles in a row. A run of them now gets a left end, as
+         * many middles as it needs and a right end, edge to edge, and a lone
+         * cell gets a pool of its own.
+         */
+        if ((STRIP_GROUNDS as readonly string[]).includes(kind)) {
+          let end = col;
+          while (end + 1 < GRID.cols && this.tileAt(row, end + 1) === kind) end += 1;
+          for (let c = col; c <= end; c += 1) {
+            const piece: StripPiece = col === end ? 'solo' : c === col ? 'left' : c === end ? 'right' : 'mid';
+            const left = GRID.x0 + c * GRID.cellW;
+            this.add
+              .image(left, FIELD.y + row * GRID.cellH, stripKey(kind as StripGround, piece))
+              .setOrigin(0, 0)
+              // Exactly one cell, no overlap. The pieces carry a translucent
+              // damp-earth wash, and an overlapping pixel column draws it twice
+              // and shows up as a dark line at every cell boundary.
+              .setDisplaySize(GRID.cellW, GRID.cellH)
+              .setDepth(-880);
+          }
+          col = end;
+          continue;
+        }
+
+        /*
+         * Everything else is a feature set into one cell. Fitted rather than
+         * stretched: the painted Ember vein is square, and squeezing it into
+         * the cell's shape flattened it by a quarter. A little overhang is
+         * wanted - these fade out at their edges, and spilling slightly past
+         * the cell is what stops the grid showing through the ground.
+         */
         const c = cellCenter(row, col);
-        this.add
-          .image(c.x, c.y + 5, `tile.${kind}`)
-          .setDisplaySize(GRID.cellW * 0.92, GRID.cellH * 0.9)
-          .setDepth(-880);
+        const img = this.add.image(c.x, c.y + 4, `tile.${kind}`).setDepth(-880);
+        const fit = Math.min(GRID.cellW / img.width, GRID.cellH / img.height) * 1.08;
+        img.setScale(fit);
 
         if (kind === 'seam') {
           const key = `${row},${col}`;
