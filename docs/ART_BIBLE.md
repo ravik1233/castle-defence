@@ -162,18 +162,39 @@ keep to three rules:
    Translucent darks sit on every region's ground; an opaque brown only sits
    on one.
 
-Every tile is authored for one 200×150 cell. Paint at 2× (400×300).
+A cell is 200×150. Everything painted is at 2×.
 
-| Key | What | Drawn |
-| --- | --- | --- |
-| `tile.highground` | A broken bedrock shelf with a level top | fitted to the cell, centred |
-| `tile.rubble` | Fallen masonry in a spread of grit | fitted to the cell, centred |
-| `tile.tallgrass` | A stand of tall grass, paler than the field | fitted to the cell, centred |
-| `tile.shrine` | A weathered standing stone, a lit rune cut in it | fitted to the cell, centred |
-| `tile.seam` | An Ember vein | fitted to the cell, centred |
-| `tile.water` / `tile.marsh` | A pool on its own | exactly one cell |
-| `tile.water.left` / `.mid` / `.right` | The ends and middle of a run of water | exactly one cell, edge to edge |
-| `tile.marsh.left` / `.mid` / `.right` | The same for marsh | exactly one cell, edge to edge |
+**Features spill; strips do not.** A feature tile (the first five below) is
+drawn at a fixed 2:1 density, centred on its cell, so a canvas bigger than
+the cell simply reaches into the cells around it. Paint features on a
+**640×480** canvas (a cell and a half each way) and let the ground they
+disturb - the cracked earth round a vein, the grit round fallen stone, the
+trampled ring round a shrine - run out into that margin and fade to nothing
+before the canvas edge. The *thing itself* - the crystal, the stone, the
+shelf, the stand of grass - stays inside the middle 400×300, because that is
+the cell the player taps and the effect belongs to. A feature that looks
+cut out of the field in a box is exactly what this is for.
+
+A feature canvas smaller than 400×300 is older art and is fitted to the cell
+instead, as the first `tile.ember.seam.png` (252×256) is.
+
+| Key | What | Canvas | Drawn |
+| --- | --- | --- | --- |
+| `tile.highground` | A broken bedrock shelf with a level top | 640×480 | 2:1, centred, spills |
+| `tile.rubble` | Fallen masonry in a spread of grit | 640×480 | 2:1, centred, spills |
+| `tile.tallgrass` | A stand of tall grass, paler than the field | 640×480 | 2:1, centred, spills |
+| `tile.shrine` | A weathered standing stone, a lit rune cut in it | 640×480 | 2:1, centred, spills |
+| `tile.seam` | An Ember vein | 640×480 | 2:1, centred, spills |
+| `tile.water` / `tile.marsh` | A pool on its own | 400×300 | exactly one cell |
+| `tile.water.left` / `.mid` / `.right` | The ends and middle of a run of water | 400×300 | exactly one cell, edge to edge |
+| `tile.marsh.left` / `.mid` / `.right` | The same for marsh | 400×300 | exactly one cell, edge to edge |
+
+**Per region.** Any tile key can also be supplied for one region by adding
+the region to it: `tile.rubble.barrows`, `tile.seam.throne`,
+`tile.water.mid.coast`. The battle uses the region's own version when there
+is one and the shared key otherwise. Region ids: `fields`, `barrows`,
+`woods`, `highland`, `coast`, `abyss`, `throne`. Region-suffixed art is not
+loaded at boot; each fort fetches only its own region's.
 
 **Water and marsh come in pieces** because a run of them across a lane is one
 body of ground, and a flooded lane is a single channel. The battle lays a
@@ -191,3 +212,23 @@ plain `tile.water` / `tile.marsh`. So:
 
 Water must read as deep - nothing without a boat can stand in it, and a
 puddle says the opposite. Marsh must read as wet ground, never as water.
+
+### Broken wall
+
+Three overlays sit on the five-gate wall plate, one lane at a time. Each
+covers **both parapet tiles** of a lane - 400 wide - and 15 px over the
+lane's top and bottom edge so fallen stone can lie across the join: a
+display size of **400×180**, painted at **800×360**, centred on the lane.
+They are drawn *over* the plate, so everything outside the damage itself
+must be transparent - the plate shows through.
+
+| Key | When | What |
+| --- | --- | --- |
+| `rampart.broken` | The **Broken Rampart** lane role: that lane's parapet is gone and nothing can be built on it | The walkway collapsed into a heap of blocks and grit, broken merlons, snapped timbers. Must read as *unbuildable ground*, with no flat stone left to stand on. Replaces the two rubble tiles. |
+| `wall.breach` | A section at 0 HP: the **Collapsed Gate** lane role and the **Breached Gate** doctrine start with one; any section can be battered down in the fight | A hole right through the wall at that lane: gate torn off or smashed, ragged masonry edges, rubble spilled through toward the keep, dark courtyard visible through the gap. Enemies walk through it. |
+| `wall.cracks` | A section losing HP | Cracks, spalled stone and a loose block or two on the parapet face. Faded in by the game as the section is worn - paint it at full damage. |
+
+Every one of them may be supplied per region (`wall.breach.barrows`), and
+should be: the seven plates are seven different stones. With none painted,
+the game falls back to rubble tiles and a dark block.
+

@@ -53,6 +53,7 @@ import { EMBER_DEPOSITS_PER_VEIN, emberBounty, emberCost, roundEmber } from '../
 import { CONSUMABLES, EQUIPMENT_EFFECT, consumable } from '../data/workshop';
 import { TILE_NAME, canStandOn } from '../data/tiles';
 import { STRIP_GROUNDS, stripKey, type StripGround, type StripPiece } from '../art/tiles';
+import { isPainted } from '../art/registry';
 import { DOCTRINES, DOCTRINE_EFFECT, type DoctrineId } from '../data/doctrines';
 import { LANE_ROLES, LANE_ROLE_EFFECT, lanesWith, type LaneRoleId } from '../data/laneRoles';
 import type { KeepState } from '../battle/combat';
@@ -65,6 +66,14 @@ import type { KeepState } from '../battle/combat';
  * five separate things, and losing one is a setback rather than the end.
  */
 const SECTION_MAX_HP = 11;
+
+/**
+ * Height of painted art that covers one section of wall - the broken rampart,
+ * the breach and the cracks. A lane is 150 tall; the extra 15 above and below
+ * lets fallen stone lie across the joins instead of stopping at a ruled line.
+ * Painted at twice this (800x360) for the 400-wide parapet.
+ */
+const SECTION_ART_H = 180;
 /*
  * Kills beyond this line pay a salvage bonus. It sits well out in the field,
  * so the bonus is only collectable by something that went out for it.
@@ -192,7 +201,9 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   private reserveFigures: Phaser.GameObjects.Container[] = [];
   private sectionBars: Phaser.GameObjects.Rectangle[] = [];
   private breachMarks: Phaser.GameObjects.Text[] = [];
-  private breachHoles: Phaser.GameObjects.Rectangle[] = [];
+  private breachHoles: Array<Phaser.GameObjects.Image | Phaser.GameObjects.Rectangle> = [];
+  /** Painted cracks over each section, when the region has them. */
+  private sectionCracks: Array<Phaser.GameObjects.Image | undefined> = [];
   private heartBar?: Phaser.GameObjects.Rectangle;
   private heartLabel?: Phaser.GameObjects.Text;
   private killCount = 0;
@@ -849,7 +860,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
             const piece: StripPiece = col === end ? 'solo' : c === col ? 'left' : c === end ? 'right' : 'mid';
             const left = GRID.x0 + c * GRID.cellW;
             this.add
-              .image(left, FIELD.y + row * GRID.cellH, stripKey(kind as StripGround, piece))
+              .image(left, FIELD.y + row * GRID.cellH, this.regionArt(stripKey(kind as StripGround, piece)))
               .setOrigin(0, 0)
               // Exactly one cell, no overlap. The pieces carry a translucent
               // damp-earth wash, and an overlapping pixel column draws it twice
@@ -862,16 +873,35 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         }
 
         /*
-         * Everything else is a feature set into one cell. Fitted rather than
-         * stretched: the painted Ember vein is square, and squeezing it into
-         * the cell's shape flattened it by a quarter. A little overhang is
-         * wanted - these fade out at their edges, and spilling slightly past
-         * the cell is what stops the grid showing through the ground.
+         * The Broken Rampart draws its own lane-wide ruin over the parapet when
+         * the region has one painted, instead of two rubble tiles side by side.
+         */
+        if (isWallCol(col) && this.laneRoles[row] === 'broken' && this.regionArt('rampart.broken', '')) {
+          continue;
+        }
+
+        /*
+         * Everything else is a feature set into the ground.
+         *
+         * Painted features are drawn at a fixed density - two texture pixels
+         * to one design pixel, the same as every other painted texture - and
+         * centred on their cell. A canvas larger than the cell (640x480 for a
+         * cell of 200x150) therefore spills evenly into its neighbours, which
+         * is what lets a vein or a bog run out into the field around it rather
+         * than sitting in a box. Anything smaller than a doubled cell is older
+         * art and vector fallback, and is fitted to the cell as before:
+         * squeezing the square Ember vein into the cell's shape flattened it
+         * by a quarter, and a little overhang stops the grid showing through.
          */
         const c = cellCenter(row, col);
-        const img = this.add.image(c.x, c.y + 4, `tile.${kind}`).setDepth(-880);
-        const fit = Math.min(GRID.cellW / img.width, GRID.cellH / img.height) * 1.08;
-        img.setScale(fit);
+        const key = this.regionArt(`tile.${kind}`);
+        const img = this.add.image(c.x, c.y, key).setDepth(isWallCol(col) ? -867 : -880);
+        if (isPainted(key) && img.width >= GRID.cellW * 2 && img.height >= GRID.cellH * 2) {
+          img.setScale(0.5);
+        } else {
+          img.setY(c.y + 4);
+          img.setScale(Math.min(GRID.cellW / img.width, GRID.cellH / img.height) * 1.08);
+        }
 
         if (kind === 'seam') {
           const key = `${row},${col}`;
@@ -888,6 +918,34 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
         }
       }
     }
+
+    /*
+     * The ruin itself, across both parapet tiles of a Broken Rampart lane.
+     * Above the wall plate: the plate is opaque, and anything under it -
+     * the rubble tiles this replaces included - is simply not seen.
+     */
+    for (const row of lanesWith(this.laneRoles, 'broken')) {
+      const key = this.regionArt('rampart.broken', '');
+      if (!key) continue;
+      this.add
+        .image(WALL.x + WALL.width / 2, laneCenterY(row), key)
+        .setDisplaySize(WALL.width, SECTION_ART_H)
+        .setDepth(-867);
+    }
+  }
+
+  /**
+   * The texture to draw for a key in this battle's region: `<key>.<biome>`
+   * when the region has its own, otherwise the shared key. With a fallback
+   * given, that is returned when neither exists.
+   */
+  private regionArt(key: string): string;
+  private regionArt(key: string, fallback: ''): string | undefined;
+  private regionArt(key: string, fallback?: string): string | undefined {
+    const own = `${key}.${this.levelDef.biome}`;
+    if (this.textures.exists(own)) return own;
+    if (this.textures.exists(key)) return key;
+    return fallback === '' ? undefined : key;
   }
 
   /**
@@ -903,6 +961,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
    */
   private buildSections(): void {
     this.sectionBars = [];
+    this.sectionCracks = [];
+    this.breachHoles = [];
     this.breachMarks = [];
     for (let row = 0; row < GRID.rows; row += 1) {
       const y = laneCenterY(row);
@@ -937,22 +997,43 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       /*
        * Damage, painted onto the stonework rather than beside it. It is a
        * dark wash over that lane's span of wall which deepens as the section
-       * is worn down, so the wall itself is the health bar.
+       * is worn down, so the wall itself is the health bar. A region with
+       * painted cracks shows them coming through as well, and the wash eases
+       * off to let them read.
        */
       const wear = this.add
         .rectangle(WALL.x + WALL.width / 2, y, WALL.width, GRID.cellH, 0x1a0f14, 0)
         .setDepth(-865);
       this.sectionBars.push(wear);
+      const cracksKey = this.regionArt('wall.cracks', '');
+      this.sectionCracks.push(
+        cracksKey
+          ? this.add
+              .image(WALL.x + WALL.width / 2, y, cracksKey)
+              .setDisplaySize(WALL.width, SECTION_ART_H)
+              .setDepth(-864)
+              .setAlpha(0)
+          : undefined,
+      );
 
       /*
        * A hole punched through the wall art. Without it a fallen section
        * looks exactly like a standing one and enemies simply walk through
-       * solid stone, which reads as a bug rather than a breach.
+       * solid stone, which reads as a bug rather than a breach. The painted
+       * breach is the same span as the rampart - both parapet tiles and a
+       * little over the lane's edges - and the dark block is its fallback.
        */
-      const hole = this.add
-        .rectangle(WALL.x + WALL.width / 2, y, WALL.width, GRID.cellH * 0.74, 0x120c1c)
-        .setDepth(-860)
-        .setVisible(false);
+      const breachKey = this.regionArt('wall.breach', '');
+      const hole = breachKey
+        ? this.add
+            .image(WALL.x + WALL.width / 2, y, breachKey)
+            .setDisplaySize(WALL.width, SECTION_ART_H)
+            .setDepth(-860)
+            .setVisible(false)
+        : this.add
+            .rectangle(WALL.x + WALL.width / 2, y, WALL.width, GRID.cellH * 0.74, 0x120c1c)
+            .setDepth(-860)
+            .setVisible(false);
       this.breachHoles.push(hole);
 
       const mark = this.add
@@ -1080,8 +1161,12 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
       // The darker the wash, the worse that span of wall is doing. Full
       // health is clear stone; a section about to fall is nearly black.
       const wear = this.sectionBars[row]!;
-      wear.setAlpha(hp > 0 ? (1 - f) * 0.72 : 0);
+      const cracks = this.sectionCracks[row];
+      wear.setAlpha(hp > 0 ? (1 - f) * (cracks ? 0.4 : 0.72) : 0);
       wear.setVisible(hp > 0);
+      // Cracks only once the section has actually been hurt, then fully in
+      // by the time it is a third of the way from falling.
+      cracks?.setAlpha(hp > 0 ? Math.min(1, (1 - f) * 1.5) : 0);
       this.breachHoles[row]?.setVisible(hp <= 0);
       this.breachMarks[row]?.setVisible(hp <= 0 && !this.finished);
     }

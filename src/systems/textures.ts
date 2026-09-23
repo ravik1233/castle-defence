@@ -6,7 +6,7 @@
  * idempotent and safe to await repeatedly.
  */
 import type Phaser from 'phaser';
-import { BACKDROP_SCALE, addTexture, ensureBiome, ensureUnitArt } from '../art/registry';
+import { BACKDROP_SCALE, addTexture, ensureBiome, ensureRegionPaint, ensureUnitArt } from '../art/registry';
 import { ALL_CASTLE_SKINS, REGION_WALL_SKINS, WALL_SKINS, castleGate, castleKeep, castleWall } from '../art/structures';
 import type { BiomeId } from '../art/scenery';
 import { DESIGN, FIELD, GRID, WALL } from '../core/layout';
@@ -79,6 +79,7 @@ export async function ensureBattleTextures(
 ): Promise<void> {
   await ensureBiome(scene, biome, DESIGN.width, FIELD.height + FIELD.horizon, GRID.rows, FIELD.horizon);
   await ensureCastleSkin(scene, REGION_WALL_SKINS[biome]?.id ?? skinId);
+  await ensureRegionPaint(scene, biome);
   if (levelId) await ensureUnitArt(scene, castForLevel(levelId));
 }
 

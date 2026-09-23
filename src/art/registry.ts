@@ -334,6 +334,64 @@ function supersededByStrip(key: string, drawn: ReadonlySet<string>): boolean {
 }
 
 /**
+ * Painted art that only a battle draws: the broken rampart, the breach and
+ * the cracks for a section of wall, and any ground drawn for one region.
+ *
+ * None of it is on the way to the menu, and most of it belongs to one region
+ * out of seven, so it is left out of the boot and fetched by `ensureRegionPaint`
+ * for the fort that is about to be fought.
+ */
+const BATTLE_PAINT = /^(wall\.breach|wall\.cracks|rampart\.broken)(\.|$)/;
+
+function regionSuffix(key: string): scenery.BiomeId | undefined {
+  const tail = key.slice(key.lastIndexOf('.') + 1);
+  return Object.prototype.hasOwnProperty.call(scenery.BIOMES, tail) ? (tail as scenery.BiomeId) : undefined;
+}
+
+function battleOnly(key: string): boolean {
+  return BATTLE_PAINT.test(key) || (key.startsWith('tile.') && regionSuffix(key) !== undefined);
+}
+
+/** In-flight or finished loads of battle-only painted files, by key. */
+const regionArt = new Map<string, Promise<void>>();
+
+/**
+ * Loads the battle-only painted art one region needs: the shared version of
+ * each key and that region's own, never another region's. Idempotent, and a
+ * missing file simply leaves the key absent so the battle draws its fallback.
+ */
+export async function ensureRegionPaint(scene: Phaser.Scene, biome: scenery.BiomeId): Promise<void> {
+  const wanted = Object.keys(painted).filter((key) => {
+    if (!battleOnly(key)) return false;
+    const region = regionSuffix(key);
+    return region === undefined || region === biome;
+  });
+  await Promise.all(
+    wanted.map((key) => {
+      let job = regionArt.get(key);
+      if (!job) {
+        job = (async () => {
+          if (scene.textures.exists(key)) return;
+          try {
+            const img = await loadImage(`assets/painted/${painted[key]}`);
+            if (!scene.textures.exists(key)) scene.textures.addImage(key, img);
+          } catch {
+            // The battle draws its vector fallback instead.
+          }
+        })();
+        regionArt.set(key, job);
+      }
+      return job;
+    }),
+  );
+}
+
+/** True when this key's texture came from the painted pack rather than the generator. */
+export function isPainted(key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(painted, key);
+}
+
+/**
  * How a painted parts sheet fits together: where each piece hangs, how big it
  * is, and what it pivots around. Produced by scripts/import-parts.mjs, which
  * synthesises it from the pieces' own proportions - the sheet itself says
@@ -440,7 +498,8 @@ export async function buildTextures(
   // manifest that is not a generated key is loaded on its own.
   const generated = new Set(all.map((s) => s.key));
   const extraPainted = Object.keys(overrides).filter(
-    (key) => !key.startsWith('_') && !generated.has(key) && !supersededByStrip(key, drawn),
+    (key) =>
+      !key.startsWith('_') && !generated.has(key) && !supersededByStrip(key, drawn) && !battleOnly(key),
   );
 
   let done = 0;
