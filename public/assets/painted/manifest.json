@@ -6683,5 +6683,10 @@
   "tile.marsh.left": "tile.marsh.left.png",
   "tile.marsh.mid": "tile.marsh.mid.png",
   "tile.marsh.right": "tile.marsh.right.png",
-  "tile.rubble.woods": "tile.rubble.woods.png"
+  "tile.rubble.woods": "tile.rubble.woods.png",
+  "tile.rubble.barrows": "tile.rubble.barrows.png",
+  "tile.rubble.highland": "tile.rubble.highland.png",
+  "tile.rubble.coast": "tile.rubble.coast.png",
+  "tile.rubble.abyss": "tile.rubble.abyss.png",
+  "tile.rubble.throne": "tile.rubble.throne.png"
 }
