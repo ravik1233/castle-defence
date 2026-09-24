@@ -1516,7 +1516,7 @@
     }
   },
   "unit.goblin_glider.frames": {
-    "sheet": "unit.goblin_glider.region1.png",
+    "sheet": "unit.goblin_glider.wingloop.png",
     "count": 5,
     "width": 256,
     "height": 256,
