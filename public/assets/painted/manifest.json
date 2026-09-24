@@ -6670,5 +6670,6 @@
   "wall.cracks.barrows": "wall.cracks.barrows.png",
   "tile.rubble.fields": "tile.rubble.fields.png",
   "tile.tallgrass": "tile.tallgrass.png",
-  "tile.shrine": "tile.shrine.png"
+  "tile.shrine": "tile.shrine.png",
+  "tile.highground": "tile.highground.png"
 }
