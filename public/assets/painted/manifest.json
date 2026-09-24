@@ -6674,5 +6674,9 @@
   "tile.highground": "tile.highground.png",
   "rampart.broken.woods": "rampart.broken.woods.png",
   "wall.breach.woods": "wall.breach.woods.png",
-  "wall.cracks.woods": "wall.cracks.woods.png"
+  "wall.cracks.woods": "wall.cracks.woods.png",
+  "tile.water": "tile.water.png",
+  "tile.water.left": "tile.water.left.png",
+  "tile.water.mid": "tile.water.mid.png",
+  "tile.water.right": "tile.water.right.png"
 }
