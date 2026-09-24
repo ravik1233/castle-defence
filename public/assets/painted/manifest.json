@@ -6691,5 +6691,8 @@
   "tile.rubble.throne": "tile.rubble.throne.png",
   "rampart.broken.highland": "rampart.broken.highland.png",
   "wall.breach.highland": "wall.breach.highland.png",
-  "wall.cracks.highland": "wall.cracks.highland.png"
+  "wall.cracks.highland": "wall.cracks.highland.png",
+  "rampart.broken.coast": "rampart.broken.coast.png",
+  "wall.breach.coast": "wall.breach.coast.png",
+  "wall.cracks.coast": "wall.cracks.coast.png"
 }
