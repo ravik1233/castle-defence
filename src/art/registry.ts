@@ -46,7 +46,7 @@ export interface TextureSpec {
 // The query is intentional. Painted files are stable public URLs rather than
 // Vite-hashed imports, so a version here guarantees that a deployed art pass
 // cannot be hidden behind an older service-worker entry.
-export const PAINTED_MANIFEST_URL = 'assets/painted/manifest.json?v=regional-environment-12';
+export const PAINTED_MANIFEST_URL = 'assets/painted/manifest.json?v=regional-environment-13';
 
 function specs(drawn: ReadonlySet<string> = new Set()): TextureSpec[] {
   const out: TextureSpec[] = [];
