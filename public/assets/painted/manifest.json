@@ -6678,5 +6678,9 @@
   "tile.water": "tile.water.png",
   "tile.water.left": "tile.water.left.png",
   "tile.water.mid": "tile.water.mid.png",
-  "tile.water.right": "tile.water.right.png"
+  "tile.water.right": "tile.water.right.png",
+  "tile.marsh": "tile.marsh.png",
+  "tile.marsh.left": "tile.marsh.left.png",
+  "tile.marsh.mid": "tile.marsh.mid.png",
+  "tile.marsh.right": "tile.marsh.right.png"
 }
