@@ -6688,5 +6688,8 @@
   "tile.rubble.highland": "tile.rubble.highland.png",
   "tile.rubble.coast": "tile.rubble.coast.png",
   "tile.rubble.abyss": "tile.rubble.abyss.png",
-  "tile.rubble.throne": "tile.rubble.throne.png"
+  "tile.rubble.throne": "tile.rubble.throne.png",
+  "rampart.broken.highland": "rampart.broken.highland.png",
+  "wall.breach.highland": "wall.breach.highland.png",
+  "wall.cracks.highland": "wall.cracks.highland.png"
 }
