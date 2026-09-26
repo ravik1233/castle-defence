@@ -11,12 +11,24 @@
 # in a QA bundle. The Play Store build is made separately, without them.
 name: Pages
 
+# Two builds share the one site:
+#   /           the development branch - the game as merged
+#   /codex/     the art branch, rebuilt as Codex pushes, so its work can be
+#               played before it is merged
+# Every run builds both, because a publish replaces the whole gh-pages branch.
+#
+# A push to the art branch only starts this once that branch carries this
+# file, so a schedule also checks for new art commits every half hour and
+# rebuilds only when either branch has moved.
 on:
   push:
     branches:
       - main
       - claude/mobile-castle-defense-game-rvr0m4
+      - codex/regional-environment-ui
       - art/complete-sprite-refresh
+  schedule:
+    - cron: '*/30 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -27,30 +39,84 @@ concurrency:
   group: pages
   cancel-in-progress: true
 
+env:
+  MAIN_REF: claude/mobile-castle-defense-game-rvr0m4
+  ART_REF: codex/regional-environment-ui
+
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - name: Build the testable bundle
-        run: QA=1 npx vite build
-      - name: Push it to the branch Pages serves
+          ref: ${{ env.MAIN_REF }}
+          path: main
+          fetch-depth: 1
+      - name: Find the art branch and decide whether anything moved
+        id: refs
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
+          url="https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}"
+          main_sha=$(git -C main rev-parse --short=7 HEAD)
+          art_sha=$(git ls-remote "$url" "refs/heads/${ART_REF}" | cut -c1-7)
+          echo "main=$main_sha" >> "$GITHUB_OUTPUT"
+          echo "art=$art_sha" >> "$GITHUB_OUTPUT"
+          stamp="Publish ${main_sha} + codex ${art_sha:-none}"
+          echo "stamp=$stamp" >> "$GITHUB_OUTPUT"
+          last=$(git ls-remote "$url" refs/heads/gh-pages | cut -c1-40)
+          current=""
+          if [ -n "$last" ]; then
+            git -C main fetch -q --depth=1 "$url" gh-pages
+            current=$(git -C main log -1 --format=%s FETCH_HEAD)
+          fi
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$current" = "$stamp" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.refs.outputs.skip == 'false' && steps.refs.outputs.art != ''
+        with:
+          ref: ${{ env.ART_REF }}
+          path: art
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        if: steps.refs.outputs.skip == 'false'
+        with:
+          node-version: 22
+      # The bundle is built with QA=1 because this is the build that gets
+      # tested on a phone, and the testing guide's deep links (?unlock=1,
+      # ?reach=2) only exist in a QA bundle. The Play Store build is made
+      # separately, without them.
+      - name: Build the development branch
+        if: steps.refs.outputs.skip == 'false'
+        working-directory: main
+        run: npm ci && QA=1 npx vite build
+      - name: Build the art branch into /codex/
+        if: steps.refs.outputs.skip == 'false' && steps.refs.outputs.art != ''
+        # Art in progress must never take the main build down with it.
+        continue-on-error: true
+        working-directory: art
+        run: |
+          npm ci && QA=1 npx vite build
+          rm -rf ../main/dist/codex
+          cp -r dist ../main/dist/codex
+      - name: Push it to the branch Pages serves
+        if: steps.refs.outputs.skip == 'false'
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STAMP: ${{ steps.refs.outputs.stamp }}
+        run: |
+          set -e
           # Stops Pages running the output through Jekyll, which would drop
           # any file whose name begins with an underscore.
-          touch dist/.nojekyll
-          cd dist
+          touch main/dist/.nojekyll
+          cd main/dist
           git init -q -b gh-pages
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
-          git commit -q -m "Publish ${GITHUB_SHA:0:7} from ${GITHUB_REF_NAME}"
+          git commit -q -m "$STAMP"
           git push -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}" gh-pages
