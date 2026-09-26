@@ -6697,5 +6697,8 @@
   "wall.cracks.coast": "wall.cracks.coast.png",
   "rampart.broken.abyss": "rampart.broken.abyss.png",
   "wall.breach.abyss": "wall.breach.abyss.png",
-  "wall.cracks.abyss": "wall.cracks.abyss.png"
+  "wall.cracks.abyss": "wall.cracks.abyss.png",
+  "rampart.broken.throne": "rampart.broken.throne.png",
+  "wall.breach.throne": "wall.breach.throne.png",
+  "wall.cracks.throne": "wall.cracks.throne.png"
 }
