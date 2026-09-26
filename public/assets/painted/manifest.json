@@ -2016,7 +2016,7 @@
   "unit.spearwall.full": "unit.spearwall.region.png",
   "unit.watchman.full": "unit.watchman.region.png",
   "unit.bell_chanter.full": "unit.bell_chanter.region.png",
-  "unit.black_hawk.full": "unit.black_hawk.region.png",
+  "unit.black_hawk.full": "unit.black_hawk.full.png",
   "unit.dwarf_warrior.frames": {
     "sheet": "unit.dwarf_warrior.region2.walk.png",
     "count": 5,
@@ -6008,13 +6008,15 @@
     }
   },
   "unit.black_hawk.frames": {
-    "sheet": "unit.black_hawk.region6.actions.png",
-    "count": 3,
+    "sheet": "unit.black_hawk.wingloop.png",
+    "count": 5,
     "width": 256,
     "height": 256,
     "groundOffset": 10,
     "names": [
       "idle",
+      "walk_a",
+      "walk_b",
       "attack",
       "death"
     ],
@@ -6027,20 +6029,21 @@
       },
       "walk": {
         "frames": [
-          0
+          1,
+          2
         ],
-        "fps": 3
+        "fps": 6
       },
       "attack": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
       },
       "cast": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
@@ -6059,7 +6062,7 @@
       },
       "die": {
         "frames": [
-          2
+          4
         ],
         "fps": 3
       }
