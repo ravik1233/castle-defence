@@ -1415,15 +1415,64 @@
   "unit.wraith.frame4": "unit.wraith.frame4.png",
   "unit.wraith.frames": {
     "count": 5,
-    "width": 337,
-    "height": 331,
+    "width": 256,
+    "height": 256,
     "names": [
       "idle",
-      "walkA",
-      "walkB",
+      "walk_a",
+      "walk_b",
       "attack",
-      "die"
-    ]
+      "death"
+    ],
+    "sheet": "unit.wraith.wingloop.png",
+    "groundOffset": 10,
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          1,
+          2
+        ],
+        "fps": 6
+      },
+      "attack": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          4
+        ],
+        "fps": 3
+      }
+    }
   },
   "build.tithe": "build.tithe.png",
   "build.barricade": "build.barricade.painted.png",
