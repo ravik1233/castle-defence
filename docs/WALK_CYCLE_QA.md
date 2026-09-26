@@ -2,14 +2,13 @@
 
 All 34 manifest entries whose movement animation points to two frames (`walk: [1, 2]`) were inspected at full sheet resolution. The frame mapping alone does not prove alternate legs.
 
-## Repair required: 21 grounded characters
+## Repair required: 20 grounded characters
 
 In every pair below, the same anatomical leg appears ahead in both movement cells, even when the stride or knee height changes. These sheets must not be counted as completed alternating-leg walks.
 
 - `unit.goblin.frames`
 - `unit.goblin_bomber.frames`
 - `unit.goblin_runner.frames`
-- `unit.guardian.frames`
 - `unit.hobgoblin.frames`
 - `unit.shaman.frames`
 - `unit.cutthroat.frames`
@@ -44,7 +43,7 @@ These have visibly different wing or trailing-form silhouettes across the two mo
 - `unit.black_hawk.frames`
 - `unit.succubus.frames`
 
-The militia and archer sheets were repaired by compositing each character's own lower-body pixels: the near leg trails and the far leg leads in the second frame, with right-facing boots and unchanged upper bodies. Both were reviewed at 256 px, 96 px, and 6 fps. The arbalest remains on `walk: [0]`. Several generated arbalest and militia replacement drafts repeated the leading leg and were rejected before import. The 21 defects above add to, rather than replace, the manifest entries still using idle as their walk.
+The militia, archer and guardian sheets were repaired by compositing each character's own lower-body pixels: the near leg trails and the far leg leads in the second frame, with right-facing boots and unchanged upper bodies. All three were reviewed at 256 px, 96 px, and 6 fps. The guardian's upper 160 rows and shield pixels were checked byte-for-byte against its source frame. The arbalest remains on `walk: [0]`. Several generated arbalest and militia replacement drafts repeated the leading leg and were rejected before import. The 20 defects above add to, rather than replace, the manifest entries still using idle as their walk.
 
 ## Acceptance gate for each new or repaired sheet
 
