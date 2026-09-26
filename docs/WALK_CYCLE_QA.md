@@ -1,27 +1,59 @@
 # Walk-cycle visual QA — 2026-09-26
 
-The manifest's `walk: [1, 2]` metadata alone does not prove alternate legs. Inspect the actual silhouettes and trace each leg from hip to boot (or each wing from its root to tip) before accepting a cycle.
+All 34 manifest entries whose movement animation points to two frames (`walk: [1, 2]`) were inspected at full sheet resolution. The frame mapping alone does not prove alternate legs.
 
-## Confirmed defects
+## Repair required: 23 grounded characters
 
-| Sheet | Finding |
-| --- | --- |
-| `unit.militia.walk.png` | Both walk cells keep the image-right leg leading; the second raises that same leg. |
-| `unit.archer.walk.png` | Both walk cells keep the image-right leg leading; the second raises that same leg. |
-| `unit.guardian.walk.png` | Both walk cells keep the image-right leg leading; the second raises that same leg. |
-| `unit.dwarf_warrior.region2.walk.png` | The same leg appears ahead in both walk cells. |
-| `unit.skeleton.region2.walk.png` | The same leg appears ahead in both walk cells. |
-| `unit.ghoul.region2.walk.png` | The leading leg does not alternate in the two walk cells. |
-| `unit.vampire.region2.walk.png` | The same leg appears ahead in both walk cells. |
+In every pair below, the same anatomical leg appears ahead in both movement cells, even when the stride or knee height changes. These sheets must not be counted as completed alternating-leg walks.
 
-The other Region 2 sheets and all remaining existing walk sheets still require the same visual review. A proposed arbalest two-pose draft also repeated the lead leg and was rejected before import.
+- `unit.militia.frames`
+- `unit.archer.frames`
+- `unit.goblin.frames`
+- `unit.goblin_bomber.frames`
+- `unit.goblin_runner.frames`
+- `unit.guardian.frames`
+- `unit.hobgoblin.frames`
+- `unit.shaman.frames`
+- `unit.cutthroat.frames`
+- `unit.goblin_king.frames`
+- `unit.goblin_thief.frames`
+- `unit.wolf_rider.frames`
+- `unit.dwarf_warrior.frames`
+- `unit.runesmith.frames`
+- `unit.gravewarden.frames`
+- `unit.bran.frames`
+- `unit.skeleton.frames`
+- `unit.skeleton_archer.frames`
+- `unit.zombie.frames`
+- `unit.ghoul.frames`
+- `unit.vampire.frames`
+- `unit.bone_golem.frames`
+- `unit.lich.frames`
+
+## Flying or floating movement: 11 sheets
+
+These have visibly different wing or trailing-form silhouettes across the two movement cells, so the leg criterion does not apply:
+
+- `unit.imp.frames`
+- `unit.wraith.frames`
+- `unit.goblin_glider.frames`
+- `unit.plague_bat.frames`
+- `unit.grave_raven.frames`
+- `unit.necromancer.frames`
+- `unit.wyvern_rider.frames`
+- `unit.harpy.frames`
+- `unit.abyss_wisp.frames`
+- `unit.black_hawk.frames`
+- `unit.succubus.frames`
+
+The arbalest remains on `walk: [0]`. Several generated arbalest and militia replacement drafts repeated the leading leg and were rejected before import. The 23 defects above add to, rather than replace, the manifest entries still using idle as their walk.
 
 ## Acceptance gate for each new or repaired sheet
 
-1. Identify the anatomical left and right leg in both frames, tracing the thigh from the hip through knee to boot. Do not infer identity from a boot ribbon alone: image generation can swap colors between identical poses.
-2. Walk A must lead with one anatomical leg; walk B must lead with the other. Compare the knee bend, boot placement, occlusion at the thighs, and overall silhouette at actual game size.
-3. Confirm equal scale, ground baseline, right-facing direction, character identity, transparent background, and no cell spill.
-4. Preserve idle, attack, and death art. Only update the manifest to `count: 5`, five frame names, and `walk: [1, 2]` after the image passes visual review.
-5. Run typecheck, Vitest, and `art:test:painted`, `art:test:links`, `art:test:regions` before every art push. Verify the remote branch ref after the checkpoint.
+1. Trace both thighs from hip to knee to boot in each frame. Walk A must lead with one anatomical leg, walk B with the other. A higher knee on the same leg fails.
+2. Check at actual game size that both silhouettes, knee bends, boot placements, and thigh overlap make the reversal visible. Boot-color markers alone do not prove this: generated drafts swapped ribbon colors while preserving leg geometry.
+3. For flying units, verify a true alternate wing pose at the wing roots, with complete consistent silhouettes.
+4. Confirm equal scale, ground baseline, right-facing direction, character identity, transparent background, and no cell spill. Preserve idle, attack, and death art.
+5. Only after visual approval update the manifest to five cells and `walk: [1, 2]`. Run typecheck, Vitest, `art:test:painted`, `art:test:links`, and `art:test:regions` before every art push; verify the remote branch ref.
 
-Do not count the seven defective sheets as completed walk cycles until repaired.
+This is an audit of existing assets and does not itself alter runtime art.
