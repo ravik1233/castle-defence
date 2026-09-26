@@ -723,13 +723,15 @@
     }
   },
   "unit.archer.frames": {
-    "sheet": "unit.archer.region1.png",
-    "count": 3,
+    "sheet": "unit.archer.walk.png",
+    "count": 5,
     "width": 256,
     "height": 256,
     "groundOffset": 10,
     "names": [
       "idle",
+      "walk_a",
+      "walk_b",
       "attack",
       "death"
     ],
@@ -742,20 +744,21 @@
       },
       "walk": {
         "frames": [
-          0
+          1,
+          2
         ],
         "fps": 6
       },
       "attack": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
       },
       "cast": {
         "frames": [
-          1,
+          3,
           0
         ],
         "fps": 7
@@ -774,7 +777,7 @@
       },
       "die": {
         "frames": [
-          2
+          4
         ],
         "fps": 3
       }
