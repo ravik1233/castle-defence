@@ -1198,15 +1198,64 @@
   "unit.imp.frame4": "unit.imp.frame4.png",
   "unit.imp.frames": {
     "count": 5,
-    "width": 340,
-    "height": 320,
+    "width": 256,
+    "height": 256,
     "names": [
       "idle",
-      "walkA",
-      "walkB",
+      "walk_a",
+      "walk_b",
       "attack",
-      "die"
-    ]
+      "death"
+    ],
+    "sheet": "unit.imp.wingloop.png",
+    "groundOffset": 10,
+    "animations": {
+      "idle": {
+        "frames": [
+          0
+        ],
+        "fps": 3
+      },
+      "walk": {
+        "frames": [
+          1,
+          2
+        ],
+        "fps": 6
+      },
+      "attack": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "cast": {
+        "frames": [
+          3,
+          0
+        ],
+        "fps": 7
+      },
+      "hurt": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "spawn": {
+        "frames": [
+          0
+        ],
+        "fps": 4
+      },
+      "die": {
+        "frames": [
+          4
+        ],
+        "fps": 3
+      }
+    }
   },
   "unit.monk.frame0": "unit.monk.frame0.png",
   "unit.monk.frame1": "unit.monk.frame1.png",
