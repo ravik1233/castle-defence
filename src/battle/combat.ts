@@ -159,6 +159,50 @@ export function enemyScaling(chapter: number, waveIndex: number): number {
   return (1 + (chapter - 1) * 0.22) * (1 + waveIndex * 0.045);
 }
 
+/**
+ * Who can strike something in the air.
+ *
+ * Anything that shoots can, unless it only lobs at the ground. A blade can
+ * only if it is up on the parapet: a flyer that comes at the wall comes at
+ * the people standing on it, and they are level with it. A swordsman down
+ * in the field is swinging at air a man's height over his head, so he
+ * cannot - that is what bows and the wall are for.
+ */
+export function strikesAir(
+  attack: { targets?: 'ground' | 'all'; projectile?: unknown },
+  onWall: boolean,
+): boolean {
+  if (attack.targets === 'ground') return false;
+  return Boolean(attack.projectile) || onWall;
+}
+
+/**
+ * How far out a blade on the wall can reach a flyer.
+ *
+ * A flyer attacking a section hangs just outside its gate, which is further
+ * than a sword reaches from the middle of a parapet tile. It is diving at
+ * that section, though, so anything over the gate or closer counts as in
+ * reach for the section's own defenders. A flyer that hangs back - an imp
+ * throwing fire from half the field away - does not.
+ */
+export const WALL_BLADE_REACH = 100;
+
+/** True when a flyer this far out is close enough for the wall's blades. */
+export function inWallBladeReach(flyerX: number, wallFaceX: number): boolean {
+  return flyerX <= wallFaceX + WALL_BLADE_REACH;
+}
+
+/**
+ * Where a flyer comes down.
+ *
+ * Nothing flies in the courtyard: a flyer that gets through a breach lands
+ * on reaching the reserve lane and fights there on foot, so the reserves
+ * and the commander - who are blades - can meet it.
+ */
+export function landsAt(x: number, reserveLaneEdge: number): boolean {
+  return x <= reserveLaneEdge;
+}
+
 export interface TargetLike {
   x: number;
   row: number;
