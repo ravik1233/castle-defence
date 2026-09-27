@@ -1140,7 +1140,7 @@
   "unit.hobgoblin.frame3": "unit.hobgoblin.frame3.png",
   "unit.hobgoblin.frame4": "unit.hobgoblin.frame4.png",
   "unit.hobgoblin.frames": {
-    "sheet": "unit.hobgoblin.region1.png",
+    "sheet": "unit.hobgoblin.region1.v46.png",
     "count": 5,
     "width": 256,
     "height": 256,
