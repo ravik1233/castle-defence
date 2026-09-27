@@ -2210,7 +2210,7 @@
     }
   },
   "unit.bran.frames": {
-    "sheet": "unit.bran.region2.walk.png",
+    "sheet": "unit.bran.region2.walk.v50.png",
     "count": 5,
     "width": 256,
     "height": 256,
