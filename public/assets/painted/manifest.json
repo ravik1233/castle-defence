@@ -881,7 +881,7 @@
     }
   },
   "unit.goblin.frames": {
-    "sheet": "unit.goblin.region1.png",
+    "sheet": "unit.goblin.region1.v43.png",
     "count": 5,
     "width": 256,
     "height": 256,
