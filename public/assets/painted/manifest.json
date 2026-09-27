@@ -947,7 +947,7 @@
   "unit.goblin_bomber.frame3": "unit.goblin_bomber.frame3.png",
   "unit.goblin_bomber.frame4": "unit.goblin_bomber.frame4.png",
   "unit.goblin_bomber.frames": {
-    "sheet": "unit.goblin_bomber.region1.png",
+    "sheet": "unit.goblin_bomber.region1.v45.png",
     "count": 5,
     "width": 256,
     "height": 256,
