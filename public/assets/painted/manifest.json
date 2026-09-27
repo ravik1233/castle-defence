@@ -2027,7 +2027,7 @@
   "unit.bell_chanter.full": "unit.bell_chanter.region.png",
   "unit.black_hawk.full": "unit.black_hawk.full.png",
   "unit.dwarf_warrior.frames": {
-    "sheet": "unit.dwarf_warrior.region2.walk.png",
+    "sheet": "unit.dwarf_warrior.region2.walk.v49.png",
     "count": 5,
     "width": 256,
     "height": 256,
