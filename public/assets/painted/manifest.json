@@ -2637,7 +2637,7 @@
     }
   },
   "unit.bone_golem.frames": {
-    "sheet": "unit.bone_golem.region2.walk.png",
+    "sheet": "unit.bone_golem.region2.walk.v52.png",
     "count": 5,
     "width": 256,
     "height": 256,
