@@ -7,7 +7,7 @@
  */
 import Phaser from 'phaser';
 import type { DamageType, DefenderDef, EnemyDef, EnemyKind } from '../data/types';
-import { kindArmour, kindDamageShift } from '../battle/combat';
+import { kindArmour, kindDamageShift, strikesAir } from '../battle/combat';
 import { emberBounty, emberCost } from '../battle/economy';
 import { portraitFor, portraitForArt } from '../art/portraits';
 import { COLORS, showDialog, textStyle } from './kit';
@@ -85,6 +85,12 @@ export function showDefenderEntry(scene: Phaser.Scene, def: DefenderDef, onClose
     attack ? statLine('Reach', attack.range >= 700 ? 'Down the lane' : `${Math.round(attack.range)}`) : '',
     attack?.splash ? statLine('Splash', `${attack.splash}`) : '',
     attack?.pierce ? statLine('Pierce', `${attack.pierce} targets`) : '',
+    attack
+      ? statLine(
+          'Flyers',
+          strikesAir(attack, false) ? 'Hits them' : strikesAir(attack, true) ? 'Only from the wall' : 'Cannot hit',
+        )
+      : '',
     income ? statLine('Income', income) : '',
     def.metaGold ? statLine('Victory', `+${def.metaGold} permanent Gold`) : '',
     statLine('Recharge', `${def.recharge}s`),
@@ -170,7 +176,7 @@ export function showEnemyEntry(scene: Phaser.Scene, def: EnemyDef, onClose?: () 
       statLine(`${TYPE_LABEL[t]} armour`, `${kindArmour(t, kind, def.ward)} off every hit`),
     ),
     statLine('Bounty', `${emberBounty(def.bounty)} Ember`),
-    def.flying ? statLine('Flying', 'Walks over the line') : '',
+    def.flying ? statLine('Flying', 'Over the line; lands in the yard') : '',
   ].filter(Boolean);
 
   showDialog(scene, {

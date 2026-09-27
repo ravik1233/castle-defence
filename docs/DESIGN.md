@@ -129,6 +129,12 @@ blockers until the wall, **leapers** hop the first line, **bombers** delete a
 melee unit outright, **healers** undo chip damage, **summoners** add bodies,
 and **chargers** sprint the last stretch.
 
+**Who can hit a flyer.** Anything that shoots, unless it only lobs at the
+ground (Bombard, Oil Pot). A blade only from the parapet: melee on the wall
+meets a flyer diving at its section, melee in the field cannot reach it. A
+flyer that gets through a breach lands on reaching the reserve lane and
+fights the reserves and the commander on foot.
+
 ## The heroes
 
 Spells are the only thing that reacts in real time, and they are on cooldowns

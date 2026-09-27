@@ -10,7 +10,7 @@ import { characterArt } from '../art/compose';
 import { ALL_CHARACTER_ART } from '../art/cast';
 import { paintedFrameSet, type PaintedFrames } from '../art/registry';
 import type { ProjectileId } from '../art/props';
-import { GRID, KEEP, WALL_FACE_X, cellCenter, isWallCol, laneGroundY } from '../core/layout';
+import { GRID, KEEP, KEEP_STRIP, WALL_FACE_X, cellCenter, isWallCol, laneGroundY } from '../core/layout';
 import type { DamageType, DefenderDef, EnemyDef, EnemySpecial, TileKind } from '../data/types';
 import { TILE_EFFECT } from '../data/types';
 import { Rig } from '../objects/Rig';
@@ -19,11 +19,14 @@ import {
   FAMILY,
   applyDamage,
   damageDealt,
+  inWallBladeReach,
   kindDamageShift,
+  landsAt,
   packSpeed,
   pickBlocker,
   rageBlow,
   risesAgain,
+  strikesAir,
   throughShield,
 } from './combat';
 
@@ -340,7 +343,7 @@ export class Defender {
     const vantage = this.ground === 'highground' ? TILE_EFFECT.highgroundRange : 1;
     const reach =
       attack.range * vantage * this.world.rangeFactor() * this.world.laneRangeFactor(this.row);
-    const target = this.findTarget(reach, attack.targets !== 'ground');
+    const target = this.findTarget(reach, this.hitsAir);
     if (!target) return;
     this.cooldown = 1 / attack.rate;
     this.swings += 1;
@@ -375,7 +378,7 @@ export class Defender {
           kind: attack.projectile,
           splash: attack.splash ?? 0,
           pierce: attack.pierce ?? 0,
-          hitsAir: attack.targets !== 'ground',
+          hitsAir: this.hitsAir,
           row: this.row,
         });
         this.applyTraitTo(target);
@@ -522,7 +525,7 @@ export class Defender {
     }
     // Out: hold position while something is in reach, otherwise press on.
     const reach = this.def.attack?.range ?? 0;
-    if (this.findTarget(reach, true)) return;
+    if (this.findTarget(reach, this.hitsAir)) return;
     this.x = Math.min(SORTIE_LIMIT, this.x + speed * dt);
     this.moveArt();
   }
@@ -530,6 +533,14 @@ export class Defender {
   private moveArt(): void {
     this.rig?.setPosition(this.x, this.y);
     this.sprite?.setPosition(this.x, this.y + 6);
+  }
+
+  /** Whether this unit can strike a flyer at all, from where it stands now. */
+  get hitsAir(): boolean {
+    const attack = this.def.attack;
+    // A unit marched out through the gate is in the field, whatever tile it
+    // was posted on.
+    return attack ? strikesAir(attack, isWallCol(this.col) && this.sortie === 'held') : false;
   }
 
   /** A shooter posted on the parapet: it can turn on the spot and fire inward. */
@@ -542,6 +553,10 @@ export class Defender {
     for (const e of this.world.enemies) {
       if (!e.alive || e.row !== this.row) continue;
       if (e.flying && !canHitAir) continue;
+      // A blade on the wall meets a flyer diving at its section, which hangs
+      // further out than the blade's own reach.
+      const diving =
+        e.flying && !this.def.attack?.projectile && inWallBladeReach(e.x, WALL_FACE_X) && e.x >= this.x;
       /*
        * A unit in the field looks up its lane. Something that came through a
        * breach is behind everything, and with only that rule it could never
@@ -552,7 +567,7 @@ export class Defender {
        */
       const behind = e.x < this.x - 20;
       if (behind && !this.facesBothWays && Math.abs(e.x - this.x) > GRID.cellW * 0.7) continue;
-      if (Math.abs(e.x - this.x) > range) continue;
+      if (Math.abs(e.x - this.x) > range && !diving) continue;
       if (!best || e.x < best.x) best = e;
     }
     // Turn to face what is actually being shot at, so a wall archer firing
@@ -583,6 +598,8 @@ const SHIELD_SHARE = FAMILY.shieldShare;
 /** Plate: the same shield, a bit over half as thick. */
 const PLATED_SHARE = FAMILY.platedShare;
 const PACK_RADIUS = 260;
+/** How fast a flyer drops to the courtyard floor once it lands, px/s. */
+const LANDING_SPEED = 260;
 /** How far a demon steps through its portal, and how long the step takes. */
 const STEP_DISTANCE = 260;
 /** What a thief lifts per hit. */
@@ -618,7 +635,8 @@ export class Enemy {
   readonly maxHp: number;
   readonly damage: number;
   alive = true;
-  readonly flying: boolean;
+  /** Cleared when a flyer lands in the courtyard; it fights on foot from then on. */
+  flying: boolean;
 
   private readonly rig: Rig;
   private readonly bar: HealthBar;
@@ -646,6 +664,8 @@ export class Enemy {
   inside = false;
   /** Set once a flanker has turned into a lane to hunt it from behind. */
   private flanking = false;
+  /** A flyer on its way down to the courtyard floor. */
+  private descending = false;
 
   constructor(
     private readonly world: BattleWorld,
@@ -890,6 +910,12 @@ export class Enemy {
      * a breach into a second front rather than an instant loss.
      */
     const through = this.world.isBreached(this.row);
+    if (this.flying && through && landsAt(this.x, KEEP_STRIP.width)) this.land();
+    if (this.descending) {
+      const floor = laneGroundY(this.row);
+      this.y = Math.min(floor, this.y + LANDING_SPEED * dt);
+      if (this.y >= floor) this.descending = false;
+    }
     const wallReach = through ? KEEP.x + KEEP.radius : WALL_FACE_X + this.def.range * 0.5;
     if (this.target) {
       const dist = this.x - this.target.x;
@@ -1081,6 +1107,20 @@ export class Enemy {
       this.world.shake(this.isBoss ? 12 : 5);
       if (this.def.special === 'bomber') this.takeDamage(this.hp * 2, true);
     });
+  }
+
+  /**
+   * Comes down in the courtyard.
+   *
+   * A flyer that got through a breach would otherwise hang over the reserve
+   * lane where nothing but a bow could touch it, and the reserves and the
+   * commander are blades. So it lands, and fights them on the ground.
+   */
+  private land(): void {
+    this.flying = false;
+    this.descending = true;
+    this.rig.setShadowVisible(true);
+    this.world.burst(this.x, laneGroundY(this.row) - 10, 'hit');
   }
 
   /** True when this enemy carries the named behaviour, alone or among many. */

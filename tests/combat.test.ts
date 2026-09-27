@@ -16,6 +16,9 @@ import {
   rageBlow,
   risesAgain,
   throughShield,
+  strikesAir,
+  inWallBladeReach,
+  landsAt,
 } from '../src/battle/combat';
 import {
   EMBER_DEPOSITS_PER_VEIN,
@@ -27,7 +30,7 @@ import {
 } from '../src/battle/economy';
 import { DEFENDERS, defender } from '../src/data/defenders';
 import { enemy } from '../src/data/enemies';
-import { GRID, WALL_FACE_X, cellCenter, isWallCol } from '../src/core/layout';
+import { GRID, KEEP_STRIP, WALL_FACE_X, cellCenter, isWallCol } from '../src/core/layout';
 
 describe('damageAfterArmor', () => {
   it('subtracts armour', () => {
@@ -326,5 +329,50 @@ describe('the six hordes', () => {
     expect(throughShield(100, 200, true)).toEqual({ toShield: 0, toBody: 100 });
     // No shield left: everything lands.
     expect(throughShield(100, 0, false)).toEqual({ toShield: 0, toBody: 100 });
+  });
+});
+
+describe('flyers', () => {
+  const blade = defender('militia').attack!;
+  const bow = defender('archer').attack!;
+  const lob = defender('bombard').attack!;
+
+  it('a blade hits a flyer only from the wall', () => {
+    expect(strikesAir(blade, true)).toBe(true);
+    expect(strikesAir(blade, false)).toBe(false);
+  });
+
+  it('anything that shoots hits a flyer wherever it stands, except a lob', () => {
+    expect(strikesAir(bow, false)).toBe(true);
+    expect(strikesAir(bow, true)).toBe(true);
+    expect(strikesAir(lob, true)).toBe(false);
+  });
+
+  it('every ranged card without a ground-only lob can shoot a flyer from the field', () => {
+    for (const d of DEFENDERS) {
+      const a = d.attack;
+      if (!a?.projectile || a.targets === 'ground') continue;
+      expect(strikesAir(a, false), d.id).toBe(true);
+    }
+  });
+
+  it('no blade can reach a flyer from the field', () => {
+    for (const d of DEFENDERS) {
+      const a = d.attack;
+      if (!a || a.projectile) continue;
+      expect(strikesAir(a, false), d.id).toBe(false);
+    }
+  });
+
+  it("a flyer diving at its gate is in a wall blade's reach; one hanging back is not", () => {
+    const flyer = enemy('harpy');
+    expect(inWallBladeReach(WALL_FACE_X + flyer.range * 0.5, WALL_FACE_X)).toBe(true);
+    // The imp throws fire from far out, and has to be shot.
+    expect(inWallBladeReach(WALL_FACE_X + enemy('imp').range * 0.5, WALL_FACE_X)).toBe(false);
+  });
+
+  it('a flyer through a breach lands on reaching the reserve lane', () => {
+    expect(landsAt(KEEP_STRIP.width + 40, KEEP_STRIP.width)).toBe(false);
+    expect(landsAt(KEEP_STRIP.width, KEEP_STRIP.width)).toBe(true);
   });
 });
