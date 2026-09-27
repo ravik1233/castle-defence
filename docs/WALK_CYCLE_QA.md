@@ -43,7 +43,7 @@ These have visibly different wing or trailing-form silhouettes across the two mo
 - `unit.black_hawk.frames`
 - `unit.succubus.frames`
 
-The militia, archer and guardian sheets were repaired by compositing each character's own lower-body pixels: the near leg trails and the far leg leads in the second frame, with right-facing boots and unchanged upper bodies. All three were reviewed at 256 px, 96 px, and 6 fps. The guardian's upper 160 rows and shield pixels were checked byte-for-byte against its source frame. The arbalest remains on `walk: [0]`. Several generated arbalest and militia replacement drafts repeated the leading leg and were rejected before import. The 20 defects above add to, rather than replace, the manifest entries still using idle as their walk.
+The militia, archer and guardian sheets were repaired by compositing each character's own lower-body pixels: the near leg trails and the far leg leads in the second frame, with right-facing boots and unchanged upper bodies. All three were reviewed at 256 px, 96 px, and a 6 fps preview. Guardian walk B was redone on 2026-09-27: intact knee and shin plates from its idle cell and right-facing boots from its own walk cell replace a jagged first repair. The original tabard hem and upper 154 rows are preserved byte-for-byte; the four-row hip transition is blended. The arbalest remains on `walk: [0]`. Several generated arbalest and militia replacement drafts repeated the leading leg and were rejected before import. The 20 defects above add to, rather than replace, the manifest entries still using idle as their walk.
 
 ## Acceptance gate for each new or repaired sheet
 
