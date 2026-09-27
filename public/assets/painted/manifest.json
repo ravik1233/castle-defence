@@ -2332,7 +2332,7 @@
     }
   },
   "unit.skeleton_archer.frames": {
-    "sheet": "unit.skeleton_archer.region2.walk.png",
+    "sheet": "unit.skeleton_archer.region2.walk.v51.png",
     "count": 5,
     "width": 256,
     "height": 256,
