@@ -2698,7 +2698,7 @@
     }
   },
   "unit.lich.frames": {
-    "sheet": "unit.lich.region2.walk.png",
+    "sheet": "unit.lich.region2.walk.v56.png",
     "count": 5,
     "width": 256,
     "height": 256,
