@@ -1340,7 +1340,7 @@
   "unit.shaman.frame3": "unit.shaman.frame3.png",
   "unit.shaman.frame4": "unit.shaman.frame4.png",
   "unit.shaman.frames": {
-    "sheet": "unit.shaman.region1.png",
+    "sheet": "unit.shaman.region1.v57.png",
     "count": 5,
     "width": 256,
     "height": 256,
@@ -2088,7 +2088,7 @@
     }
   },
   "unit.runesmith.frames": {
-    "sheet": "unit.runesmith.region2.walk.png",
+    "sheet": "unit.runesmith.region2.walk.v57.png",
     "count": 5,
     "width": 256,
     "height": 256,
