@@ -2457,7 +2457,7 @@
     }
   },
   "unit.ghoul.frames": {
-    "sheet": "unit.ghoul.region2.walk.png",
+    "sheet": "unit.ghoul.region2.walk.v59.png",
     "count": 5,
     "width": 256,
     "height": 256,

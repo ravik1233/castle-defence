@@ -53,3 +53,8 @@ Under the approved lower-body redraw permission, walk B now places each characte
 ## 2026-09-30 arbalest new walk cycle
 
 Arbalest now uses a five-cell sheet with walk [1, 2] at 6 fps. Walk A leads with the larger near boot; walk B moves that same boot behind to image-left and the smaller far boot ahead to image-right. Both intact unmirrored boots come from the original character and retain their facing direction. New trouser pixels fill the crossing stride; three-pixel blends join them to the original cuffs. Both upper bodies, coat hem and quiver are preserved; idle, attack and death cells are byte-identical to the old three-cell sheet. Pale cutout ground residue was removed only from the two new movement cells. Their opaque baselines and 256×256 cells match. Full-resolution and 96 px previews were reviewed, with a final 6 fps preview generated. Four audited repairs and 68 idle-only painted movement entries remain.
+
+
+## 2026-10-02 ghoul repair
+
+Walk B uses new connected lower-leg geometry with the ghoul’s own painted skin texture and intact right-facing clawed feet. The near leg crosses from the right hip to the trailing left foot; the far leg crosses to the leading right foot. The upper 135 rows match walk A exactly; the hanging waist cloth and both hands are protected. Idle, walk A, attack and death cells are unchanged. Full-size and 96 px pairs were inspected; a 6 fps preview was prepared from the final cells. The sheet uses a new filename. Goblin king, wolf rider and vampire remain open.
