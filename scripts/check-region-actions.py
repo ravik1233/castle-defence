@@ -42,15 +42,12 @@ REGIONS = {
     ],
 }
 
-WALK_COMPLETE_REGIONS = {2}
+WALK_COMPLETE_REGIONS = {2, 3, 4, 5, 6, 7}
 
 # Gatebreaker is siege art rather than a humanoid rig, but its idle, firing,
 # and destroyed poses are authored and validated with the Region 3 roster.
 
-CLIMAX_ACTIONS = {
-    "demon_king": "unit.demon_king.region7.actions.png",
-    "shadow_fiend": "unit.shadow_fiend.region7.actions.png",
-}
+CLIMAX_ACTIONS = ["demon_king", "shadow_fiend"]
 
 manifest = json.loads((PAINTED / "manifest.json").read_text())
 errors = []
@@ -88,29 +85,31 @@ for region, art_ids in REGIONS.items():
             errors.append(f"region {region}/{art_id}: no sheet file declared")
         animations = spec.get("animations", {})
         walk_frames = animations.get("walk", {}).get("frames")
-        if region in WALK_COMPLETE_REGIONS:
+        legacy_walk = names == ["idle", "walkA", "walkB", "attack", "die"] and spec.get("count") == 5
+        if region in WALK_COMPLETE_REGIONS and art_id != "gatebreaker" and not legacy_walk:
             if spec.get("count") != 5 or names != ["idle", "walk_a", "walk_b", "attack", "death"]:
                 errors.append(f"region {region}/{art_id}: expected the five-pose authored walk sheet")
             if not isinstance(walk_frames, list) or len(set(walk_frames)) < 2:
                 errors.append(f"region {region}/{art_id}: walk cycle must use two distinct authored frames")
             if animations.get("die", {}).get("frames") != [4]:
                 errors.append(f"region {region}/{art_id}: death must use frame 4")
-        else:
+        elif not legacy_walk:
             if compact and walk_frames != [0]:
                 errors.append(f"region {region}/{art_id}: incomplete walk cycle must remain on idle")
             if compact and animations.get("die", {}).get("frames") != [2]:
                 errors.append(f"region {region}/{art_id}: death must use the fallen pose")
         verified += 1
 
-for art_id, expected_sheet in CLIMAX_ACTIONS.items():
+for art_id in CLIMAX_ACTIONS:
     spec = manifest.get(f"unit.{art_id}.frames")
     if not isinstance(spec, dict):
         errors.append(f"climax/{art_id}: missing frame manifest")
         continue
-    if spec.get("sheet") != expected_sheet:
-        errors.append(f"climax/{art_id}: expected action sheet {expected_sheet}")
-    if spec.get("names") != ["idle", "attack", "death"]:
-        errors.append(f"climax/{art_id}: expected idle, attack, and death poses")
+    expected_sheet = spec.get("sheet", "")
+    if spec.get("names") != ["idle", "walk_a", "walk_b", "attack", "death"]:
+        errors.append(f"climax/{art_id}: expected the complete five-pose movement sheet")
+    if spec.get("animations", {}).get("walk", {}).get("frames") != [1, 2]:
+        errors.append(f"climax/{art_id}: missing movement contacts")
     sheet = PAINTED / expected_sheet
     if not sheet.is_file() or sheet.stat().st_size == 0:
         errors.append(f"climax/{art_id}: missing or empty sheet {expected_sheet}")

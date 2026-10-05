@@ -31,6 +31,7 @@
     "art:test:painted": "python3 scripts/check-painted-assets.py",
     "art:test:regions": "python3 scripts/check-region-actions.py",
     "art:test:links": "python3 scripts/check-art-links.py",
+    "art:test:walks": "python3 scripts/check-walk-coverage.py",
     "breachtest": "node scripts/breachtest.mjs",
     "damagetest": "node scripts/damagetest.mjs",
     "siegetest": "node scripts/siegetest.mjs",
