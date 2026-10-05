@@ -1,10 +1,13 @@
 # Walk-cycle visual QA — 2026-09-26
 
+Latest checkpoint: all 109 moving painted sets have movement cycles. The
+2026-10-04 completion entry below supersedes the historical pending counts.
+
 All 34 manifest entries whose movement animation points to two frames (`walk: [1, 2]`) were inspected at full sheet resolution. The frame mapping alone does not prove alternate legs.
 
-## Repair required: 4 grounded characters
+## Original audit: 4 grounded characters (now resolved)
 
-In every pair below, the same anatomical leg appears ahead in both movement cells, even when the stride or knee height changes. These sheets must not be counted as completed alternating-leg walks.
+In every pair below, the same anatomical leg appears ahead in both movement cells, even when the stride or knee height changes. These sheets could not be counted as completed alternating-leg walks at that checkpoint. The repairs below resolve this audit list.
 
 - `unit.goblin_king.frames`
 - `unit.wolf_rider.frames`
@@ -58,3 +61,112 @@ Arbalest now uses a five-cell sheet with walk [1, 2] at 6 fps. Walk A leads with
 ## 2026-10-02 ghoul repair
 
 Walk B uses new connected lower-leg geometry with the ghoul’s own painted skin texture and intact right-facing clawed feet. The near leg crosses from the right hip to the trailing left foot; the far leg crosses to the leading right foot. The upper 135 rows match walk A exactly; the hanging waist cloth and both hands are protected. Idle, walk A, attack and death cells are unchanged. Full-size and 96 px pairs were inspected; a 6 fps preview was prepared from the final cells. The sheet uses a new filename. Goblin king, wolf rider and vampire remain open.
+
+
+## 2026-10-02 final three audited repairs
+
+Based on `codex/regional-environment-ui` at `5bbc137`, the three remaining
+flagged movement pairs are repaired. This checkpoint covers Goblin King, Wolf
+Rider, and Vampire; the 68 idle-only movement entries are outside this batch.
+
+- Goblin King: the foreground armored boot now trails to image-left while the
+  other boot leads right. The upper 181 rows match walk A, with the cape and
+  tabard layered over the new lower-body artwork.
+- Wolf Rider: the foreground front leg bends back beneath the belly while the
+  far front paw leads; the hind-leg silhouettes provide the opposite diagonal
+  contact. The rider, equipment, and upper 178 rows match walk A, and the wolf's
+  muzzle is retained below that boundary.
+- Vampire: the foreground ornate boot trails left while the smaller far boot
+  leads right. The upper 164 rows, original cloak overlap, and sword are retained.
+
+The replacement lower-body artwork was produced with the built-in image tool,
+then packed beneath the existing upper bodies. Candidates that repeated the
+leading leg or introduced a background glow were rejected. The accepted pairs
+were inspected at 256 px, 96 px, and as 6 fps loops, then in a running battle.
+The original walk A cell is pixel-identical in all three sheets.
+
+During inspection, Goblin King's idle/death cells and Wolf Rider's idle/attack
+cells proved to contain background fragments instead of complete character
+cutouts. They were restored from their original source paintings with transparent
+backgrounds. Goblin King's attack, Wolf Rider's death, and all Vampire non-walk
+cells are pixel-identical to the preceding sheets. New versioned filenames avoid
+stale browser asset caches. The existing two-contact, 6 fps timing is retained;
+this checkpoint does not add passing poses or change combat timing.
+
+| Character | 6 fps loop | 96 px contact pair |
+| --- | --- | --- |
+| Goblin King | [Loop](art-refresh/walk-repairs/goblin_king.gif) | [Pair](art-refresh/walk-repairs/goblin_king-96.png) |
+| Wolf Rider | [Loop](art-refresh/walk-repairs/wolf_rider.gif) | [Pair](art-refresh/walk-repairs/wolf_rider-96.png) |
+| Vampire | [Loop](art-refresh/walk-repairs/vampire.gif) | [Pair](art-refresh/walk-repairs/vampire-96.png) |
+
+Validation passed:
+
+- `npm run build` (TypeScript check and production bundle).
+- `npm test`: 164 tests across seven files.
+- `npm run art:test:painted`, `art:test:regions`, and `art:test:links`.
+- `node scripts/walk-repair-test.mjs http://localhost:5173`: each character's
+  sheet dimensions, nonempty alpha in all five cells, clear cell boundaries,
+  unchanged upper bodies and retained cells, matching walk baseline, and actual
+  Phaser idle/walk/attack/death playback. The runner loads the game, exercises
+  both movement cells, and writes a battle screenshot to the ignored screenshots
+  directory. Use the environment's system-Chromium startup instructions when
+  running it in this cloud machine.
+
+Different frame pixels alone cannot establish anatomical quality; the automated
+checks supplement the contact-pair and gameplay review. This is a local repair
+checkpoint; publication has not been performed.
+
+
+## 2026-10-04 remaining movement completion
+
+The 68 idle-only entries contained 67 moving character sets and Gatebreaker,
+which `src/data/defenders.ts` declares as a stationary build. All 67 moving sets
+now use new `movement.v61.png` sheets with 256×256 cells in the order idle,
+walk A, walk B, attack, death. Walk plays cells `[1, 2]` at 6 fps. The 42
+existing movement sets, including the three audited repairs above and seven
+legacy drawn strips, retain their current animation artwork. No moving entry
+still maps walk to idle.
+
+The [interactive review gallery](art-refresh/walk-completion/index.html) shows
+all 67 contact pairs and loops, with region filters, pause and individual-pose
+controls, and 96 px or 256 px display sizes. The
+[coverage record](art-refresh/walk-completion/coverage.json) records each source
+sheet, replacement, preserved upper boundary, and retained action indices.
+
+New artwork was authored with the built-in image tool. For 51 humanoid sets,
+separate connected lower-body contacts were extracted from generated cutouts
+and fitted under a shared upper body, with coat hems, weapons, shields, and
+hands layered over the joins. Walk A places the larger foreground boot to the
+right; walk B places it to the left, with both sets of toes facing right.
+Generated full-body quadruped, crawler, and flying contacts retain connected
+limbs and wings. The serpent changes its coil, while floating characters change
+water, cloth, or trailing spectral forms. Both contacts were reviewed as full
+pairs and in game-size previews; disconnected leg roots and horizontal cut
+lines found during review were rejected.
+
+Idle, attack, and death cells remain pixel-identical for 66 of the 67 new
+sheets. Deepwatch's old presentation and portrait incorrectly showed a gate;
+these were replaced with the moving aquatic spear-and-shield guard. Garrick's
+new movement art restores the cropped crown of his head while retaining his
+original non-walk cells. All sheets use transparent backgrounds and versioned
+filenames.
+
+Validation:
+
+- `npm run build` and all 164 tests across seven Vitest files passed.
+- `art:test:walks` verifies 109 moving sets and the stationary Gatebreaker
+  exception; regional coverage verifies 85 characters, painted integrity
+  verifies 414 images, and data links verify 78 entries.
+- `scripts/walk-completion-test.mjs` passed for all 67 new sheets, checking packed
+  dimensions, retained action pixels, shared humanoid upper pixels, distinct
+  nonempty movement cells, cell boundaries, matching baselines, and actual
+  Phaser Rig idle/walk/attack/death playback.
+- The three-character `walk-repair-test.mjs` regression also passed against
+  the final manifest.
+- The final gallery loads all 67 sheets without browser errors.
+
+Run browser checks against a running Vite server. In this cloud environment,
+use the system Chromium launch override described in the setup instructions.
+Pixel checks verify packing and playback; anatomical review remains visual.
+These changes are local on `codex/regional-environment-ui`; no publication
+has been performed.

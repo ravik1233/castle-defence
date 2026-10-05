@@ -1,0 +1,1402 @@
+{
+  "version": 61,
+  "stationary": [
+    "gatebreaker"
+  ],
+  "records": [
+    {
+      "id": "aldric",
+      "region": 1,
+      "original": "unit.aldric.region1.png",
+      "sheet": "unit.aldric.movement.v61.png",
+      "preservedUpper": 146,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "frostmage",
+      "region": 1,
+      "original": "unit.frostmage.region1.png",
+      "sheet": "unit.frostmage.movement.v61.png",
+      "preservedUpper": 164,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "dwarf_engineer",
+      "region": 1,
+      "original": "unit.dwarf_engineer.region1.png",
+      "sheet": "unit.dwarf_engineer.movement.v61.png",
+      "preservedUpper": 171,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "elf_ranger",
+      "region": 3,
+      "original": "unit.elf_ranger.region3.actions.png",
+      "sheet": "unit.elf_ranger.movement.v61.png",
+      "preservedUpper": 153,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "elf_spellweaver",
+      "region": 3,
+      "original": "unit.elf_spellweaver.region3.actions.png",
+      "sheet": "unit.elf_spellweaver.movement.v61.png",
+      "preservedUpper": 153,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "moonblade",
+      "region": 3,
+      "original": "unit.moonblade.region3.actions.png",
+      "sheet": "unit.moonblade.movement.v61.png",
+      "preservedUpper": 158,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "faelith",
+      "region": 3,
+      "original": "unit.faelith.region3.actions.png",
+      "sheet": "unit.faelith.movement.v61.png",
+      "preservedUpper": 151,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "treesinger",
+      "region": 3,
+      "original": "unit.treesinger.region3.actions.png",
+      "sheet": "unit.treesinger.movement.v61.png",
+      "preservedUpper": 172,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "hawkkeeper",
+      "region": 3,
+      "original": "unit.hawkkeeper.region3.actions.png",
+      "sheet": "unit.hawkkeeper.movement.v61.png",
+      "preservedUpper": 160,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "orc_shaman",
+      "region": 3,
+      "original": "unit.orc_shaman.region3.actions.png",
+      "sheet": "unit.orc_shaman.movement.v61.png",
+      "preservedUpper": 170,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "orc_axethrower",
+      "region": 3,
+      "original": "unit.orc_axethrower.region3.actions.png",
+      "sheet": "unit.orc_axethrower.movement.v61.png",
+      "preservedUpper": 166,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "orc_powderkeg",
+      "region": 3,
+      "original": "unit.orc_powderkeg.region3.actions.png",
+      "sheet": "unit.orc_powderkeg.movement.v61.png",
+      "preservedUpper": 166,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "orc_berserker",
+      "region": 3,
+      "original": "unit.orc_berserker.region3.actions.png",
+      "sheet": "unit.orc_berserker.movement.v61.png",
+      "preservedUpper": 165,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "orc_ironback",
+      "region": 3,
+      "original": "unit.orc_ironback.region3.actions.png",
+      "sheet": "unit.orc_ironback.movement.v61.png",
+      "preservedUpper": null,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "orc",
+      "region": 3,
+      "original": "unit.orc.region3.actions.png",
+      "sheet": "unit.orc.movement.v61.png",
+      "preservedUpper": 169,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "warden",
+      "region": 4,
+      "original": "unit.warden.region4.actions.png",
+      "sheet": "unit.warden.movement.v61.png",
+      "preservedUpper": 155,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "netcaster",
+      "region": 4,
+      "original": "unit.netcaster.region4.actions.png",
+      "sheet": "unit.netcaster.movement.v61.png",
+      "preservedUpper": 166,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "houndmaster",
+      "region": 4,
+      "original": "unit.houndmaster.region4.actions.png",
+      "sheet": "unit.houndmaster.movement.v61.png",
+      "preservedUpper": 170,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "seraphina",
+      "region": 4,
+      "original": "unit.seraphina.region4.actions.png",
+      "sheet": "unit.seraphina.movement.v61.png",
+      "preservedUpper": 163,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "dire_wolf",
+      "region": 4,
+      "original": "unit.dire_wolf.region4.actions.png",
+      "sheet": "unit.dire_wolf.movement.v61.png",
+      "preservedUpper": null,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "boar",
+      "region": 4,
+      "original": "unit.boar.region4.actions.png",
+      "sheet": "unit.boar.movement.v61.png",
+      "preservedUpper": null,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "giant_spider",
+      "region": 4,
+      "original": "unit.giant_spider.region4.actions.png",
+      "sheet": "unit.giant_spider.movement.v61.png",
+      "preservedUpper": null,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "cave_bear",
+      "region": 4,
+      "original": "unit.cave_bear.region4.actions.png",
+      "sheet": "unit.cave_bear.movement.v61.png",
+      "preservedUpper": null,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "beastlord",
+      "region": 4,
+      "original": "unit.beastlord.region4.actions.png",
+      "sheet": "unit.beastlord.movement.v61.png",
+      "preservedUpper": 178,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "thornback",
+      "region": 4,
+      "original": "unit.thornback.region4.actions.png",
+      "sheet": "unit.thornback.movement.v61.png",
+      "preservedUpper": null,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "packmother",
+      "region": 4,
+      "original": "unit.packmother.region4.actions.png",
+      "sheet": "unit.packmother.movement.v61.png",
+      "preservedUpper": null,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "spitting_lizard",
+      "region": 4,
+      "original": "unit.spitting_lizard.region4.actions.png",
+      "sheet": "unit.spitting_lizard.movement.v61.png",
+      "preservedUpper": null,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "harpooner",
+      "region": 5,
+      "original": "unit.harpooner.region5.actions.png",
+      "sheet": "unit.harpooner.movement.v61.png",
+      "preservedUpper": 165,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "tidecaller",
+      "region": 5,
+      "original": "unit.tidecaller.region5.actions.png",
+      "sheet": "unit.tidecaller.movement.v61.png",
+      "preservedUpper": 171,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "deepwatch",
+      "region": 5,
+      "original": "unit.deepwatch.region5.actions.png",
+      "sheet": "unit.deepwatch.movement.v61.png",
+      "preservedUpper": 171,
+      "retained": []
+    },
+    {
+      "id": "nerion",
+      "region": 5,
+      "original": "unit.nerion.region5.actions.png",
+      "sheet": "unit.nerion.movement.v61.png",
+      "preservedUpper": 172,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "drowned_sailor",
+      "region": 5,
+      "original": "unit.drowned_sailor.region5.actions.png",
+      "sheet": "unit.drowned_sailor.movement.v61.png",
+      "preservedUpper": 159,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "reef_crawler",
+      "region": 5,
+      "original": "unit.reef_crawler.region5.actions.png",
+      "sheet": "unit.reef_crawler.movement.v61.png",
+      "preservedUpper": null,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "siren",
+      "region": 5,
+      "original": "unit.siren.region5.actions.png",
+      "sheet": "unit.siren.movement.v61.png",
+      "preservedUpper": null,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "tide_raider",
+      "region": 5,
+      "original": "unit.tide_raider.region5.actions.png",
+      "sheet": "unit.tide_raider.movement.v61.png",
+      "preservedUpper": 174,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "deep_serpent",
+      "region": 5,
+      "original": "unit.deep_serpent.region5.actions.png",
+      "sheet": "unit.deep_serpent.movement.v61.png",
+      "preservedUpper": null,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "tide_witch",
+      "region": 5,
+      "original": "unit.tide_witch.region5.actions.png",
+      "sheet": "unit.tide_witch.movement.v61.png",
+      "preservedUpper": null,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "barnacle_hulk",
+      "region": 5,
+      "original": "unit.barnacle_hulk.region5.actions.png",
+      "sheet": "unit.barnacle_hulk.movement.v61.png",
+      "preservedUpper": 171,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "kelp_thrall",
+      "region": 5,
+      "original": "unit.kelp_thrall.region5.actions.png",
+      "sheet": "unit.kelp_thrall.movement.v61.png",
+      "preservedUpper": 173,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "templar",
+      "region": 6,
+      "original": "unit.templar.region6.actions.png",
+      "sheet": "unit.templar.movement.v61.png",
+      "preservedUpper": 160,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "pavise",
+      "region": 6,
+      "original": "unit.pavise.region6.actions.png",
+      "sheet": "unit.pavise.movement.v61.png",
+      "preservedUpper": 166,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "shieldbreaker",
+      "region": 6,
+      "original": "unit.shieldbreaker.region6.actions.png",
+      "sheet": "unit.shieldbreaker.movement.v61.png",
+      "preservedUpper": 176,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "garrick",
+      "region": 6,
+      "original": "unit.garrick.region6.actions.png",
+      "sheet": "unit.garrick.movement.v61.png",
+      "preservedUpper": 176,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "confessor",
+      "region": 6,
+      "original": "unit.confessor.region6.actions.png",
+      "sheet": "unit.confessor.movement.v61.png",
+      "preservedUpper": 178,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "fallen_crossbow",
+      "region": 6,
+      "original": "unit.fallen_crossbow.region6.actions.png",
+      "sheet": "unit.fallen_crossbow.movement.v61.png",
+      "preservedUpper": 166,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "fallen_knight",
+      "region": 6,
+      "original": "unit.fallen_knight.region6.actions.png",
+      "sheet": "unit.fallen_knight.movement.v61.png",
+      "preservedUpper": 172,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "black_guard",
+      "region": 6,
+      "original": "unit.black_guard.region6.actions.png",
+      "sheet": "unit.black_guard.movement.v61.png",
+      "preservedUpper": 174,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "cultist",
+      "region": 6,
+      "original": "unit.cultist.region6.actions.png",
+      "sheet": "unit.cultist.movement.v61.png",
+      "preservedUpper": 173,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "inquisitor",
+      "region": 6,
+      "original": "unit.inquisitor.region6.actions.png",
+      "sheet": "unit.inquisitor.movement.v61.png",
+      "preservedUpper": 178,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "betrayer",
+      "region": 6,
+      "original": "unit.betrayer.region6.actions.png",
+      "sheet": "unit.betrayer.movement.v61.png",
+      "preservedUpper": 175,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "sworn_lance",
+      "region": 6,
+      "original": "unit.sworn_lance.region6.actions.png",
+      "sheet": "unit.sworn_lance.movement.v61.png",
+      "preservedUpper": 168,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "spearwall",
+      "region": 6,
+      "original": "unit.spearwall.region6.actions.png",
+      "sheet": "unit.spearwall.movement.v61.png",
+      "preservedUpper": 172,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "watchman",
+      "region": 6,
+      "original": "unit.watchman.region6.actions.png",
+      "sheet": "unit.watchman.movement.v61.png",
+      "preservedUpper": 162,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "bell_chanter",
+      "region": 6,
+      "original": "unit.bell_chanter.region6.actions.png",
+      "sheet": "unit.bell_chanter.movement.v61.png",
+      "preservedUpper": 174,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "martyr",
+      "region": 6,
+      "original": "unit.martyr.region6.actions.png",
+      "sheet": "unit.martyr.movement.v61.png",
+      "preservedUpper": null,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "demon_king",
+      "region": 7,
+      "original": "unit.demon_king.region7.actions.png",
+      "sheet": "unit.demon_king.movement.v61.png",
+      "preservedUpper": 171,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "shadow_fiend",
+      "region": 7,
+      "original": "unit.shadow_fiend.region7.actions.png",
+      "sheet": "unit.shadow_fiend.movement.v61.png",
+      "preservedUpper": 170,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "warleader",
+      "region": 7,
+      "original": "unit.warleader.region7.actions.png",
+      "sheet": "unit.warleader.movement.v61.png",
+      "preservedUpper": 175,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "kingsguard",
+      "region": 7,
+      "original": "unit.kingsguard.region7.actions.png",
+      "sheet": "unit.kingsguard.movement.v61.png",
+      "preservedUpper": 176,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "maerwyn",
+      "region": 7,
+      "original": "unit.maerwyn.region7.actions.png",
+      "sheet": "unit.maerwyn.movement.v61.png",
+      "preservedUpper": 176,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "hellhound",
+      "region": 7,
+      "original": "unit.hellhound.region7.actions.png",
+      "sheet": "unit.hellhound.movement.v61.png",
+      "preservedUpper": null,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "portal_fiend",
+      "region": 7,
+      "original": "unit.portal_fiend.region7.actions.png",
+      "sheet": "unit.portal_fiend.movement.v61.png",
+      "preservedUpper": null,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "balor",
+      "region": 7,
+      "original": "unit.balor.region7.actions.png",
+      "sheet": "unit.balor.movement.v61.png",
+      "preservedUpper": 175,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "demon_prince",
+      "region": 7,
+      "original": "unit.demon_prince.region7.actions.png",
+      "sheet": "unit.demon_prince.movement.v61.png",
+      "preservedUpper": 171,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "hell_bombardier",
+      "region": 7,
+      "original": "unit.hell_bombardier.region7.actions.png",
+      "sheet": "unit.hell_bombardier.movement.v61.png",
+      "preservedUpper": 179,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "brimstone_ogre",
+      "region": 7,
+      "original": "unit.brimstone_ogre.region7.actions.png",
+      "sheet": "unit.brimstone_ogre.movement.v61.png",
+      "preservedUpper": 172,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    },
+    {
+      "id": "soul_harvester",
+      "region": 7,
+      "original": "unit.soul_harvester.region7.actions.png",
+      "sheet": "unit.soul_harvester.movement.v61.png",
+      "preservedUpper": null,
+      "retained": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          4
+        ]
+      ]
+    }
+  ]
+}
