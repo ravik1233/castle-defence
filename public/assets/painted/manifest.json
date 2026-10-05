@@ -1889,9 +1889,9 @@
   "bg.barrows": "bg.barrows.region.webp",
   "bg.woods": "bg.woods.region.webp",
   "bg.highland": "bg.highland.region.webp",
-  "bg.coast": "bg.coast.region.webp",
+  "bg.coast": "bg.coast.ground.v62.webp",
   "bg.abyss": "bg.abyss.region.webp",
-  "bg.throne": "bg.throne.region.webp",
+  "bg.throne": "bg.throne.ground.v62.webp",
   "unit.dwarf_warrior.full": "unit.dwarf_warrior.region.png",
   "unit.runesmith.full": "unit.runesmith.region.png",
   "unit.gravewarden.full": "unit.gravewarden.region.png",
@@ -7040,5 +7040,6 @@
   "rampart.broken.throne": "rampart.broken.throne.png",
   "wall.breach.throne": "wall.breach.throne.png",
   "wall.cracks.throne": "wall.cracks.throne.png",
-  "_movement_v61": "All 67 formerly idle-only moving painted sets now have two movement contacts; Gatebreaker is a stationary build. Existing walk cycles are retained."
+  "_movement_v61": "All 67 formerly idle-only moving painted sets now have two movement contacts; Gatebreaker is a stationary build. Existing walk cycles are retained.",
+  "_environment_v62": "Coast and throne backgrounds have clear playable ground; all seven regions use runtime material transitions, ambient lighting and grounded structure bases."
 }

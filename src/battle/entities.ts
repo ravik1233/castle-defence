@@ -9,6 +9,8 @@ import Phaser from 'phaser';
 import { characterArt } from '../art/compose';
 import { ALL_CHARACTER_ART } from '../art/cast';
 import { paintedFrameSet, type PaintedFrames } from '../art/registry';
+import { BuildingGround, lightStructure, visibleArtBounds } from '../art/grounding';
+import type { BiomeId } from '../art/scenery';
 import type { ProjectileId } from '../art/props';
 import { GRID, KEEP, KEEP_STRIP, WALL_FACE_X, cellCenter, isWallCol, laneGroundY } from '../core/layout';
 import type { DamageType, DefenderDef, EnemyDef, EnemySpecial, TileKind } from '../data/types';
@@ -35,6 +37,7 @@ export interface BattleWorld {
    *  is already taken by Phaser's own ScenePlugin. */
   stage: Phaser.Scene;
   chapter: number;
+  readonly biome: BiomeId;
   readonly enemies: Enemy[];
   readonly defenders: Defender[];
   /** Rally buff multiplier on defender attack speed, 1 when inactive. */
@@ -154,6 +157,8 @@ export class Defender {
 
   private readonly rig?: Rig;
   private readonly sprite?: Phaser.GameObjects.Image;
+  private readonly buildingGround?: BuildingGround;
+  private readonly buildingHeight?: number;
   /** Optional authored poses for a siege structure such as Gatebreaker. */
   private readonly buildFrames?: PaintedFrames;
   private readonly bar: HealthBar;
@@ -202,18 +207,23 @@ export class Defender {
     } else {
       // Siege structures can carry authored poses just like units. Gatebreaker
       // uses its own tower sheet; ordinary static structures keep their key.
-      this.buildFrames = paintedFrameSet(def.id);
+      const authored = paintedFrameSet(def.id);
+      this.buildFrames = authored?.sheet && scene.textures.exists(`unit.${def.id}.sheet`) ? authored : undefined;
       const texture = this.buildFrames?.sheet ? `unit.${def.id}.sheet` : def.art.key;
       this.sprite = scene.add.image(this.x, this.y, texture, this.buildFrames ? 0 : undefined);
-      this.sprite.setOrigin(0.5, 1);
+      const bounds = visibleArtBounds(scene, texture, this.buildFrames ? 0 : '__BASE');
+      this.sprite.setOrigin(0.5, bounds.originY);
       // Fit the building to its lane rather than trusting a fixed scale: the
       // textures are supersampled, so a raw scale is meaningless.
       const fit = Math.min(
-        (GRID.cellH * 0.86) / this.sprite.height,
-        (GRID.cellW * 0.86) / this.sprite.width,
+        (GRID.cellH * 0.86) / bounds.height,
+        (GRID.cellW * 0.86) / bounds.width,
       );
       this.sprite.setScale(fit);
+      this.buildingHeight = bounds.height * fit;
       this.sprite.setDepth(this.y);
+      lightStructure(this.sprite, world.biome);
+      this.buildingGround = new BuildingGround(scene, world.biome, this.x, this.y, bounds.width * fit, isWallCol(col));
       scene.tweens.add({
         targets: this.sprite,
         scaleY: { from: fit * 0.55, to: fit },
@@ -226,7 +236,7 @@ export class Defender {
   }
 
   get topY(): number {
-    return this.y - (this.rig ? this.rig.worldHeight : (this.sprite?.displayHeight ?? 110));
+    return this.y - (this.rig ? this.rig.worldHeight : (this.buildingHeight ?? 110));
   }
 
   takeDamage(amount: number): void {
@@ -241,7 +251,9 @@ export class Defender {
     this.rig?.flash(0xff8888, 90);
     this.sprite?.setTintFill(0xffaaaa);
     if (this.sprite) {
-      this.world.stage.time.delayedCall(80, () => this.sprite?.clearTint());
+      this.world.stage.time.delayedCall(80, () => {
+        if (this.sprite?.active) lightStructure(this.sprite, this.world.biome);
+      });
     }
     if (this.hp <= 0) this.kill();
   }
@@ -271,7 +283,10 @@ export class Defender {
           alpha: 0,
           scaleY: 0.4,
           duration: 260,
-          onComplete: () => this.sprite?.destroy(),
+          onComplete: () => {
+            this.sprite?.destroy();
+            this.buildingGround?.destroy();
+          },
         });
       };
       if (deathFrame !== undefined) this.world.stage.time.delayedCall(520, fade);
@@ -283,6 +298,7 @@ export class Defender {
   destroy(): void {
     this.rig?.destroy();
     this.sprite?.destroy();
+    this.buildingGround?.destroy();
     this.bar.destroy();
   }
 
@@ -533,6 +549,7 @@ export class Defender {
   private moveArt(): void {
     this.rig?.setPosition(this.x, this.y);
     this.sprite?.setPosition(this.x, this.y + 6);
+    this.buildingGround?.setPosition(this.x, this.y + 6);
   }
 
   /** Whether this unit can strike a flyer at all, from where it stands now. */

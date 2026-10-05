@@ -28,8 +28,10 @@ import {
   laneGroundY,
   rowFromY,
 } from '../core/layout';
-import { BIOMES } from '../art/scenery';
+import { BIOMES, type BiomeId } from '../art/scenery';
 import { themeFor } from '../art/regions';
+import { ENVIRONMENT_MATERIAL } from '../art/environment';
+import { groundPatch } from '../art/grounding';
 import { Atmosphere } from '../battle/atmosphere';
 import { Tutorial, type TutorialHost } from '../battle/tutorial';
 import { quality } from '../systems/quality';
@@ -825,6 +827,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
    */
   private drawGround(): void {
     const ui = themeFor(this.levelDef.biome);
+    const material = ENVIRONMENT_MATERIAL[this.levelDef.biome];
     // Painted scenery has no baked-in lane geometry. Keep boundaries aligned
     // with the actual placement grid at every display size.
     {
@@ -868,6 +871,7 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
               // damp-earth wash, and an overlapping pixel column draws it twice
               // and shows up as a dark line at every cell boundary.
               .setDisplaySize(GRID.cellW, GRID.cellH)
+              .setTint(material.light)
               .setDepth(-880);
           }
           col = end;
@@ -897,7 +901,15 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
          */
         const c = cellCenter(row, col);
         const key = this.regionArt(`tile.${kind}`);
+        // A wide feathered transition borrows the region's ground material.
+        // The feature keeps its own silhouette and the placement cell stays exact.
+        this.add.image(c.x, c.y + 24, groundPatch(this, this.levelDef.biome, material.paving ? 'stone' : 'earth'))
+          .setDisplaySize(GRID.cellW * 1.35, GRID.cellH * 0.64)
+          .setAlpha(kind === 'shrine' || kind === 'seam' ? 0.55 : 0.8)
+          .setDepth(isWallCol(col) ? -868 : -881);
         const img = this.add.image(c.x, c.y, key).setDepth(isWallCol(col) ? -867 : -880);
+        img.setTint(material.light, material.light, material.baseLight, material.baseLight);
+        if (kind === 'rubble' || kind === 'tallgrass') img.setFlipX((row + col) % 2 === 1);
         if (isPainted(key) && img.width >= GRID.cellW * 2 && img.height >= GRID.cellH * 2) {
           img.setScale(0.5);
         } else {
@@ -1841,6 +1853,8 @@ export class BattleScene extends Phaser.Scene implements BattleWorld {
   get stage(): Phaser.Scene {
     return this;
   }
+
+  get biome(): BiomeId { return this.levelDef.biome; }
 
   defenderAt(row: number, col: number): Defender | undefined {
     return this.occupancy.get(`${row},${col}`);

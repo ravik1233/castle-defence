@@ -6,7 +6,7 @@
  * idempotent and safe to await repeatedly.
  */
 import type Phaser from 'phaser';
-import { BACKDROP_SCALE, addTexture, ensureBiome, ensureRegionPaint, ensureUnitArt } from '../art/registry';
+import { BACKDROP_SCALE, addTexture, ensureBiome, ensureRegionPaint, ensureUnitArt, paintedFrameSet } from '../art/registry';
 import { ALL_CASTLE_SKINS, REGION_WALL_SKINS, WALL_SKINS, castleGate, castleKeep, castleWall } from '../art/structures';
 import type { BiomeId } from '../art/scenery';
 import { DESIGN, FIELD, GRID, WALL } from '../core/layout';
@@ -43,7 +43,12 @@ export function castForLevel(levelId: string): string[] {
     ids.add('guardian');
   }
   for (const id of profile.effectiveDeck()) {
-    try { addUnit(defender(id).art); } catch { /* a card with no def draws nothing */ }
+    try {
+      const card = defender(id);
+      addUnit(card.art);
+      // Authored siege poses stream with the deck just as character poses do.
+      if (card.art.kind === 'build' && paintedFrameSet(card.id)?.sheet) ids.add(card.id);
+    } catch { /* a card with no def draws nothing */ }
   }
   return [...ids];
 }
