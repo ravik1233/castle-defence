@@ -28,16 +28,29 @@ export class ContinentScene extends Phaser.Scene {
     const w = DESIGN.width;
     this.add.rectangle(w / 2, DESIGN.height / 2, w, DESIGN.height, 0x121a2a).setDepth(-20);
 
-    this.drawSea();
-    this.drawLand();
+    /*
+     * A painted continent, when the art pack has one, replaces the drawn sea
+     * and coast outright. It is painted for the region positions in
+     * levels.ts (see docs/ART_BIBLE.md), so the cards still land on their
+     * own lands; the roads between them are drawn over it either way.
+     */
+    const painted = this.textures.exists('map.continent');
+    if (painted) {
+      this.add.image(w / 2, DESIGN.height / 2, 'map.continent').setDisplaySize(w, DESIGN.height).setDepth(-18);
+    } else {
+      this.drawSea();
+      this.drawLand();
+    }
     this.drawRoads();
     // The old map texture stays, but as a grain over the drawn continent
     // rather than as the map itself.
-    this.add
-      .image(w / 2, DESIGN.height / 2, 'bg.map')
-      .setDisplaySize(w, DESIGN.height)
-      .setAlpha(0.16)
-      .setDepth(-8);
+    if (!painted) {
+      this.add
+        .image(w / 2, DESIGN.height / 2, 'bg.map')
+        .setDisplaySize(w, DESIGN.height)
+        .setAlpha(0.16)
+        .setDepth(-8);
+    }
     for (const region of CHAPTERS) this.drawRegion(region);
 
     // Header last, over the map, with a plate so the title never fights the

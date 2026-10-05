@@ -232,3 +232,28 @@ Every one of them may be supplied per region (`wall.breach.barrows`), and
 should be: the seven plates are seven different stones. With none painted,
 the game falls back to rubble tiles and a dark block.
 
+### Continent map
+
+`map.continent` replaces the drawn continent on the region-select screen.
+One image, **3840×2160** (2× the 1920×1080 screen), WebP, under ~600 KB. It
+is stretched to the full screen, so paint the whole frame: sea at the edges,
+one continent in the middle.
+
+Each region's card is centred on its land, at these screen positions (×2
+on the canvas). Cards are about 330×200, so keep each region's landmark
+detail around the card rather than under it, and keep the ground under the
+cards dark and low-contrast so the white text on them stays readable:
+
+| Region | Biome | Card centre (1920×1080) |
+| --- | --- | --- |
+| 1 The Broken Fields | `fields` | 221, 685 |
+| 2 The Barrow Moors | `barrows` | 464, 400 |
+| 3 The Ashen Woods | `woods` | 708, 685 |
+| 4 The Iron Highlands | `highland` | 952, 400 |
+| 5 The Drowned Coast | `coast` | 1195, 685 |
+| 6 The Fallen March | `abyss` | 1439, 400 |
+| 7 Throne of the Demon King | `throne` | 1682, 655 |
+
+The top 190 px hold the title plate; keep it calm there. The game draws the
+dotted roads between neighbouring regions on top, so do not paint roads.
+
